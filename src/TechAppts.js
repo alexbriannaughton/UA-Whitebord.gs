@@ -6,6 +6,7 @@ function addTechAppt(appointment) {
     ['CH', 'K6:O21'],
     ['DT', 'L3:N11'],
     ['WC', 'K4:M13']
+    // we are intentionally leaving out the 'in ezyvet' checkbox column bc we dont care if it's true or false to add a patient here
   ]);
   const techBoxCoords = techBoxCoordsMap.get(location);
   const techApptRange = sheet.getRange(techBoxCoords);

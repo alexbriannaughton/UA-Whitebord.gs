@@ -46,7 +46,7 @@ function getTime(timestamp) {
     ? `0${now.getMinutes()}`
     : now.getMinutes();
   return hour + ":" + minute;
-}
+};
 
 // check which urban animal facility based on appointment resource id
 // note: webhooks send resourceIDs as numbers, but get requests for appointments send resourceIDs as strings
@@ -97,7 +97,7 @@ function whichLocation(resourceID) {
     );
 
   return resourceIDToLocationMap.get(resourceID);
-}
+};
 
 // check if status ID is an appointment status for being in a room
 function isRoomStatus(statusID) {
@@ -109,7 +109,7 @@ function isRoomStatus(statusID) {
   // 40, // in cat lobby
 
   return (statusID >= 25 && statusID <= 33) || [18, 36, 39, 40].includes(statusID);
-}
+};
 
 // use fetchAndParse() to store pet name and species from /animal endpoint
 function getAnimalInfo(animalID) {
@@ -119,7 +119,7 @@ function getAnimalInfo(animalID) {
   const species = speciesMap[animal.species_id] || '';
 
   return [animal.name, species];
-}
+};
 
 // use fetchAndParse() to store last name from /contact endpoint
 function getLastName(contactID) {
@@ -127,7 +127,7 @@ function getLastName(contactID) {
   const lastName = fetchAndParse(url).items.at(-1).contact.last_name;
 
   return lastName;
-}
+};
 
 // this is like a promise.all to get animal name and last name at the same time
 function getAnimalInfoAndLastName(animalID, contactID) {
@@ -168,7 +168,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
   const contactLastName = parsedContact.items.at(-1).contact.last_name;
 
   return [animal.name, animalSpecies, contactLastName]
-}
+};
 
 function makeLink(text, webAddress) {
   return SpreadsheetApp
@@ -176,7 +176,7 @@ function makeLink(text, webAddress) {
     .setText(text)
     .setLinkUrl(webAddress)
     .build();
-}
+};
 
 function createCheckbox() {
   return SpreadsheetApp
@@ -184,7 +184,7 @@ function createCheckbox() {
     .requireCheckbox()
     .setAllowInvalid(false)
     .build();
-}
+};
 
 // for this appointments room, findTargetCell() returns the range object for the cell that we want to manipulate, i.e. the ready cell or the ok to checkout cell
 // returns undefined if we do not find a cell that contains a link with this appointments consult id or contact id
@@ -203,7 +203,7 @@ function findTargetCell(
     targetCellRowsBelowMain
   );
 
-}
+};
 
 function getLocationPtCellRanges(location, sheet) {
   // if location === 'WC', these are the only coords
@@ -216,26 +216,22 @@ function getLocationPtCellRanges(location, sheet) {
   }
 
   return sheet.getRangeList(possCoords).getRanges();
-}
+};
 
 function checkLinksForID(
   locationPtCellRanges,
   appointment,
   targetCellRowsBelowMain
 ) {
-
-  for (let i = 0; i < locationPtCellRanges.length; i++) {
-    const ptCell = locationPtCellRanges[i];
+  for (ptCell of locationPtCellRanges) {
     const link = ptCell.getRichTextValue().getLinkUrl();
-
     if (!link) continue;
-
     if (foundCorrectRoom(link, appointment)) {
       return ptCell.offset(targetCellRowsBelowMain, 0);
     }
   }
 
-}
+};
 
 function foundCorrectRoom(link, appointment) {
   const linkIDInfo = link.split('?')[1] // this is the query string
@@ -243,8 +239,8 @@ function foundCorrectRoom(link, appointment) {
     .map((str) => str.split('=')[1]); // this is [idType, id]
   const linkIDType = linkIDInfo[0];
   const linkID = parseInt(linkIDInfo[1]);
-  return (linkIDType === 'Consult' && linkID === appointment.consult_id) || (linkIDType === 'Contact' && linkID === appointment.contact_id)
-}
+  return (linkIDType === 'Consult' && linkID === appointment.consult_id) || (linkIDType === 'Contact' && linkID === appointment.contact_id);
+};
 
 // findEmptyRow() returns the range for the highest unpopulated row within the given range
 // will return null if there's already a link with this appointment's consult id within the range
@@ -261,9 +257,9 @@ function findEmptyRow(range, consultID, keyToConsultID) {
 
     // if we haven't already found the highest empty row and every item within this rowContents array is falsy, this is the highest empty row
     if (!emptyRowRange && rowContents[i].every(cellContents => !cellContents)) {
-      emptyRowRange = range.offset(i, 0, 1)
+      emptyRowRange = range.offset(i, 0, 1);
     }
   }
 
   return emptyRowRange;
-}
+};
