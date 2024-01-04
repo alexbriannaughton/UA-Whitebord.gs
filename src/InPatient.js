@@ -37,8 +37,8 @@ function populateInpatientRow(appointment, rowRange) {
 
 // this will run with a daily trigger to put scheduled procedures in the in patient box.
 function getTodaysAppointments() {
-  const today = getTodayRange();
-  const url = `${proxy}/v1/appointment?time_range_start=${today[0]}&time_range_end=${today[1]}&limit=200`;
+  const [todayStart, todayEnd] = getTodayRange();
+  const url = `${proxy}/v1/appointment?time_range_start=${todayStart}&time_range_end=${todayEnd}&limit=200`;
   const appts = fetchAndParse(url);
   return handleTodaysProcedures(appts.items);
 };
