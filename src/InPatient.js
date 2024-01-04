@@ -128,6 +128,8 @@ function getColorAndSortValue(procedure) {
     procedure.sortValue = 6;
   }
   else procedure.sortValue = 3; // put before im, dental and h/c if type_id not mentioned above
+
+  return procedure;
 }
 
 function getTypeIDToNameMap() {
