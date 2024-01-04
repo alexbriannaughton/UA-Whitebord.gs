@@ -194,10 +194,7 @@ function sortAndColorProcedures(allProcedures) {
       procedure.color = '#fce5cd'; // light orangish
       return 6;
     }
-    else { // put before im and h/c, use default color if type_id not mentioned above
-      procedure.color = inpatientDefaultColorMap.get(whichLocation(parseInt(resourceID)));
-      return 3;
-    }
+    else return 3; // put before im and h/c if type_id not mentioned above
   }
 
   for (const oneLocationProcedures of allProcedures) {
@@ -217,7 +214,7 @@ function addScheduledProcedures(oneLocationProcedures, location) {
   for (const procedure of oneLocationProcedures) {
     if (!procedure.animal_id) continue; // skip the empty object
     const rowRange = inpatientBox.offset(rowOfInpatientBox++, 0, 1, numOfColumnsInBox);
-    rowRange.setBackground(procedure.color);
+    rowRange.setBackground(procedure.color || inpatientDefaultColorMap.get(location));
     populateInpatientRow(procedure, rowRange);
   }
   return;
