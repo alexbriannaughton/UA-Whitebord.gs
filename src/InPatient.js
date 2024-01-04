@@ -40,7 +40,7 @@ function getTodaysAppointments() {
   const [todayStart, todayEnd] = getTodayRange();
   const url = `${proxy}/v1/appointment?time_range_start=${todayStart}&time_range_end=${todayEnd}&limit=200`;
   const appts = fetchAndParse(url);
-  return handleTodaysProcedures(appts.items);
+  return processProcedures(appts.items);
 };
 
 function getTodayRange() {
@@ -62,48 +62,75 @@ function handleTodaysProcedures(apptItems) {
     addScheduledProcedures(allProcedures[location], location)
   }
 
-  return;
 };
 
-function checkIfProcedure(apptItems) {
-  // CH Procedure 1, 2 = resource ids 29, 30,
-  // CH INT MED, IM procedure resource ids = 27, 65
-  const chProcedureIDs = new Set(['29', '30', '27', '65']);
+function processProcedures(apptItems) {
+  const procedures = { 'CH': [], 'DT': [], 'WC': [] };
 
-  // DT Procedure 1, 2 = resource ids 57, 58
-  const dtProcedureIDs = new Set(['57', '58']);
-
-  // WC Procedure 1, 2 = resource ids 61, 62
-  const wcProcedureIDs = new Set(['61', '62']);
-
-  // initializing with empty object so that sort/colorize function can be hit even if only one procedure
-  const chProcedures = [{}];
-  const dtProcedures = [{}];
-  const wcProcedures = [{}];
-
+  const locationProcedureMap = new Map([
+    ['29', 'CH'], ['30', 'CH'], // cap hill resource ids for procedure columns
+    ['27', 'CH'], ['65', 'CH'], // cap hill resource ids for IM columns
+    ['57', 'DT'], ['58', 'DT'], // dt resource ids for procedure columns
+    ['61', 'WC'], ['62', 'WC'], // wc resource ids for procedure columns
+  ]);
 
   apptItems.forEach(({ appointment }) => {
     const resourceID = appointment.details.resource_list[0];
-
-    if (chProcedureIDs.has(resourceID)) {
-      chProcedures.push(appointment.details);
+    const procedureLocation = locationProcedureMap.get(resourceID);
+    if (procedureLocation) {
+      const procedure = getColorAndSortValue(appointment.details);
+      procedures[procedureLocation].push(procedure);
     }
-    else if (dtProcedureIDs.has(resourceID)) {
-      dtProcedures.push(appointment.details);
-    }
-    else if (wcProcedureIDs.has(resourceID)) {
-      wcProcedures.push(appointment.details);
-    }
-  })
+  });
 
-  return {
-    'CH': chProcedures,
-    'DT': dtProcedures,
-    'WC': wcProcedures
-  };
-};
+  for (const location in procedures) {
+    procedures[location].sort((a, b) => a.sortValue - b.sortValue);
+    addScheduledProcedures(procedures[location], location);
+  }
+}
 
-function sortAndColorProcedures(allProcedures) {
+function getColorAndSortValue(procedure) {
+  // this function sorts procedures by type and adds a color to the procedure/appointment object
+  const typeIDToNameMap = getTypeIDToNameMap();
+  const resourceID = procedure.resource_list?.at(0);
+  if (!resourceID) return;
+
+  const procedureName = typeIDToNameMap.get(procedure.appointment_type_id);
+
+  // anything that is in the IM column, despite the appointment_type, will be grouped as IM
+  if (resourceID === '27' || resourceID === '65') {
+    procedure.color = '#d9d2e9'; // light purple
+    procedure.sortValue = 5;
+  }
+  else if (procedureName === 'sx') {
+    procedure.color = '#fff2cc'; // light yellowish
+    procedure.sortValue = 0;
+  }
+  else if (procedureName === 'aus') {
+    procedure.color = '#cfe2f3'; // light blue 3
+    procedure.sortValue = 1;
+  }
+  else if (procedureName === 'echo') {
+    procedure.color = '#f4cccc'; // light red
+    procedure.sortValue = 2;
+  }
+  // we are sorting 'secondary' as OTHER
+  // else if (procedureName === 'secondary') {
+  //   procedure.color = '#fff2cc'; // light yellowish
+  //   return 3; 
+  // }
+  else if (procedureName === 'dental') {
+    procedure.color = '#d9ead3'; // light green
+    procedure.sortValue = 4;
+  }
+  else if (procedureName === 'h/c') {
+    procedure.color = '#fce5cd'; // light orangish
+    procedure.sortValue = 6;
+  }
+  else procedure.sortValue = 3; // put before im, dental and h/c if type_id not mentioned above
+}
+
+function getTypeIDToNameMap() {
   const typeIDToNameMap = new Map();
 
   // ezyVet typeID: procedure name
@@ -152,6 +179,50 @@ function sortAndColorProcedures(allProcedures) {
 
   // health certificate appointments, just one id, and it's its own category. health certificate is 81
   typeIDToNameMap.set('81', 'h/c');
+
+  return typeIDToNameMap;
+}
+
+function checkIfProcedure(apptItems) {
+  // CH Procedure 1, 2 = resource ids 29, 30,
+  // CH INT MED, IM procedure resource ids = 27, 65
+  const chProcedureIDs = new Set(['29', '30', '27', '65']);
+
+  // DT Procedure 1, 2 = resource ids 57, 58
+  const dtProcedureIDs = new Set(['57', '58']);
+
+  // WC Procedure 1, 2 = resource ids 61, 62
+  const wcProcedureIDs = new Set(['61', '62']);
+
+  // initializing with empty object so that sort/colorize function can be hit even if only one procedure
+  const chProcedures = [{}];
+  const dtProcedures = [{}];
+  const wcProcedures = [{}];
+
+
+  apptItems.forEach(({ appointment }) => {
+    const resourceID = appointment.details.resource_list[0];
+
+    if (chProcedureIDs.has(resourceID)) {
+      chProcedures.push(appointment.details);
+    }
+    else if (dtProcedureIDs.has(resourceID)) {
+      dtProcedures.push(appointment.details);
+    }
+    else if (wcProcedureIDs.has(resourceID)) {
+      wcProcedures.push(appointment.details);
+    }
+  })
+
+  return {
+    'CH': chProcedures,
+    'DT': dtProcedures,
+    'WC': wcProcedures
+  };
+};
+
+function sortAndColorProcedures(allProcedures) {
+  const typeIDToNameMap = getTypeIDToNameMap();
 
   function getColorAndSortValue(procedure) {
     // this function sorts procedures by type and adds a color to the procedure/appointment object
