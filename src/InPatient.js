@@ -51,24 +51,17 @@ function getTodayRange() {
 };
 
 function handleTodaysProcedures(apptItems) {
-  // check if appointment is in the procedure column via the ezyvet resource id number, and put it into its corresponding location's array
-  const allLocationProcedures = checkIfProcedure(apptItems);
+  // check if appointment is in the procedure column via the ezyvet resource id number, and sort them by location
+  const allProcedures = checkIfProcedure(apptItems);
 
   // sort the procedures based on if its surgery, im, dental, etc.
   // and give it a color based on those categories
-  sortAndColorProcedures(allLocationProcedures);
+  sortAndColorProcedures(allProcedures);
 
-  // allLocationProcedures = [chProcedures, dtProcedures, wcProcedures], therefore,
-  const indexToLocationMap = new Map([
-    [0, 'CH'],
-    [1, 'DT'],
-    [2, 'WC']
-  ]);
-
-  // add the filtered / sorted procedures to the inpatient box
-  allLocationProcedures.forEach((oneLocationProcedures, i) => {
-    addScheduledProcedures(oneLocationProcedures, indexToLocationMap.get(i));
-  });
+  for (location in allProcedures) {
+    const oneLocationProcedures = allProcedures[location];
+    addScheduledProcedures(oneLocationProcedures, location)
+  }
 
   return;
 };
@@ -104,7 +97,11 @@ function checkIfProcedure(apptItems) {
     }
   })
 
-  return [chProcedures, dtProcedures, wcProcedures];
+  return {
+    'CH': chProcedures,
+    'DT': dtProcedures,
+    'WC': wcProcedures
+  };
 };
 
 function sortAndColorProcedures(allProcedures) {
@@ -197,14 +194,13 @@ function sortAndColorProcedures(allProcedures) {
     else return 3; // put before im and h/c if type_id not mentioned above
   }
 
-  for (const oneLocationProcedures of allProcedures) {
-    oneLocationProcedures.sort((a, b) => getColorAndSortValue(a) - getColorAndSortValue(b));
+  for (const location in allProcedures) {
+    allProcedures[location].sort((a, b) => getColorAndSortValue(a) - getColorAndSortValue(b));
   }
 
   return;
 };
 
-// procedure cells start at B14:C14, E14:F14 for both WC and DT
 function addScheduledProcedures(oneLocationProcedures, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
   const inpatientBox = sheet.getRange(inpatientBoxCoords(location));
