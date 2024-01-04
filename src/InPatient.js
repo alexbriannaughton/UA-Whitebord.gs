@@ -76,13 +76,13 @@ function handleTodaysProcedures(apptItems) {
 function checkIfProcedure(apptItems) {
   // CH Procedure 1, 2 = resource ids 29, 30,
   // CH INT MED, IM procedure resource ids = 27, 65
-  const chProcedureIDs = ['29', '30', '27', '65'];
+  const chProcedureIDs = new Set(['29', '30', '27', '65']);
 
   // DT Procedure 1, 2 = resource ids 57, 58
-  const dtProcedureIDs = ['57', '58'];
+  const dtProcedureIDs = new Set(['57', '58']);
 
   // WC Procedure 1, 2 = resource ids 61, 62
-  const wcProcedureIDs = ['61', '62'];
+  const wcProcedureIDs = new Set(['61', '62']);
 
   // initializing with empty object so that sort/colorize function can be hit even if only one procedure
   const chProcedures = [{}];
@@ -93,13 +93,13 @@ function checkIfProcedure(apptItems) {
   apptItems.forEach(({ appointment }) => {
     const resourceID = appointment.details.resource_list[0];
 
-    if (chProcedureIDs.includes(resourceID)) {
+    if (chProcedureIDs.has(resourceID)) {
       chProcedures.push(appointment.details);
     }
-    else if (dtProcedureIDs.includes(resourceID)) {
+    else if (dtProcedureIDs.has(resourceID)) {
       dtProcedures.push(appointment.details);
     }
-    else if (wcProcedureIDs.includes(resourceID)) {
+    else if (wcProcedureIDs.has(resourceID)) {
       wcProcedures.push(appointment.details);
     }
   })
