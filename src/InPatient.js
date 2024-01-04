@@ -59,8 +59,7 @@ function handleTodaysProcedures(apptItems) {
   sortAndColorProcedures(allProcedures);
 
   for (location in allProcedures) {
-    const oneLocationProcedures = allProcedures[location];
-    addScheduledProcedures(oneLocationProcedures, location)
+    addScheduledProcedures(allProcedures[location], location)
   }
 
   return;
@@ -191,7 +190,7 @@ function sortAndColorProcedures(allProcedures) {
       procedure.color = '#fce5cd'; // light orangish
       return 6;
     }
-    else return 3; // put before im and h/c if type_id not mentioned above
+    else return 3; // put before im, dental and h/c if type_id not mentioned above
   }
 
   for (const location in allProcedures) {
@@ -204,20 +203,20 @@ function sortAndColorProcedures(allProcedures) {
 function addScheduledProcedures(oneLocationProcedures, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
   const inpatientBox = sheet.getRange(inpatientBoxCoords(location));
-  clearInpatientBox(inpatientBox, location);
+  const defaultColor = inpatientDefaultColorMap.get(location);
+  clearInpatientBox(inpatientBox, defaultColor);
   const numOfColumnsInBox = inpatientBox.getNumColumns();
   let rowOfInpatientBox = 0;
   for (const procedure of oneLocationProcedures) {
     if (!procedure.animal_id) continue; // skip the empty object
     const rowRange = inpatientBox.offset(rowOfInpatientBox++, 0, 1, numOfColumnsInBox);
-    rowRange.setBackground(procedure.color || inpatientDefaultColorMap.get(location));
+    rowRange.setBackground(procedure.color || defaultColor);
     populateInpatientRow(procedure, rowRange);
   }
   return;
 };
 
-function clearInpatientBox(inpatientBox, location) {
-  const color = inpatientDefaultColorMap.get(location);
+function clearInpatientBox(inpatientBox, color) {
   inpatientBox
     .clearContent()
     .setBackground(color)
