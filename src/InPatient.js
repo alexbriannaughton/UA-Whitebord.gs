@@ -158,7 +158,7 @@ function sortAndColorProcedures(allProcedures) {
   typeIDToNameMap.set('81', 'h/c');
 
   function getColorAndSortValue(procedure) {
-    // this function also adds a color to the procedure/appointment object
+    // this function sorts procedures by type and adds a color to the procedure/appointment object
     const resourceID = procedure.resource_list?.at(0);
     if (!resourceID) return;
 
@@ -174,7 +174,7 @@ function sortAndColorProcedures(allProcedures) {
       return 0;
     }
     else if (procedureName === 'aus') {
-      procedure.color = '#fce5cd'; // light orangish
+      procedure.color = '#cfe2f3'; // light blue 3
       return 1;
     }
     else if (procedureName === 'echo') {
@@ -183,7 +183,7 @@ function sortAndColorProcedures(allProcedures) {
     }
     // we are sorting 'secondary' as OTHER
     // else if (procedureName === 'secondary') {
-    //   procedure.color = '#cfe2f3'; // light blue 3
+    //   procedure.color = '#fce5cd'; // light orangish
     //   return 3;
     // }
     else if (procedureName === 'dental') {
@@ -191,7 +191,7 @@ function sortAndColorProcedures(allProcedures) {
       return 4;
     }
     else if (procedureName === 'h/c') {
-      procedure.color = '#d9d2e9'; // light purple
+      procedure.color = '#fce5cd'; // light orangish
       return 6;
     }
     else return 3; // put before im and h/c if type_id not mentioned above
