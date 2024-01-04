@@ -33,8 +33,10 @@ function doPost(e) {
     try {
       const params = JSON.parse(e.postData.contents);
       const apptItems = params.items;
-
+      console.log(`tryIndex: ${tryIndex} // apptItems.length: ${apptItems.length}`); // log for dev only
+      
       for (const { appointment } of apptItems) {
+        console.log(`appointment id: ${appointment.id}`); // log for dev only
         handleAppointment(params.meta.event, appointment);
       }
 

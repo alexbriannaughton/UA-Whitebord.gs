@@ -3,9 +3,9 @@ function addTechAppt(appointment) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
   const techBoxCoordsMap = new Map([
-    ['CH', 'K6:P21'],
-    ['DT', 'L3:O11'],
-    ['WC', 'K4:N12']
+    ['CH', 'K6:O21'],
+    ['DT', 'L3:N11'],
+    ['WC', 'K4:M13']
   ]);
   const techBoxCoords = techBoxCoordsMap.get(location);
   const techApptRange = sheet.getRange(techBoxCoords);
@@ -27,7 +27,7 @@ function addTechAppt(appointment) {
   mainCell.offset(0, -1, 1, 1).setValue(getTime(appointment.created_at));
 
   // check the ezyVet checkbox
-  const checkboxCell = rowRange.offset(0, rowRange.getNumColumns() - 1, 1, 1);
+  const checkboxCell = mainCell.offset(0, 2, 1, 1);
   checkboxCell.setDataValidation(createCheckbox()).setValue(true);
   
 }
