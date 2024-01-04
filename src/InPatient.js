@@ -170,7 +170,7 @@ function sortAndColorProcedures(allProcedures) {
       return 5;
     }
     else if (procedureName === 'sx') {
-      procedure.color = '#d9ead3'; // light green
+      procedure.color = '#fff2cc'; // light yellowish
       return 0;
     }
     else if (procedureName === 'aus') {
@@ -183,11 +183,11 @@ function sortAndColorProcedures(allProcedures) {
     }
     // we are sorting 'secondary' as OTHER
     // else if (procedureName === 'secondary') {
-    //   procedure.color = '#fce5cd'; // light orangish
-    //   return 3;
+    //   procedure.color = '#fff2cc'; // light yellowish
+    //   return 3; 
     // }
     else if (procedureName === 'dental') {
-      procedure.color = '#fff2cc'; // light yellowish
+      procedure.color = '#d9ead3'; // light green
       return 4;
     }
     else if (procedureName === 'h/c') {
