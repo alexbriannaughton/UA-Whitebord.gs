@@ -50,51 +50,43 @@ function getTodayRange() {
   return [todayStart, todayEnd];
 };
 
-function handleTodaysProcedures(apptItems) {
-  // check if appointment is in the procedure column via the ezyvet resource id number, and sort them by location
-  const allProcedures = checkIfProcedure(apptItems);
-
-  // sort the procedures based on if its surgery, im, dental, etc.
-  // and give it a color based on those categories
-  sortAndColorProcedures(allProcedures);
-
-  for (location in allProcedures) {
-    addScheduledProcedures(allProcedures[location], location)
-  }
-
-};
-
 function processProcedures(apptItems) {
-  const procedures = { 'CH': [], 'DT': [], 'WC': [] };
+  const procedures = new Map([
+    ['CH', []],
+    ['DT', []],
+    ['WC', []]
+  ]);
 
-  const locationProcedureMap = new Map([
+  const typeIDToNameMap = getTypeIDToNameMap(); // takes appointment type id and returns string with procedure type like 'sx'
+  const locationForProcedureMap = new Map([
     ['29', 'CH'], ['30', 'CH'], // cap hill resource ids for procedure columns
     ['27', 'CH'], ['65', 'CH'], // cap hill resource ids for IM columns
     ['57', 'DT'], ['58', 'DT'], // dt resource ids for procedure columns
     ['61', 'WC'], ['62', 'WC'], // wc resource ids for procedure columns
-  ]);
+  ]); // this map serves to check if the appointment is in the above column, and sorts per location
 
   apptItems.forEach(({ appointment }) => {
     const resourceID = appointment.details.resource_list[0];
-    const procedureLocation = locationProcedureMap.get(resourceID);
-    if (procedureLocation) {
-      const procedure = getColorAndSortValue(appointment.details);
-      procedures[procedureLocation].push(procedure);
+    const location = locationForProcedureMap.get(resourceID);
+
+    if (location) {
+      const procedure = getColorAndSortValue(
+        appointment.details,
+        resourceID,
+        typeIDToNameMap
+      );
+      procedures.get(location).push(procedure);
     }
   });
 
-  for (const location in procedures) {
-    procedures[location].sort((a, b) => a.sortValue - b.sortValue);
-    addScheduledProcedures(procedures[location], location);
-  }
-}
+  procedures.forEach((locationProcedures, location) => {
+    locationProcedures.sort((a, b) => a.sortValue - b.sortValue);
+    addScheduledProcedures(locationProcedures, location);
+  });
+};
 
-function getColorAndSortValue(procedure) {
+function getColorAndSortValue(procedure, resourceID, typeIDToNameMap) {
   // this function sorts procedures by type and adds a color to the procedure/appointment object
-  const typeIDToNameMap = getTypeIDToNameMap();
-  const resourceID = procedure.resource_list?.at(0);
-  if (!resourceID) return;
-
   const procedureName = typeIDToNameMap.get(procedure.appointment_type_id);
 
   // anything that is in the IM column, despite the appointment_type, will be grouped as IM
@@ -132,6 +124,7 @@ function getColorAndSortValue(procedure) {
   return procedure;
 }
 
+// takes the appointment type id and returns a string of the procedure's type
 function getTypeIDToNameMap() {
   const typeIDToNameMap = new Map();
 
@@ -184,94 +177,6 @@ function getTypeIDToNameMap() {
 
   return typeIDToNameMap;
 }
-
-function checkIfProcedure(apptItems) {
-  // CH Procedure 1, 2 = resource ids 29, 30,
-  // CH INT MED, IM procedure resource ids = 27, 65
-  const chProcedureIDs = new Set(['29', '30', '27', '65']);
-
-  // DT Procedure 1, 2 = resource ids 57, 58
-  const dtProcedureIDs = new Set(['57', '58']);
-
-  // WC Procedure 1, 2 = resource ids 61, 62
-  const wcProcedureIDs = new Set(['61', '62']);
-
-  // initializing with empty object so that sort/colorize function can be hit even if only one procedure
-  const chProcedures = [{}];
-  const dtProcedures = [{}];
-  const wcProcedures = [{}];
-
-
-  apptItems.forEach(({ appointment }) => {
-    const resourceID = appointment.details.resource_list[0];
-
-    if (chProcedureIDs.has(resourceID)) {
-      chProcedures.push(appointment.details);
-    }
-    else if (dtProcedureIDs.has(resourceID)) {
-      dtProcedures.push(appointment.details);
-    }
-    else if (wcProcedureIDs.has(resourceID)) {
-      wcProcedures.push(appointment.details);
-    }
-  })
-
-  return {
-    'CH': chProcedures,
-    'DT': dtProcedures,
-    'WC': wcProcedures
-  };
-};
-
-function sortAndColorProcedures(allProcedures) {
-  const typeIDToNameMap = getTypeIDToNameMap();
-
-  function getColorAndSortValue(procedure) {
-    // this function sorts procedures by type and adds a color to the procedure/appointment object
-    const resourceID = procedure.resource_list?.at(0);
-    if (!resourceID) return;
-
-    const procedureName = typeIDToNameMap.get(procedure.appointment_type_id);
-
-    // anything that is in the IM column, despite the appointment_type, will be grouped as IM
-    if (resourceID === '27' || resourceID === '65') {
-      procedure.color = '#d9d2e9'; // light purple
-      return 5;
-    }
-    else if (procedureName === 'sx') {
-      procedure.color = '#fff2cc'; // light yellowish
-      return 0;
-    }
-    else if (procedureName === 'aus') {
-      procedure.color = '#cfe2f3'; // light blue 3
-      return 1;
-    }
-    else if (procedureName === 'echo') {
-      procedure.color = '#f4cccc'; // light red
-      return 2;
-    }
-    // we are sorting 'secondary' as OTHER
-    // else if (procedureName === 'secondary') {
-    //   procedure.color = '#fff2cc'; // light yellowish
-    //   return 3; 
-    // }
-    else if (procedureName === 'dental') {
-      procedure.color = '#d9ead3'; // light green
-      return 4;
-    }
-    else if (procedureName === 'h/c') {
-      procedure.color = '#fce5cd'; // light orangish
-      return 6;
-    }
-    else return 3; // put before im, dental and h/c if type_id not mentioned above
-  }
-
-  for (const location in allProcedures) {
-    allProcedures[location].sort((a, b) => getColorAndSortValue(a) - getColorAndSortValue(b));
-  }
-
-  return;
-};
 
 function addScheduledProcedures(oneLocationProcedures, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
