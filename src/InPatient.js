@@ -2,7 +2,18 @@
 const inpatientDefaultColorMap = new Map([
   ['CH', '#f3f3f3'], // gray for cap hill
   ['DT', '#d0e0e3'], // cyan for downtown
-  ['WC', '#ead1dc'] // magenta for white center
+  ['WC', '#ead1dc']  // magenta for white center
+]);
+
+// takes appointment.type_id and outputs a string for the procedure type
+const typeIDToNameMap = new Map([
+  ['7', 'sx'], ['76', 'sx'], ['89', 'sx'], ['90', 'sx'],   // Surgery type IDs
+  ['29', 'aus'], ['91', 'aus'],                             // Ultrasound type IDs
+  ['30', 'echo'],                                           // Echocardiogram type ID
+  ['28', 'dental'], ['86', 'dental'], ['94', 'dental'],     // Dental type IDs
+  ['81', 'h/c'],                                            // Health certificate appointment type ID
+  // NOTE: secondary type ids sorted as other
+  // NOTE: IM sorted per its resource id, so no need in this map
 ]);
 
 // returns the cell coordinates for the location's inpatient box
@@ -57,7 +68,6 @@ function processProcedures(apptItems) {
     ['WC', []]
   ]);
 
-  const typeIDToNameMap = getTypeIDToNameMap(); // takes appointment type id and returns string with procedure type like 'sx'
   const locationForProcedureMap = new Map([
     ['29', 'CH'], ['30', 'CH'], // cap hill resource ids for procedure columns
     ['27', 'CH'], ['65', 'CH'], // cap hill resource ids for IM columns
@@ -70,11 +80,7 @@ function processProcedures(apptItems) {
     const location = locationForProcedureMap.get(resourceID);
 
     if (location) {
-      const procedure = getColorAndSortValue(
-        appointment.details,
-        resourceID,
-        typeIDToNameMap
-      );
+      const procedure = getColorAndSortValue(appointment.details, resourceID);
       procedures.get(location).push(procedure);
     }
   });
@@ -85,7 +91,7 @@ function processProcedures(apptItems) {
   });
 };
 
-function getColorAndSortValue(procedure, resourceID, typeIDToNameMap) {
+function getColorAndSortValue(procedure, resourceID) {
   // this function sorts procedures by type and adds a color to the procedure/appointment object
   const procedureName = typeIDToNameMap.get(procedure.appointment_type_id);
 
@@ -106,11 +112,6 @@ function getColorAndSortValue(procedure, resourceID, typeIDToNameMap) {
     procedure.color = '#f4cccc'; // light red
     procedure.sortValue = 2;
   }
-  // we are sorting 'secondary' as OTHER
-  // else if (procedureName === 'secondary') {
-  //   procedure.color = '#fff2cc'; // light yellowish
-  //   return 3; 
-  // }
   else if (procedureName === 'dental') {
     procedure.color = '#d9ead3'; // light green
     procedure.sortValue = 4;
@@ -122,61 +123,7 @@ function getColorAndSortValue(procedure, resourceID, typeIDToNameMap) {
   else procedure.sortValue = 3; // put before im, dental and h/c if type_id not mentioned above
 
   return procedure;
-}
-
-// takes the appointment type id and returns a string of the procedure's type
-function getTypeIDToNameMap() {
-  const typeIDToNameMap = new Map();
-
-  // ezyVet typeID: procedure name
-
-  // surgery type ids:
-  // 7: surgery
-  // 76: spay/neuter
-  // 89: downtown - spay/neuter
-  // 90: downtown - surgery
-  ['7', '76', '89', '90'].forEach(id => typeIDToNameMap.set(id, 'sx'));
-
-  // ultrasound types ids:
-  // 29: ultrasound
-  // 91: downtown - ultrasound
-  ['29', '91'].forEach(id => typeIDToNameMap.set(id, 'aus'));
-
-  // echocardiogram, just one id, and it's its own category. echo id is 30
-  typeIDToNameMap.set('30', 'echo');
-
-  // dental type ids:
-  // 28: dental
-  // 86: downtown - dental
-  // 94: dental - wc friday
-  ['28', '86', '94'].forEach(id => typeIDToNameMap.set(id, 'dental'));
-
-  // secondary type ids:
-  // 31: acth stim test
-  // 32: bile acids test
-  // 33: glucose curve
-  // 36: sedated procedure
-  // 38: LDDST
-  // 82: drop off
-  // 83: hospitalized patient
-  // 88: downtown sedated procedure
-  // HOWEVER, WE ARE TREATING SECONDARY PROCEDURES LIKE 'OTHER'
-  // const secondaryTypeIDs = ['31', '32', '33', '36', '38', '82', '83', '88'];
-  // secondaryTypeIDs.forEach(id => typeIDToNameMap.set(id, 'secondary'))
-
-  // im type ids:
-  // 26: IM consult (department set to CH)
-  // 27: IM recheck(dept set to CH)
-  // 34: IM procedure(dept set to CH)
-  // 35: IM tech appt(dept set to ch)
-  // however, we are sorting a coloring IM appts based on their resource ID.
-  // other words: anything in IM column, despite appt type, is sorted/colorized as IM
-
-  // health certificate appointments, just one id, and it's its own category. health certificate is 81
-  typeIDToNameMap.set('81', 'h/c');
-
-  return typeIDToNameMap;
-}
+};
 
 function addScheduledProcedures(oneLocationProcedures, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
