@@ -256,7 +256,7 @@ function findEmptyRow(range, consultID, keyToConsultID) {
     if (link?.includes(consultID)) return null;
 
     // if we haven't already found the highest empty row and every item within this rowContents array is falsy, this is the highest empty row
-    if (!emptyRowRange && rowContents[i].every(cellContents => !cellContents)) {
+    if (!emptyRowRange && rowContents[i].every(cellContents => !cellContents || cellContents === ' ')) {
       emptyRowRange = range.offset(i, 0, 1);
     }
   }
