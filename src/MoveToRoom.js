@@ -281,8 +281,6 @@ function getContactIDFromConsultID(consultID) {
 }
 
 function deleteFromWaitlist(location, consultID) {
-  console.log(`consult id: ${consultID} at top of deleteFromWaitlist()`);
-
   if (location === 'DT') return;
   const waitlistSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(`${location} Wait List`);
   const patientNameRichText = waitlistSheet.getRange(`C7:D75`).getRichTextValues();
@@ -293,8 +291,6 @@ function deleteFromWaitlist(location, consultID) {
       return waitlistSheet.deleteRow(i + 7);
     }
   }
-
-  console.log(`consult id: ${consultID} at bottom of deleteFromWaitlist()`);
 
   return;
 }
