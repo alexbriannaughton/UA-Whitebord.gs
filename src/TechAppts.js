@@ -16,7 +16,7 @@ function addTechAppt(appointment) {
 
   const [animalName, animalSpecies] = getAnimalInfo(appointment.animal_id);
 
-  const mainCell = rowRange.offset(0, 1, 1);
+  const mainCell = rowRange.offset(0, 1, 1, 1);
 
   // populate main cell: name, species, reason... and make it a link
   const text = `${animalName} (${animalSpecies}) - ${appointment.description}`;
