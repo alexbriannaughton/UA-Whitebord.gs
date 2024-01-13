@@ -32,6 +32,7 @@ function addInPatient(appointment) {
   if (!rowRange) return;
   rowRange.setBackground(inpatientDefaultColorMap.get(location));
   populateInpatientRow(appointment, rowRange);
+  return;
 };
 
 function populateInpatientRow(appointment, rowRange) {

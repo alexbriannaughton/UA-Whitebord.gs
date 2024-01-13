@@ -13,4 +13,6 @@ function okToCheckOut(appointment) {
 
   okCheckbox.setDataValidation(createCheckbox()).setValue(true);
 
+  return;
+
 };

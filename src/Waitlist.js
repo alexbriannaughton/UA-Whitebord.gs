@@ -41,5 +41,7 @@ function addToWaitlist(appointment) {
   // set 'in ezyVet?' checkbox to true
   const ezyVetCell = rowRange.offset(0, 9, 1, 1);
   ezyVetCell.setDataValidation(createCheckbox()).setValue(true);
+
+  return;
   
 }

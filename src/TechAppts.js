@@ -30,5 +30,7 @@ function addTechAppt(appointment) {
   // check the ezyVet checkbox
   const checkboxCell = rowRange.offset(0, rowRange.getNumColumns(), 1, 1);
   checkboxCell.setDataValidation(createCheckbox()).setValue(true);
+
+  return;
   
 }

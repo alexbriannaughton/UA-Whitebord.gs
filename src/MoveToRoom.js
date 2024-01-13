@@ -26,6 +26,8 @@ function moveToRoom(appointment) {
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
   if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, ptCell);
 
+  return;
+
 };
 
 function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, ptCell) {
@@ -56,6 +58,8 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
 
   // delete from the waitlist
   deleteFromWaitlist(location, appointment.consult_id);
+
+  return;
 }
 
 // parseTheRoom() does too much currently. it:

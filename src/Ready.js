@@ -15,4 +15,6 @@ function handleReadyStatus(appointment) {
     readyCell.setValue(text);
   }
 
+  return;
+
 };

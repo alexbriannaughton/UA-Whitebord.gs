@@ -58,6 +58,8 @@ function doPost(e) {
 
   }
 
+  return;
+
 };
 
 // handle the details we care about
@@ -95,6 +97,8 @@ function handleCreatedAppointment(appointment) {
   else if (apptTypeID === 19) {
     return addTechAppt(appointment);
   }
+
+  return;
   
 };
 
@@ -115,5 +119,7 @@ function handleUpdatedAppointment(appointment, apptStatusID) {
   else if (apptStatusID === 34) {
     return addInPatient(appointment);
   }
+
+  return;
 
 };
