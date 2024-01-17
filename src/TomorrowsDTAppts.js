@@ -28,7 +28,7 @@ function getTomorrowsDTAppts() {
         const reasonCell = range.offset(i, 2, 1, 1);
         timeCell.setValue(time);
         const patientText = `${animalName} ${contactLastName} ${animalSpecies}`;
-        const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.details.consult_id}`
+        const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.details.contact_id}`
         const link = makeLink(patientText, webAddress);
         ptCell.setRichTextValue(link);
         reasonCell.setValue(appointment.details.description);
