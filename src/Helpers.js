@@ -161,7 +161,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
   const parsedAnimal = JSON.parse(animalJSON);
   const animal = parsedAnimal.items.at(-1).animal;
   const speciesMap = { 1: 'K9', 2: 'FEL' };
-  const animalSpecies = speciesMap[animal.species_id] || '';
+  const animalSpecies = speciesMap[animal.species_id] || 'Unknown species';
 
   const contactJSON = contactResponse.getContentText();
   const parsedContact = JSON.parse(contactJSON);
