@@ -21,10 +21,16 @@ function getTomorrowsDTAppts() {
 
     for (let i = 0; i < dtAppts.length; i++) {
         const { appointment } = dtAppts[i];
+        const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.details.animal_id, appointment.details.consult_id)
         const time = convertEpochToSeattleTime(appointment.start_time);
         const timeCell = range.offset(i, 0, 1, 1);
+        const ptCell = range.offset(i, 1, 1, 1);
         const reasonCell = range.offset(i, 2, 1, 1);
         timeCell.setValue(time);
+        const patientText = `${animalName} ${contactLastName} ${animalSpecies}`;
+        const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.details.consult_id}`
+        const link = makeLink(patientText, webAddress);
+        ptCell.setRichTextValue(link);
         reasonCell.setValue(appointment.details.description);
     }
 }
