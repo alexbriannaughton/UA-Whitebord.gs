@@ -18,6 +18,7 @@ function getTomorrowsDTAppts() {
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
     const range = sheet.getRange(`A4:C204`)
+    range.clearContent();
 
     for (let i = 0; i < dtAppts.length; i++) {
         const { appointment } = dtAppts[i];
@@ -27,8 +28,8 @@ function getTomorrowsDTAppts() {
         const ptCell = range.offset(i, 1, 1, 1);
         const reasonCell = range.offset(i, 2, 1, 1);
         timeCell.setValue(time);
-        const patientText = `${animalName} ${contactLastName} ${animalSpecies}`;
-        const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.details.consult_id}`
+        const patientText = `${animalName} ${contactLastName} (${animalSpecies})`;
+        const webAddress = `${sitePrefix}/?recordclass=Animal&recordid=${appointment.details.animal_id}`
         const link = makeLink(patientText, webAddress);
         ptCell.setRichTextValue(link);
         reasonCell.setValue(appointment.details.description);
