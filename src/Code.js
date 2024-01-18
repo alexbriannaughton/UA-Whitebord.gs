@@ -28,7 +28,6 @@ function updateToken() {
 
 // receive webhooks here. e = the webhook event
 function doPost(e) {
-  console.log('testing new deployment')
   // exponential backoff tries:
   for (let tryIndex = 0; tryIndex < 5; tryIndex++) {
     try {
