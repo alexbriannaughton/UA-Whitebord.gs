@@ -224,7 +224,7 @@ function checkLinksForID(
   targetCellRowsBelowMain
 ) {
   for (ptCell of locationPtCellRanges) {
-    const link = ptCell.getRichTextValue().getLinkUrl();
+    const link = ptCell.getRichTextValue()?.getLinkUrl();
     if (!link) continue;
     if (foundCorrectRoom(link, appointment)) {
       return ptCell.offset(targetCellRowsBelowMain, 0);
