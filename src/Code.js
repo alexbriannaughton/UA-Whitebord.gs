@@ -29,7 +29,6 @@ function updateToken() {
 // receive webhooks here. e = the webhook event
 function doPost(e) {
   try {
-    console.log('hello new dev test!')
     const params = JSON.parse(e.postData.contents);
     const apptItems = params.items;
 
@@ -116,6 +115,10 @@ function handleUpdatedAppointment(appointment, apptStatusID) {
   // status 22 is 'ready' appointment status
   else if (apptStatusID === 22) {
     return handleReadyStatus(appointment);
+  }
+  // status 23 is 'add to tech column' appointment status
+  else if (apptStatusID === 23) {
+    return addTechAppt(appointment);
   }
   // status id 34 is 'inpatient' status
   else if (apptStatusID === 34) {
