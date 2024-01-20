@@ -249,10 +249,11 @@ function findEmptyRow(range, consultID, keyToConsultID) {
   const rowContents = range.getValues();
   const patientNameRichText = range.getRichTextValues();
   let emptyRowRange;
-
+  console.log('consult id', consultID);
   for (let i = 0; i < rowContents.length; i++) {
+    console.log(patientNameRichText[i][keyToConsultID]);
     const link = patientNameRichText[i][keyToConsultID].getLinkUrl();
-    console.log('tech link:', link);
+    console.log(i, 'tech link:', link);
     // if we find that this patient cell's link has the consult id, that means it's already on the waitlist, so return null
     if (link?.includes(consultID)) return null;
 
