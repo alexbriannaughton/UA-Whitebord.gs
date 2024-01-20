@@ -247,25 +247,23 @@ function foundCorrectRoom(link, appointment) {
 // will return undefined if theres no unpopulated rows left within this range
 function findEmptyRow(range, consultID, keyToConsultID) {
   const rowContents = range.getValues();
-  const richTextValues = range.getRichTextValues();
-  console.log('rich text values:', richTextValues);
+  const allRichTextValues = range.getRichTextValues();
   let emptyRowRange;
-  console.log('consult id', consultID);
   for (let i = 0; i < rowContents.length; i++) {
-    console.log('row: ', i+1);
-    const rowContent = richTextValues[i][keyToConsultID];
-    const allRichTextsInCell = rowContent.getRuns();
+    const cellRichText = allRichTextValues[i][keyToConsultID];
+    const allRichTextsInCell = cellRichText.getRuns();
     for (const richText of allRichTextsInCell) {
       const link = richText.getLinkUrl();
       if (link?.includes(consultID)) return null;
       // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
     }
-    
-
-    // if we haven't already found the highest empty row and every item within this rowContents array is falsy, this is the highest empty row
     if (!emptyRowRange && rowContents[i].every(cellContents => !cellContents || cellContents === ' ')) {
       emptyRowRange = range.offset(i, 0, 1);
     }
+    // if we haven't already found the highest empty row AND
+    // every item within this rowContents array is falsy (or just a space lol),
+    // this is the highest empty row
+
   }
 
   return emptyRowRange;
