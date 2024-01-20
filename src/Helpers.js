@@ -247,18 +247,20 @@ function foundCorrectRoom(link, appointment) {
 // will return undefined if theres no unpopulated rows left within this range
 function findEmptyRow(range, consultID, keyToConsultID) {
   const rowContents = range.getValues();
-  const patientNameRichText = range.getRichTextValues();
+  const richTextValues = range.getRichTextValues();
+  console.log('rich text values:', richTextValues);
   let emptyRowRange;
   console.log('consult id', consultID);
   for (let i = 0; i < rowContents.length; i++) {
-    const rowContent = patientNameRichText[i][keyToConsultID];
-    console.log(i)
+    const rowContent = richTextValues[i][keyToConsultID];
+    console.log('row: ', i+1);
     console.log('getText:', rowContent.getText());
     console.log('toString:', rowContent.toString());
     console.log('getTextStyle: ', rowContent.getTextStyle());
+    console.log('getRuns: ', rowContent.getRuns());
 
-    const link = patientNameRichText[i][keyToConsultID].getLinkUrl();
-    console.log(i, 'tech link:', link);
+    const link = richTextValues[i][keyToConsultID].getLinkUrl();
+    console.log(i, 'link:', link);
     // if we find that this patient cell's link has the consult id, that means it's already on the waitlist, so return null
     if (link?.includes(consultID)) return null;
 
