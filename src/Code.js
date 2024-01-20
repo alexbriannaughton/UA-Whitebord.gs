@@ -29,6 +29,7 @@ function updateToken() {
 // receive webhooks here. e = the webhook event
 function doPost(e) {
   try {
+    console.log('hello new dev test!')
     const params = JSON.parse(e.postData.contents);
     const apptItems = params.items;
 
@@ -41,7 +42,7 @@ function doPost(e) {
 
   catch (error) {
     // wait 3 seconds and try a second time if we get an error
-    console.log(error);
+    console.log('error after the first try:', error);
     Utilities.sleep(3000);
     try {
       const params = JSON.parse(e.postData.contents);
