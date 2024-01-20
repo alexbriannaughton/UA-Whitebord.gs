@@ -254,17 +254,13 @@ function findEmptyRow(range, consultID, keyToConsultID) {
   for (let i = 0; i < rowContents.length; i++) {
     console.log('row: ', i+1);
     const rowContent = richTextValues[i][keyToConsultID];
-    const allRichTextsInRow = rowContent.getRuns();
-    for (const richText of allRichTextsInRow) {
-      console.log('text: ', richText.getText());
+    const allRichTextsInCell = rowContent.getRuns();
+    for (const richText of allRichTextsInCell) {
       const link = richText.getLinkUrl();
-      console.log('link: ', link);
+      if (link?.includes(consultID)) return null;
+      // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
     }
-
-    const link = richTextValues[i][keyToConsultID].getLinkUrl();
-
-    // if we find that this patient cell's link has the consult id, that means it's already on the waitlist, so return null
-    if (link?.includes(consultID)) return null;
+    
 
     // if we haven't already found the highest empty row and every item within this rowContents array is falsy, this is the highest empty row
     if (!emptyRowRange && rowContents[i].every(cellContents => !cellContents || cellContents === ' ')) {
