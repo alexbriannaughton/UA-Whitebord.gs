@@ -254,7 +254,8 @@ function findEmptyRow(range, consultID, keyToConsultID) {
     const rowContent = patientNameRichText[i][keyToConsultID];
     console.log(i)
     console.log('getText:', rowContent.getText());
-    console.log('getText and getLinkUrl:', rowContent.getText().getLinkUrl())
+    console.log('toString:', rowContent.toString());
+    console.log('getTextStyle: ', rowContent.getTextStyle());
 
     const link = patientNameRichText[i][keyToConsultID].getLinkUrl();
     console.log(i, 'tech link:', link);
