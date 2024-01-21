@@ -45,6 +45,7 @@ function doPost(e) {
     Utilities.sleep(3000);
     try {
       const params = JSON.parse(e.postData.contents);
+      console.log('second try params:', params);
       const apptItems = params.items;
 
       for (const { appointment } of apptItems) {
