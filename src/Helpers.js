@@ -194,27 +194,17 @@ function findTargetCell(
   appointment,
   targetCellRowsBelowMain // number of rows down that the target cell is from the patient cell
 ) {
-
   const locationPtCellRanges = getLocationPtCellRanges(location, sheet);
-
-  return checkLinksForID(
-    locationPtCellRanges,
-    appointment,
-    targetCellRowsBelowMain
-  );
-
+  return checkLinksForID(locationPtCellRanges, appointment, targetCellRowsBelowMain);
 };
 
 function getLocationPtCellRanges(location, sheet) {
   // if location === 'WC', these are the only coords
   const possCoords = ['C4:C4', 'D4:D4', 'E4:E4', 'F4:F4', 'G4:G4'];
-
   if (location === 'DT') possCoords.push('H4:H4', 'I4:I4');
-
   else if (location === 'CH') {
     possCoords.push('H4:H4', 'I4:I4', 'C14:C14', 'D14:D14', 'E14:E14', 'F14:F14', 'G14:G14', 'H14:H14', 'I14:I14');
   }
-
   return sheet.getRangeList(possCoords).getRanges();
 };
 
@@ -226,7 +216,6 @@ function checkLinksForID(locationPtCellRanges, appointment, targetCellRowsBelowM
       return ptCell.offset(targetCellRowsBelowMain, 0);
     }
   }
-
 };
 
 function foundCorrectRoom(link, appointment) {
