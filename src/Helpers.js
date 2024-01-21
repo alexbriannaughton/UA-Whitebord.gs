@@ -223,6 +223,9 @@ function checkLinksForID(
   appointment,
   targetCellRowsBelowMain
 ) {
+
+
+  
   for (ptCell of locationPtCellRanges) {
     const link = ptCell.getRichTextValue().getLinkUrl();
     if (!link) continue;
@@ -255,6 +258,7 @@ function findEmptyRow(range, consultID, keyToConsultID) {
     const allRichTextsInCell = cellRichText.getRuns();
     
     for (const richText of allRichTextsInCell) {
+      console.log('richText: ', richText, typeof richText);
       const link = richText.getLinkUrl();
       // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
       if (link?.includes(consultID)) return null;
