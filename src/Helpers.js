@@ -218,21 +218,26 @@ function getLocationPtCellRanges(location, sheet) {
   return sheet.getRangeList(possCoords).getRanges();
 };
 
-function checkLinksForID(
-  locationPtCellRanges,
-  appointment,
-  targetCellRowsBelowMain
-) {
-
-
-  
-  for (ptCell of locationPtCellRanges) {
-    const link = ptCell.getRichTextValue().getLinkUrl();
-    if (!link) continue;
-    if (foundCorrectRoom(link, appointment)) {
-      return ptCell.offset(targetCellRowsBelowMain, 0);
+function checkLinksForID(locationPtCellRanges, appointment, targetCellRowsBelowMain) {
+  const ptCellRichTexts = locationPtCellRanges.getRichTextValues();
+  for (const cellRichTexts of ptCellRichTexts) {
+    const allRichTextsInCell = cellRichTexts.getRuns();
+    for (const richText of allRichTextsInCell) {
+      const link = richText.getLinkUrl();
+      if (!link) continue;
+      if (foundCorrectRoom(link, appointment)) {
+        return ptCell.offset(targetCellRowsBelowMain, 0);
+      }
     }
   }
+
+  // for (ptCell of locationPtCellRanges) {
+  //   const link = ptCell.getRichTextValue().getLinkUrl();
+  //   if (!link) continue;
+  //   if (foundCorrectRoom(link, appointment)) {
+  //     return ptCell.offset(targetCellRowsBelowMain, 0);
+  //   }
+  // }
 
 };
 
@@ -251,14 +256,13 @@ function foundCorrectRoom(link, appointment) {
 function findEmptyRow(range, consultID, keyToConsultID) {
   const rowContents = range.getValues();
   const allRichTextValues = range.getRichTextValues();
-  
+
   let emptyRowRange;
   for (let i = 0; i < rowContents.length; i++) {
     const cellRichText = allRichTextValues[i][keyToConsultID];
     const allRichTextsInCell = cellRichText.getRuns();
-    
+
     for (const richText of allRichTextsInCell) {
-      console.log('richText: ', richText, typeof richText);
       const link = richText.getLinkUrl();
       // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
       if (link?.includes(consultID)) return null;
