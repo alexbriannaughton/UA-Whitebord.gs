@@ -219,6 +219,7 @@ function getLocationPtCellRanges(location, sheet) {
 };
 
 function checkLinksForID(locationPtCellRanges, appointment, targetCellRowsBelowMain) {
+  console.log('locationptcellranges:', locationPtCellRanges);
   const ptCellRichTexts = locationPtCellRanges.getRichTextValues();
   for (const cellRichTexts of ptCellRichTexts) {
     const allRichTextsInCell = cellRichTexts.getRuns();
