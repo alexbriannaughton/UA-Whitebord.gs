@@ -219,26 +219,13 @@ function getLocationPtCellRanges(location, sheet) {
 };
 
 function checkLinksForID(locationPtCellRanges, appointment, targetCellRowsBelowMain) {
-  console.log('locationptcellranges:', locationPtCellRanges);
-  const ptCellRichTexts = locationPtCellRanges.getRichTextValues();
-  for (const cellRichTexts of ptCellRichTexts) {
-    const allRichTextsInCell = cellRichTexts.getRuns();
-    for (const richText of allRichTextsInCell) {
-      const link = richText.getLinkUrl();
-      if (!link) continue;
-      if (foundCorrectRoom(link, appointment)) {
-        return ptCell.offset(targetCellRowsBelowMain, 0);
-      }
+  for (ptCell of locationPtCellRanges) {
+    const link = ptCell.getRichTextValue().getLinkUrl();
+    if (!link) continue;
+    if (foundCorrectRoom(link, appointment)) {
+      return ptCell.offset(targetCellRowsBelowMain, 0);
     }
   }
-
-  // for (ptCell of locationPtCellRanges) {
-  //   const link = ptCell.getRichTextValue().getLinkUrl();
-  //   if (!link) continue;
-  //   if (foundCorrectRoom(link, appointment)) {
-  //     return ptCell.offset(targetCellRowsBelowMain, 0);
-  //   }
-  // }
 
 };
 
