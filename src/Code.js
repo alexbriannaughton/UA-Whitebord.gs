@@ -28,12 +28,25 @@ function updateToken() {
 
 // receive webhooks here. e = the webhook event
 function doPost(e) {
-  // exponential backoff tries:
-  for (let tryIndex = 0; tryIndex < 5; tryIndex++) {
+  try {
+    const params = JSON.parse(e.postData.contents);
+    const apptItems = params.items;
+
+    for (const { appointment } of apptItems) {
+      handleAppointment(params.meta.event, appointment);
+    }
+
+    return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
+  }
+
+  catch (error) {
+    // wait 3 seconds and try a second time if we get an error
+    console.log('error after the first try:', error);
+    Utilities.sleep(3000);
     try {
       const params = JSON.parse(e.postData.contents);
       const apptItems = params.items;
-      
+
       for (const { appointment } of apptItems) {
         handleAppointment(params.meta.event, appointment);
       }
@@ -42,23 +55,11 @@ function doPost(e) {
     }
 
     catch (error) {
-      const errStr = error.toString();
-      if (errStr.includes('simultaneous invocations') || errStr.includes('try again')) {
-        console.log(`GASRetry ${tryIndex + 1} error--->${errStr}`);
-
-        if (tryIndex === 4) {
-          throw error;
-        }
-
-        Utilities.sleep((Math.pow(2, tryIndex) * 1000) + (Math.round(Math.random() * 1000)));
-      }
-
-      else throw error;
-    }
+      console.log('second error hit:', error);
+      throw error;
+    };
 
   }
-
-  return;
 
 };
 
@@ -99,7 +100,7 @@ function handleCreatedAppointment(appointment) {
   }
 
   return;
-  
+
 };
 
 function handleUpdatedAppointment(appointment, apptStatusID) {
@@ -114,6 +115,10 @@ function handleUpdatedAppointment(appointment, apptStatusID) {
   // status 22 is 'ready' appointment status
   else if (apptStatusID === 22) {
     return handleReadyStatus(appointment);
+  }
+  // status 23 is 'add to tech column' appointment status
+  else if (apptStatusID === 23) {
+    return addTechAppt(appointment);
   }
   // status id 34 is 'inpatient' status
   else if (apptStatusID === 34) {

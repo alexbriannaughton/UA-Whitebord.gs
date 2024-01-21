@@ -82,7 +82,7 @@ function parseTheRoom(
     ? findRoomRange(sheet, appointment.status_id, location)
     : rangeForSecondCatLobbyColumn;
   const ptCell = roomRange.offset(1, 0, 1, 1);
-  const curLink = ptCell.getRichTextValue()?.getLinkUrl();
+  const curLink = ptCell.getRichTextValue().getLinkUrl();
 
   // if this appointment is already in the room, don't worry about it
   // we check this by comparing the link that's currently in the cell with the incoming appt's consult id

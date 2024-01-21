@@ -27,7 +27,9 @@ function inpatientBoxCoords(location) {
 function addInPatient(appointment) {
   const location = whichLocation(appointment.resources[0].id);
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
-  const inpatientBoxRange = sheet.getRange(inpatientBoxCoords(location));
+  const inpatientBoxRange = sheet.getRange(
+    inpatientBoxCoords(location)
+  );
   const rowRange = findEmptyRow(inpatientBoxRange, appointment.consult_id, 0);
   if (!rowRange) return;
   rowRange.setBackground(inpatientDefaultColorMap.get(location));

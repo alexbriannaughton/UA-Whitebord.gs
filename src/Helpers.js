@@ -161,7 +161,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
   const parsedAnimal = JSON.parse(animalJSON);
   const animal = parsedAnimal.items.at(-1).animal;
   const speciesMap = { 1: 'K9', 2: 'FEL' };
-  const animalSpecies = speciesMap[animal.species_id] || '';
+  const animalSpecies = speciesMap[animal.species_id] || 'Unknown species';
 
   const contactJSON = contactResponse.getContentText();
   const parsedContact = JSON.parse(contactJSON);
@@ -224,7 +224,7 @@ function checkLinksForID(
   targetCellRowsBelowMain
 ) {
   for (ptCell of locationPtCellRanges) {
-    const link = ptCell.getRichTextValue()?.getLinkUrl();
+    const link = ptCell.getRichTextValue().getLinkUrl();
     if (!link) continue;
     if (foundCorrectRoom(link, appointment)) {
       return ptCell.offset(targetCellRowsBelowMain, 0);
@@ -247,18 +247,26 @@ function foundCorrectRoom(link, appointment) {
 // will return undefined if theres no unpopulated rows left within this range
 function findEmptyRow(range, consultID, keyToConsultID) {
   const rowContents = range.getValues();
-  const patientNameRichText = range.getRichTextValues();
+  const allRichTextValues = range.getRichTextValues();
+  
   let emptyRowRange;
-
   for (let i = 0; i < rowContents.length; i++) {
-    const link = patientNameRichText[i][keyToConsultID].getLinkUrl();
-    // if we find that this patient cell's link has the consult id, that means it's already on the waitlist, so return null
-    if (link?.includes(consultID)) return null;
+    const cellRichText = allRichTextValues[i][keyToConsultID];
+    const allRichTextsInCell = cellRichText.getRuns();
+    
+    for (const richText of allRichTextsInCell) {
+      const link = richText.getLinkUrl();
+      // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
+      if (link?.includes(consultID)) return null;
+    }
 
-    // if we haven't already found the highest empty row and every item within this rowContents array is falsy, this is the highest empty row
+    // if we haven't already found the highest empty row AND
+    // every item within this rowContents array is falsy (or just a space lol),
+    // this is the highest empty row
     if (!emptyRowRange && rowContents[i].every(cellContents => !cellContents || cellContents === ' ')) {
       emptyRowRange = range.offset(i, 0, 1);
     }
+
   }
 
   return emptyRowRange;
