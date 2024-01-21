@@ -248,8 +248,9 @@ function foundCorrectRoom(link, appointment) {
 function findEmptyRow(range, consultID, keyToConsultID) {
   const rowContents = range.getValues();
   const allRichTextValues = range.getRichTextValues();
-  console.log('row contents:', rowContents)
-  console.log('allRichTextValues: ', allRichTextValues)
+  console.log('row contents:', rowContents);
+  console.log('allRichTextValues.length: ', allRichTextValues.length);
+  console.log('row contents.lenghth: ', rowContents.length)
   let emptyRowRange;
   for (let i = 0; i < rowContents.length; i++) {
     const cellRichText = allRichTextValues[i][keyToConsultID];
