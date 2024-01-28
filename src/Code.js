@@ -66,7 +66,7 @@ function doPost(e) {
 
 // handle the details we care about
 function handleAppointment(webhookType, appointment) {
-  if (!isTodayPST(appointment.start_at) || !appointment.active) return;
+  if (!isTodayInSeattle(appointment.start_at) || !appointment.active) return;
 
   const apptStatusID = appointment.status_id;
 

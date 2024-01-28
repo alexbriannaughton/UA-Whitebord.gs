@@ -21,15 +21,15 @@ function fetchAndParse(url) {
 };
 
 // check if utc timestamp is today in PST
-function isTodayPST(timestamp) {
+function isTodayInSeattle(timestamp) {
   const timestampDate = Utilities.formatDate(
     new Date(timestamp * 1000),
-    'PST',
+    'America/Los_Angeles',
     'yyyy-MM-dd'
   );
   const todaysDate = Utilities.formatDate(
     new Date(),
-    'PST',
+    'America/Los_Angeles',
     'yyyy-MM-dd'
   );
   return timestampDate === todaysDate;
