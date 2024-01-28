@@ -98,7 +98,7 @@ function parseTheRoom(
   const roomValues = roomRange.getValues();
 
   // if the room range (time through dvm cells) are not all blank,
-  if (!roomValues.every(roomVal => roomVal.every(val => !val || val === ' '))) {
+  if (!roomValues.every(roomVal => roomVal.every(cellContents => !cellContents || /^\s*$/.test(cellContents)))) {
     // another check to see if the incoming appointment is already in the room, as multiple pet room will not carry the consult id
     if (roomValues[1][0].includes(incomingAnimalText)) return stopMovingToRoom(appointment);
 
