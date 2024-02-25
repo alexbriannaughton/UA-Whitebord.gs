@@ -18,7 +18,7 @@ function updateToken() {
     const dataObj = JSON.parse(json);
     token = `${dataObj.token_type} ${dataObj.access_token}`;
     props.setProperty('ezyVet_token', token);
-    cache.put('ezyVet_token', token, 28800);
+    cache.put('ezyVet_token', token);
     console.log('updated ezyvet token');
     return token;
 };
@@ -27,6 +27,7 @@ function updateToken() {
 function fetchAndParse(url) {
     if (!token) {
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
+        cache.put('ezyVet_token', token);
         console.log('at if !token', token)
     }
 
@@ -72,6 +73,7 @@ function getLastName(contactID) {
 function getAnimalInfoAndLastName(animalID, contactID) {
     if (!token) {
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
+        cache.put('ezyVet_token', token);
         console.log('at if !token', token)
     }
 
