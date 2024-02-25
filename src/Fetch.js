@@ -18,12 +18,18 @@ function updateToken() {
     const dataObj = JSON.parse(json);
     token = `${dataObj.token_type} ${dataObj.access_token}`;
     props.setProperty('ezyVet_token', token);
+    cache.put('ezyVet_token', token, 28800);
     console.log('updated ezyvet token');
     return token;
 };
 
 // singular get request to ezyvet api that will grab a new token if we get a 401 reponse
 function fetchAndParse(url) {
+    if (!token) {
+        token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
+        console.log('at if !token', token)
+    }
+
     const options = {
         muteHttpExceptions: true,
         method: "GET",
@@ -64,6 +70,11 @@ function getLastName(contactID) {
 
 // this is like a promise.all to get animal name and last name at the same time
 function getAnimalInfoAndLastName(animalID, contactID) {
+    if (!token) {
+        token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
+        console.log('at if !token', token)
+    }
+
     const animalRequest = {
         muteHttpExceptions: true,
         url: `${proxy}/v1/animal/${animalID}`,

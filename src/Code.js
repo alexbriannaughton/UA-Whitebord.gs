@@ -1,4 +1,6 @@
-let token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
+// let token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
+const cache = CacheService.getScriptCache();
+let token = cache.get('ezyVet_token');
 const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
 
