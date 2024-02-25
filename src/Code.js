@@ -1,9 +1,3 @@
-// let token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
-const cache = CacheService.getScriptCache();
-let token = cache.get('ezyVet_token');
-const proxy = 'https://api.ezyvet.com';
-const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
-
 // receive webhooks here. e = the webhook event
 function doPost(e) {
   try {

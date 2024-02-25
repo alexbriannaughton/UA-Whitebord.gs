@@ -16,7 +16,7 @@ function updateToken() {
     const response = UrlFetchApp.fetch(url, options);
     const json = response.getContentText();
     const dataObj = JSON.parse(json);
-    token = `${dataObj.token_type} ${dataObj.access_token}`;
+    token = `${dataObj.token_type} ${dataObj.access_token}`; // globally reset the token variable for this script execution
     props.setProperty('ezyVet_token', token);
     cache.put('ezyVet_token', token);
     console.log('updated ezyvet token');
@@ -72,9 +72,9 @@ function getLastName(contactID) {
 // this is like a promise.all to get animal name and last name at the same time
 function getAnimalInfoAndLastName(animalID, contactID) {
     if (!token) {
+        console.log('at if !token', token)
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
         cache.put('ezyVet_token', token);
-        console.log('at if !token', token)
     }
 
     const animalRequest = {
