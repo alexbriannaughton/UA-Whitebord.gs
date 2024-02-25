@@ -2,30 +2,6 @@ let token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
 const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
 
-function updateToken() {
-  const url = `${proxy}/v2/oauth/access_token`;
-  const props = PropertiesService.getScriptProperties();
-  const payload = {
-    partner_id: props.getProperty('partner_id'),
-    client_id: props.getProperty('client_id'),
-    client_secret: props.getProperty('client_secret'),
-    grant_type: props.getProperty('grant_type'),
-    scope: props.getProperty('scope')
-  };
-  const options = {
-    crossDomain: true,
-    method: "POST",
-    payload: payload
-  };
-  const response = UrlFetchApp.fetch(url, options);
-  const json = response.getContentText();
-  const dataObj = JSON.parse(json);
-  token = `${dataObj.token_type} ${dataObj.access_token}`;
-  props.setProperty('ezyVet_token', token);
-  console.log('updated ezyvet token');
-  return token;
-};
-
 // receive webhooks here. e = the webhook event
 function doPost(e) {
   try {
