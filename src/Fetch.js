@@ -25,10 +25,11 @@ function updateToken() {
 
 // singular get request to ezyvet api that will grab a new token if we get a 401 reponse
 function fetchAndParse(url) {
+    token = CacheService.getScriptCache().get('ezyVet_token');
     if (!token) {
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
         cache.put('ezyVet_token', token);
-        console.log('at if !token', token)
+        console.log('pulled token from props and added to cache');
     }
 
     const options = {
@@ -71,10 +72,11 @@ function getLastName(contactID) {
 
 // this is like a promise.all to get animal name and last name at the same time
 function getAnimalInfoAndLastName(animalID, contactID) {
+    token = CacheService.getScriptCache().get('ezyVet_token');
     if (!token) {
-        console.log('at if !token', token)
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
         cache.put('ezyVet_token', token);
+        console.log('pulled token from props and added to cache');
     }
 
     const animalRequest = {
