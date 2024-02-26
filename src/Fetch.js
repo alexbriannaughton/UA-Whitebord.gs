@@ -1,3 +1,4 @@
+let token; // token is a global variable
 function updateToken() {
     const url = `${proxy}/v2/oauth/access_token`;
     const props = PropertiesService.getScriptProperties();
