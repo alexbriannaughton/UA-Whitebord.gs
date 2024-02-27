@@ -1,4 +1,9 @@
 let token; // token is a global variable
+
+function putTokenInCache(cache, token) {
+    cache.put('ezyVet_token', token, 30600); // store for 8.5 hours
+}
+
 function updateToken() {
     const url = `${proxy}/v2/oauth/access_token`;
     const props = PropertiesService.getScriptProperties();
@@ -20,7 +25,7 @@ function updateToken() {
     const dataObj = JSON.parse(json);
     token = `${dataObj.token_type} ${dataObj.access_token}`; // globally reset the token variable for this script execution
     props.setProperty('ezyVet_token', token);
-    cache.put('ezyVet_token', token);
+    putTokenInCache(cache, token);
     console.log('updated ezyvet token');
     return token;
 };
@@ -31,7 +36,7 @@ function fetchAndParse(url) {
     token = cache.get('ezyVet_token');
     if (!token) {
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
-        cache.put('ezyVet_token', token);
+        putTokenInCache(cache, token);
         console.log('pulled token from props and added to cache');
     }
 
@@ -79,7 +84,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
     token = cache.get('ezyVet_token');
     if (!token) {
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
-        cache.put('ezyVet_token', token);
+        putTokenInCache(cache, token);
         console.log('pulled token from props and added to cache');
     }
 
