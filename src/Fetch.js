@@ -4,10 +4,9 @@ function putTokenInCache(cache, token) {
     cache.put('ezyVet_token', token, 30600); // store for 8.5 hours
 }
 
-function updateToken() {
+function updateToken(cache) {
     const url = `${proxy}/v2/oauth/access_token`;
     const props = PropertiesService.getScriptProperties();
-    const cache = CacheService.getScriptCache();
     const payload = {
         partner_id: props.getProperty('partner_id'),
         client_id: props.getProperty('client_id'),
@@ -51,7 +50,7 @@ function fetchAndParse(url) {
     let response = UrlFetchApp.fetch(url, options);
 
     if (response.getResponseCode() === 401) {
-        options.headers.authorization = updateToken();
+        options.headers.authorization = updateToken(cache);
         response = UrlFetchApp.fetch(url, options);
     }
 
@@ -109,7 +108,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
     let [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
 
     if (animalResponse.getResponseCode() === 401 || contactResponse.getResponseCode() === 401) {
-        animalRequest.headers.authorization = updateToken();
+        animalRequest.headers.authorization = updateToken(cache);
         contactRequest.headers.authorization = token;
         [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
     }
