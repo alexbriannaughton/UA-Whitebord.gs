@@ -2,6 +2,7 @@ let token; // token is a global variable
 function updateToken() {
     const url = `${proxy}/v2/oauth/access_token`;
     const props = PropertiesService.getScriptProperties();
+    const cache = CacheService.getScriptCache();
     const payload = {
         partner_id: props.getProperty('partner_id'),
         client_id: props.getProperty('client_id'),
@@ -26,7 +27,8 @@ function updateToken() {
 
 // singular get request to ezyvet api that will grab a new token if we get a 401 reponse
 function fetchAndParse(url) {
-    token = CacheService.getScriptCache().get('ezyVet_token');
+    const cache = CacheService.getScriptCache();
+    token = cache.get('ezyVet_token');
     if (!token) {
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
         cache.put('ezyVet_token', token);
@@ -73,7 +75,8 @@ function getLastName(contactID) {
 
 // this is like a promise.all to get animal name and last name at the same time
 function getAnimalInfoAndLastName(animalID, contactID) {
-    token = CacheService.getScriptCache().get('ezyVet_token');
+    const cache = CacheService.getScriptCache();
+    token = cache.get('ezyVet_token');
     if (!token) {
         token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
         cache.put('ezyVet_token', token);
