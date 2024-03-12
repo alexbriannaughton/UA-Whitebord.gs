@@ -40,10 +40,8 @@ function doPost(e) {
 function handleAppointment(webhookType, appointment) {
   if (!isTodayInSeattle(appointment.start_at) || !appointment.active) return;
 
-  const apptStatusID = appointment.status_id;
-
   // if it has a room status (no matter the webhookType), move it to a room
-  if (isRoomStatus(apptStatusID)) {
+  if (isRoomStatus(appointment.status_id)) {
     return moveToRoom(appointment);
   }
 
@@ -52,7 +50,7 @@ function handleAppointment(webhookType, appointment) {
   }
 
   else if (webhookType === "appointment_updated") {
-    return handleUpdatedAppointment(appointment, apptStatusID);
+    return handleUpdatedAppointment(appointment);
   };
 
   return;
@@ -76,7 +74,9 @@ function handleCreatedAppointment(appointment) {
 
 };
 
-function handleUpdatedAppointment(appointment, apptStatusID) {
+function handleUpdatedAppointment(appointment) {
+  const apptStatusID = appointment.status_id;
+
   // status id 17 is 'on wait list'
   if (apptStatusID === 17) {
     return addToWaitlist(appointment);
