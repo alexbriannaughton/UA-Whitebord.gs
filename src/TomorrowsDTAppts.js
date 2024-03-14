@@ -5,14 +5,14 @@ function getTomorrowsDTAppts() {
     const tomorrowStart = Math.floor(tomorrow.setHours(0, 0, 0, 0) / 1000); // midnight tomorrow in seconds
     const tomorrowEnd = Math.floor(tomorrow.setHours(23, 59, 59, 999) / 1000); // end of tomorrow in seconds
   
-    const url = `${proxy}/v1/appointment?time_range_start=${tomorrowStart}&time_range_end=${tomorrowEnd}&limit=200`;
+    const url = `${proxy}/v1/appointment?active=1&time_range_start=${tomorrowStart}&time_range_end=${tomorrowEnd}&limit=200`;
     const allOfTomorrowsAppts = fetchAndParse(url);
   
     const dtResourceIDs = new Set(['35', '55', '56', '1015', '1082']); // non procedures dt columns
     const dtAppts = allOfTomorrowsAppts.items.filter(({ appointment }) => {
       return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT column
         && appointment.details.appointment_type_id !== '4'; // not a blocked off spot
-    })
+    });
   
     dtAppts.sort((a, b) => a['appointment'].start_time - b['appointment'].start_time)
   

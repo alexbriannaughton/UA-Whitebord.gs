@@ -198,32 +198,25 @@ function findRoomRange(sheet, statusID, location) {
 }
 
 function getRoomColor(typeID, resourceID) {
-  // if it's a tech make the background green
-  if (typeID === 19 || typeID === 85) return '#90EE90';
-
   // if it's IM make the background purple
-  const imTypeIDs = new Set([26, 27, 34, 35]);
-  if (imTypeIDs.has(typeID) || resourceID === 65 || resourceID === 27) return '#d9d2e9';
-
-  // if it's a pet with a procedure make the background orange
-  const procedureTypes = new Set([
-    7, 76, 89, 90, // sx type ids
-    29, 91, // aus type ids
-    30, // echo
-    28, 86, 94, // dental types
-    31, 32, 33, 36, 38, 82, 83, 88, // secondary types e.g. acth, bile acids, bgc, etc.
-    81 // health certs
-  ]);
+  const typeCategory = typeIDToCategoryMap.get(typeID);
+  if (typeCategory === 'IM' || resourceID === 65 || resourceID === 27) {
+    return typeCategoryToColorMap.get('IM');
+  }
+  if (typeCategory === 'tech') {
+    return '#90EE90'; // bright green
+  }
+  const color = typeCategoryToColorMap.get(typeCategory);
+  if (color) return color;
   const procedureResources = new Set([
     29, 30, // ch procedure columns
     57, 58, // dt procedure columns
     61, 62 // wc procedure columns
   ])
-  if (procedureTypes.has(typeID) || procedureResources.has(resourceID)) return '#fce5cd';
-
-  // if it's a euthanasia make the background blue
-  if (typeID === 80) return '#cfe2f3';
-
+  if (procedureResources.has(resourceID)) {
+    // if type is not covered in name to color map, but it's in the procedure column, make it light orangish
+    return '#fce5cd';
+  }
   // else do the standard gray
   return '#f3f3f3';
 }

@@ -5,17 +5,6 @@ const inpatientDefaultColorMap = new Map([
   ['WC', '#ead1dc']  // magenta for white center
 ]);
 
-// takes appointment.type_id and outputs a string for the procedure type
-const typeIDToNameMap = new Map([
-  ['7', 'sx'], ['76', 'sx'], ['89', 'sx'], ['90', 'sx'],   // Surgery type IDs
-  ['29', 'aus'], ['91', 'aus'],                             // Ultrasound type IDs
-  ['30', 'echo'],                                           // Echocardiogram type ID
-  ['28', 'dental'], ['86', 'dental'], ['94', 'dental'],     // Dental type IDs
-  ['81', 'h/c'],                                            // Health certificate appointment type ID
-  // NOTE: secondary type ids sorted as other
-  // NOTE: IM sorted per its resource id, so no need in this map
-]);
-
 // returns the cell coordinates for the location's inpatient box
 function inpatientBoxCoords(location) {
   return location === 'CH'
@@ -65,7 +54,7 @@ function getTodayRange() {
 };
 
 function processProcedures(apptItems) {
-  const procedures = new Map([
+  const allLocationProcedures = new Map([
     ['CH', []],
     ['DT', []],
     ['WC', []]
@@ -84,43 +73,41 @@ function processProcedures(apptItems) {
 
     if (location) {
       const procedure = getColorAndSortValue(appointment.details, resourceID);
-      procedures.get(location).push(procedure);
+      allLocationProcedures.get(location).push(procedure);
     }
   });
 
-  procedures.forEach((locationProcedures, location) => {
-    locationProcedures.sort((a, b) => a.sortValue - b.sortValue);
-    addScheduledProcedures(locationProcedures, location);
+  allLocationProcedures.forEach((oneLocationProcedures, location) => {
+    oneLocationProcedures.sort((a, b) => a.sortValue - b.sortValue);
+    addScheduledProcedures(oneLocationProcedures, location);
   });
 };
 
 function getColorAndSortValue(procedure, resourceID) {
   // this function sorts procedures by type and adds a color to the procedure/appointment object
-  const procedureName = typeIDToNameMap.get(procedure.appointment_type_id);
+  const procedureName = typeIDToCategoryMap.get(
+    parseInt(procedure.appointment_type_id)
+  );
+  procedure.color = typeCategoryToColorMap.get(procedureName);
 
   // anything that is in the IM column, despite the appointment_type, will be grouped as IM
-  if (resourceID === '27' || resourceID === '65') {
-    procedure.color = '#d9d2e9'; // light purple
+  if (resourceID === '27' || resourceID === '65' || procedureName === 'IM') {
+    procedure.color = typeCategoryToColorMap.get('IM');
     procedure.sortValue = 5;
   }
   else if (procedureName === 'sx') {
-    procedure.color = '#fff2cc'; // light yellowish
     procedure.sortValue = 0;
   }
   else if (procedureName === 'aus') {
-    procedure.color = '#cfe2f3'; // light blue 3
     procedure.sortValue = 1;
   }
   else if (procedureName === 'echo') {
-    procedure.color = '#f4cccc'; // light red
     procedure.sortValue = 2;
   }
   else if (procedureName === 'dental') {
-    procedure.color = '#d9ead3'; // light green
     procedure.sortValue = 4;
   }
   else if (procedureName === 'h/c') {
-    procedure.color = '#fce5cd'; // light orangish
     procedure.sortValue = 6;
   }
   else procedure.sortValue = 3; // put before im, dental and h/c if type_id not mentioned above
