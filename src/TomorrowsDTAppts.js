@@ -44,6 +44,7 @@ function getTomorrowsDTAppts() {
 function getAllAnimalAndContactData(dtAppts) {
   let animalRequests = [];
   let contactRequests = [];
+  let animalAttachmentRequests = [];
   dtAppts.forEach(({ appointment }) => {
     animalRequests.push({
       muteHttpExceptions: true,
@@ -57,26 +58,38 @@ function getAllAnimalAndContactData(dtAppts) {
       method: "GET",
       headers: { authorization: token }
     });
+    animalAttachmentRequests.push({
+      muteHttpExceptions: true,
+      url: `${proxy}/v1/attachment?record_type=Animal&record_id=${appointment.details.animal_id}`,
+      method: "GET",
+      headers: { authorization: token }
+    })
   });
 
   // Step 2: Fetch all data in parallel
   let animalResponses = UrlFetchApp.fetchAll(animalRequests);
   let contactResponses = UrlFetchApp.fetchAll(contactRequests);
+  let animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
 
   // Step 3: Process responses
   let animalInfo = {};
   let contactInfo = {};
   animalResponses.forEach(response => {
     let animal = JSON.parse(response.getContentText()).items.at(-1).animal;
-    animalInfo[animal.id] = animal;
+    animalInfo[animal.id] = { animal };
   });
   contactResponses.forEach(response => {
     let contact = JSON.parse(response.getContentText()).items.at(-1).contact;
     contactInfo[contact.id] = contact;
   });
+  animalAttachmentRequests.forEach(response => {
+    let attachments = JSON.parse(response.getContentText()).items;
+    const animalID = attachments.at(0)?.record_id;
+    animalInfo[animalID].attachments = attachments;
+  })
 
-  console.log(animalInfo)
-  console.log(contactInfo)
+  console.log('animals: ', animalInfo)
+  console.log('contacts: ', contactInfo)
 }
 
 function convertEpochToSeattleTime(epochString) {
