@@ -199,14 +199,14 @@ function findRoomRange(sheet, statusID, location) {
 
 function getRoomColor(typeID, resourceID) {
   // if it's IM make the background purple
-  const typeName = typeIDToNameMap.get(typeID);
-  if (typeName === 'IM' || resourceID === 65 || resourceID === 27) {
-    return typeNameToColorMap.get('IM');
+  const typeCategory = typeIDToCategoryMap.get(typeID);
+  if (typeCategory === 'IM' || resourceID === 65 || resourceID === 27) {
+    return typeCategoryToColorMap.get('IM');
   }
-  if (typeName === 'tech') {
+  if (typeCategory === 'tech') {
     return '#90EE90'; // bright green
   }
-  const color = typeNameToColorMap.get(typeName);
+  const color = typeCategoryToColorMap.get(typeCategory);
   if (color) return color;
   const procedureResources = new Set([
     29, 30, // ch procedure columns

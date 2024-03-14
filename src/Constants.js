@@ -2,7 +2,7 @@ const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
 
 // takes appointment.type_id and outputs a string for the procedure type
-const typeIDToNameMap = new Map([
+const typeIDToCategoryMap = new Map([
     [7, 'sx'], [76, 'sx'], [89, 'sx'], [90, 'sx'],   // Surgery type IDs
     [29, 'aus'], [91, 'aus'],                             // Ultrasound type IDs
     [30, 'echo'],                                           // Echocardiogram type ID
@@ -15,7 +15,7 @@ const typeIDToNameMap = new Map([
     [80, 'euth']
 ]);
 
-const typeNameToColorMap = new Map([
+const typeCategoryToColorMap = new Map([
     // ['tech', '#90EE90'], // bright green , not including this bc i dont want them to be bright green on inpatient daily job
     ['euth', '#cfe2f3'], // blue
     ['sx', '#fff2cc'],// light yellowish
