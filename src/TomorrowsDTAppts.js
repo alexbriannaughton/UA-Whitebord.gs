@@ -15,9 +15,8 @@ function getTomorrowsDTAppts() {
   });
 
   dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
-  console.log(dtAppts);
 
-  const firstTwoApptsForTesting = dtAppts.slice(0, 2);
+  const firstTwoApptsForTesting = dtAppts.slice(0, 1);
 
   getAllAnimalAndContactData(firstTwoApptsForTesting);
 
@@ -46,7 +45,6 @@ function getAllAnimalAndContactData(dtAppts) {
   let contactRequests = [];
   let animalAttachmentRequests = [];
   let allConsultsForAnimalRequests = [];
-  let output = {};
   dtAppts.forEach(({ appointment }) => {
     animalRequests.push({
       muteHttpExceptions: true,
@@ -79,30 +77,46 @@ function getAllAnimalAndContactData(dtAppts) {
   let animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
   let allConsultsForAnimalResponses = UrlFetchApp.fetchAll(allConsultsForAnimalRequests);
 
-  let animalInfo = {};
-  let contactInfo = {};
-  animalResponses.forEach(response => {
+  animalResponses.forEach((response, i) => {
     let animal = JSON.parse(response.getContentText()).items.at(-1).animal;
-    animalInfo[animal.id] = { animal };
+    dtAppts[i].animal = animal;
   });
-  contactResponses.forEach(response => {
+  contactResponses.forEach((response, i) => {
     let contact = JSON.parse(response.getContentText()).items.at(-1).contact;
-    contactInfo[contact.id] = contact;
+    dtAppts[i].contact = contact;
   });
-  animalAttachmentResponses.forEach(response => {
+  animalAttachmentResponses.forEach((response, i) => {
     let attachments = JSON.parse(response.getContentText()).items;
-    const animalID = attachments.at(0)?.attachment.record_id;
-    if (animalID) animalInfo[animalID].attachments = attachments;
-  })
-  allConsultsForAnimalResponses.forEach(response => {
+    dtAppts[i].animalAttachments = attachments;
+  });
+  allConsultsForAnimalResponses.forEach((response, i) => {
     let consults = JSON.parse(response.getContentText()).items;
-    const animalID = consults.at(0)?.animal_id;
     const consultIDs = consults.map(({ consult }) => consult.id);
-    if (animalID) animalInfo[animalID].consultIDs = consultIDs;
-  })
+    dtAppts[i].consultIDs = consultIDs;
+  });
 
-  console.log('animals: ', animalInfo)
-  console.log('contacts: ', contactInfo)
+  const consultAttachmentRequests = [];
+  for (const appt of dtAppts) {
+    if (!consultIDs) {
+      console.log('dont request past the first two appointments');
+      break;
+    }
+    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
+    consultAttachmentRequests.push({
+      muteHttpExceptions: true,
+      url: `${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${encodedConsultIDs}`,
+      method: "GET",
+      headers: { authorization: token }
+    })
+  }
+  const consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
+
+  consultAttachmentResponses.forEach((response, i) => {
+    const attachments = JSON.parse(response.getContentText()).items;
+    dtAppts[i].consultAttachments = attachments;
+  });
+
+  console.log(dtAppts);
 }
 
 function convertEpochToSeattleTime(epochString) {
