@@ -23,5 +23,6 @@ const typeNameToColorMap = new Map([
     ['echo', '#f4cccc'],// light red
     ['dental', '#d9ead3'], // light green
     ['h/c', '#fce5cd'],// light orangish
-    ['secondary', '#fce5cd']// light orangish
+    ['secondary', '#fce5cd'],// light orangish
+    ['IM', '#d9d2e9']
 ]); // note that IM is not handled here -- handle seperately bc we also take resource column into account
