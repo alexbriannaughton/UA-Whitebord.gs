@@ -16,7 +16,7 @@ function getTomorrowsDTAppts() {
 
   dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 
-  const firstTwoApptsForTesting = dtAppts.slice(0, 1);
+  const firstTwoApptsForTesting = dtAppts.slice(0, 2);
 
   getAllAnimalAndContactData(firstTwoApptsForTesting);
 
@@ -97,7 +97,7 @@ function getAllAnimalAndContactData(dtAppts) {
 
   const consultAttachmentRequests = [];
   for (const appt of dtAppts) {
-    if (!consultIDs) {
+    if (!appt.consultIDs) {
       console.log('dont request past the first two appointments');
       break;
     }
@@ -116,7 +116,14 @@ function getAllAnimalAndContactData(dtAppts) {
     dtAppts[i].consultAttachments = attachments;
   });
 
-  console.log(dtAppts);
+  dtAppts.forEach(appt => {
+    console.log('APPOINTMENT ', appt.appointment.id);
+    console.log('appointment details: ', appt.appointment.details);
+    console.log('animal: ', appt.animal);
+    console.log('contact', appt.contact);
+    console.log('animalAttachments: ', appt.animalAttachments);
+    console.log('consultAttachments: ', appt.consultAttachments);
+  })
 }
 
 function convertEpochToSeattleTime(epochString) {
