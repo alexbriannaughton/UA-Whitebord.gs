@@ -16,7 +16,7 @@ const typeIDToNameMap = new Map([
 ]);
 
 const typeNameToColorMap = new Map([
-    ['tech', '#90EE90'], // bright green
+    // ['tech', '#90EE90'], // bright green , not including this bc i dont want them to be bright green on inpatient daily job
     ['euth', '#cfe2f3'], // blue
     ['sx', '#fff2cc'],// light yellowish
     ['aus', '#cfe2f3'],// light blue 3

@@ -201,7 +201,10 @@ function getRoomColor(typeID, resourceID) {
   // if it's IM make the background purple
   const typeName = typeIDToNameMap.get(typeID);
   if (typeName === 'IM' || resourceID === 65 || resourceID === 27) {
-    return '#d9d2e9';
+    return typeNameToColorMap.get('IM');
+  }
+  if (typeName === 'tech') {
+    return '#90EE90'; // bright green
   }
   const color = typeNameToColorMap.get(typeName);
   if (color) return color;
