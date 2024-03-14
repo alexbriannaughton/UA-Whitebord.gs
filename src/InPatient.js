@@ -92,7 +92,7 @@ function getColorAndSortValue(procedure, resourceID) {
 
   // anything that is in the IM column, despite the appointment_type, will be grouped as IM
   if (resourceID === '27' || resourceID === '65' || procedureName === 'IM') {
-    procedure.color = 5;
+    procedure.sortValue = 5;
   }
   else if (procedureName === 'sx') {
     procedure.sortValue = 0;
