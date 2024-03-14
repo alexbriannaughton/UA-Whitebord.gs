@@ -17,7 +17,7 @@ function getTomorrowsDTAppts() {
   dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
   console.log(dtAppts);
 
-  const firstTwoApptsForTesting = dtAppts.slice(0, 1);
+  const firstTwoApptsForTesting = dtAppts.slice(0, 2);
 
   getAllAnimalAndContactData(firstTwoApptsForTesting);
 
@@ -45,6 +45,8 @@ function getAllAnimalAndContactData(dtAppts) {
   let animalRequests = [];
   let contactRequests = [];
   let animalAttachmentRequests = [];
+  let allConsultsForAnimalRequests = [];
+  let output = {};
   dtAppts.forEach(({ appointment }) => {
     animalRequests.push({
       muteHttpExceptions: true,
@@ -60,18 +62,23 @@ function getAllAnimalAndContactData(dtAppts) {
     });
     animalAttachmentRequests.push({
       muteHttpExceptions: true,
-      url: `${proxy}/v1/attachment?record_type=Animal&record_id=${appointment.details.animal_id}`,
+      url: `${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${appointment.details.animal_id}`,
+      method: "GET",
+      headers: { authorization: token }
+    });
+    allConsultsForAnimalRequests.push({
+      muteHttpExceptions: true,
+      url: `${proxy}/v1/consult?active=1&limit=200&animal_id=${appointment.details.animal_id}`,
       method: "GET",
       headers: { authorization: token }
     })
   });
 
-  // Step 2: Fetch all data in parallel
   let animalResponses = UrlFetchApp.fetchAll(animalRequests);
   let contactResponses = UrlFetchApp.fetchAll(contactRequests);
   let animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
+  let allConsultsForAnimalResponses = UrlFetchApp.fetchAll(allConsultsForAnimalRequests);
 
-  // Step 3: Process responses
   let animalInfo = {};
   let contactInfo = {};
   animalResponses.forEach(response => {
@@ -82,10 +89,16 @@ function getAllAnimalAndContactData(dtAppts) {
     let contact = JSON.parse(response.getContentText()).items.at(-1).contact;
     contactInfo[contact.id] = contact;
   });
-  animalAttachmentRequests.forEach(response => {
+  animalAttachmentResponses.forEach(response => {
     let attachments = JSON.parse(response.getContentText()).items;
-    const animalID = attachments.at(0)?.record_id;
-    animalInfo[animalID].attachments = attachments;
+    const animalID = attachments.at(0)?.attachment.record_id;
+    if (animalID) animalInfo[animalID].attachments = attachments;
+  })
+  allConsultsForAnimalResponses.forEach(response => {
+    let consults = JSON.parse(response.getContentText()).items;
+    const animalID = consults.at(0)?.animal_id;
+    const consultIDs = consults.map(({ consult }) => consult.id);
+    if (animalID) animalInfo[animalID].consultIDs = consultIDs;
   })
 
   console.log('animals: ', animalInfo)
