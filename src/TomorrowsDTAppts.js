@@ -1,3 +1,53 @@
+function downloadPdfToDrive() {
+  const dlLink = 'https://urbananimalnw.usw2.ezyvet.com/api/v1/attachment/download/4425719970'; // Your PDF download link
+  const cache = CacheService.getScriptCache();
+  let token = cache.get('ezyVet_token');
+
+  if (!token) {
+    token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
+    cache.put('ezyVet_token', token, 300); // Cache the token for 5 minutes (adjust as needed)
+  }
+
+  const options = {
+    muteHttpExceptions: true,
+    method: "GET",
+    headers: {
+      authorization: token
+    }
+  };
+
+  let response = UrlFetchApp.fetch(dlLink, options);
+
+  if (response.getResponseCode() === 401) {
+    options.headers.authorization = updateToken(cache);
+    response = UrlFetchApp.fetch(dlLink, options);
+  }
+
+  const blob = response.getBlob();
+  const fileName = blob.getName(); // Retrieve the name of the file from the Blob
+
+  // Check if file exists in Google Drive
+  const existingFiles = DriveApp.getFilesByName(fileName);
+  if (existingFiles.hasNext()) {
+    // If file exists, get the URL and open it
+    const file = existingFiles.next();
+    const fileUrl = file.getUrl();
+    var html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
+    SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
+    return;
+  }
+
+  // If file doesn't exist, save it to Google Drive
+  const driveFile = DriveApp.createFile(blob);
+
+  // Get the URL of the saved file
+  const fileUrl = driveFile.getUrl();
+
+  // Open the URL in a new window
+  var html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
+  SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
+}
+
 function getTomorrowsDTAppts() {
   const now = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
   const tomorrow = new Date(now);
@@ -18,26 +68,33 @@ function getTomorrowsDTAppts() {
 
   const firstTwoApptsForTesting = dtAppts.slice(0, 2);
 
-  getAllAnimalAndContactData(firstTwoApptsForTesting);
+  const allDTApptData = getAllAnimalAndContactData(firstTwoApptsForTesting);
 
-  // const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
-  // const range = sheet.getRange(`A4:C204`)
-  // range.clearContent();
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
+  const range = sheet.getRange(`A4:C204`)
+  range.clearContent();
 
-  // for (let i = 0; i < dtAppts.length; i++) {
-  //   const { appointment } = dtAppts[i];
-  //   const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.details.animal_id, appointment.details.contact_id)
-  //   const time = convertEpochToSeattleTime(appointment.start_time);
-  //   const timeCell = range.offset(i, 0, 1, 1);
-  //   const ptCell = range.offset(i, 1, 1, 1);
-  //   const reasonCell = range.offset(i, 2, 1, 1);
-  //   timeCell.setValue(time);
-  //   const patientText = `${animalName} ${contactLastName} (${animalSpecies})`;
-  //   const webAddress = `${sitePrefix}/?recordclass=Animal&recordid=${appointment.details.animal_id}`
-  //   const link = makeLink(patientText, webAddress);
-  //   ptCell.setRichTextValue(link);
-  //   reasonCell.setValue(appointment.details.description);
-  // }
+  for (let i = 0; i < dtAppts.length; i++) {
+    const {
+      appointment,
+      contact,
+      animal,
+      consultAttachments,
+      animalAttachments
+    } = dtAppts[i];
+
+    const time = convertEpochToSeattleTime(appointment.start_time);
+    const timeCell = range.offset(i, 0, 1, 1);
+    timeCell.setValue(time);
+
+    const ptCell = range.offset(i, 1, 1, 1);
+    const reasonCell = range.offset(i, 2, 1, 1);
+    const patientText = `${animalName} ${contactLastName} (${animalSpecies})`;
+    const webAddress = `${sitePrefix}/?recordclass=Animal&recordid=${appointment.details.animal_id}`
+    const link = makeLink(patientText, webAddress);
+    ptCell.setRichTextValue(link);
+    reasonCell.setValue(appointment.details.description);
+  }
 }
 
 function getAllAnimalAndContactData(dtAppts) {
@@ -124,28 +181,6 @@ function getAllAnimalAndContactData(dtAppts) {
     console.log('animalAttachments: ', appt.animalAttachments);
     console.log('consultAttachments: ', appt.consultAttachments);
   })
-}
 
-function convertEpochToSeattleTime(epochString) {
-  // Convert the epoch string to a number
-  const epoch = parseInt(epochString, 10);
-
-  // Create a Date object using the epoch time
-  const date = new Date(epoch * 1000);
-
-  // Calculate the timezone offset for Seattle (PST or PDT)
-  // Seattle is UTC-8 in standard time, UTC-7 in daylight saving time
-  const seattleOffset = date.getTimezoneOffset() < 480 ? -7 : -8;
-  const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-  const seattleDate = new Date(utc + (3600000 * seattleOffset));
-
-  // Format the time in 12-hour format
-  let hours = seattleDate.getHours();
-  const minutes = seattleDate.getMinutes();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12; // Hour '0' should be '12'
-  const minutesStr = minutes < 10 ? '0' + minutes : minutes;
-
-  return hours + ':' + minutesStr + ' ' + ampm;
+  return dtAppts;
 }
