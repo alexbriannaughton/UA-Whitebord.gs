@@ -1,5 +1,5 @@
 function downloadPdfToDrive() {
-  const dlLink = 'https://urbananimalnw.usw2.ezyvet.com/api/v1/attachment/download/4425719970'; // Your PDF download link
+  const dlLink = 'https://urbananimalnw.usw2.ezyvet.com/api/v1/attachment/download/4425719970';
   const cache = CacheService.getScriptCache();
   let token = cache.get('ezyVet_token');
 
@@ -17,58 +17,53 @@ function downloadPdfToDrive() {
   };
 
   let response = UrlFetchApp.fetch(dlLink, options);
-
   if (response.getResponseCode() === 401) {
     options.headers.authorization = updateToken(cache);
     response = UrlFetchApp.fetch(dlLink, options);
   }
 
   const blob = response.getBlob();
-  const fileName = blob.getName(); // Retrieve the name of the file from the Blob
+  const fileName = blob.getName();
 
-  // Check if file exists in Google Drive
-  const existingFiles = DriveApp.getFilesByName(fileName);
-  if (existingFiles.hasNext()) {
-    // If file exists, get the URL and open it
-    const file = existingFiles.next();
-    const fileUrl = file.getUrl();
-    var html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
-    SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
-    return;
-  }
+  const existingFiles = DriveApp.getFilesByName(fileName); // returns FileIterator object
+  const file = existingFiles.hasNext() // if the file exists
+    ? existingFiles.next() // use it
+    : DriveApp.createFile(blob); // otherwise create it in Drive, and use that
 
-  // If file doesn't exist, save it to Google Drive
-  const driveFile = DriveApp.createFile(blob);
-
-  // Get the URL of the saved file
-  const fileUrl = driveFile.getUrl();
-
-  // Open the URL in a new window
-  var html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
+  const fileUrl = file.getUrl();
+  const html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
   SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
+  return;
 }
 
 function getTomorrowsDTAppts() {
+  // get epochs for range of tomorrow
   const now = new Date().toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
   const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1); // Move to tomorrow
+  tomorrow.setDate(tomorrow.getDate() + 2); // Move to tomorrow
   const tomorrowStart = Math.floor(tomorrow.setHours(0, 0, 0, 0) / 1000); // midnight tomorrow in seconds
   const tomorrowEnd = Math.floor(tomorrow.setHours(23, 59, 59, 999) / 1000); // end of tomorrow in seconds
-
+  // send query for all appointments for tomorrow
   const url = `${proxy}/v1/appointment?active=1&time_range_start=${tomorrowStart}&time_range_end=${tomorrowEnd}&limit=200`;
   const allOfTomorrowsAppts = fetchAndParse(url);
 
-  const dtResourceIDs = new Set(['35', '55', '56', '1015', '1082']); // non procedures dt columns
+  // filter all appts down to DT exams and techs
+  const dtResourceIDs = new Set([ // non procedures dt columns
+    '35', // dt dvm 1
+    '55', // used to be dt dvm 2, though it is not currently active 3/16/24
+    '56', // dt tech
+    '1015', // used to be dt dvm 3, though it is not currently active 3/16/24
+    '1082' // dt DVM :15/:45
+  ]); 
   const dtAppts = allOfTomorrowsAppts.items.filter(({ appointment }) => {
-    return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT column
-      && appointment.details.appointment_type_id !== '4'; // not a blocked off spot
+    return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in DT exam or tech column
+      && appointment.details.appointment_type_id !== '4'; // is not a blocked off spot
   });
 
   dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 
-  const firstTwoApptsForTesting = dtAppts.slice(0, 2);
-
-  const allDTApptData = getAllAnimalAndContactData(firstTwoApptsForTesting);
+  const firstTwoApptsForTesting = dtAppts.slice(0, 2); // for prod we will use dtAppts instead
+  const allDTApptData = getAllEzyVetData(firstTwoApptsForTesting);
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
   const range = sheet.getRange(`A4:C204`)
@@ -83,21 +78,24 @@ function getTomorrowsDTAppts() {
       animalAttachments
     } = dtAppts[i];
 
+    console.log(dtAppts[i]);
+
     const time = convertEpochToSeattleTime(appointment.start_time);
     const timeCell = range.offset(i, 0, 1, 1);
     timeCell.setValue(time);
 
-    const ptCell = range.offset(i, 1, 1, 1);
-    const reasonCell = range.offset(i, 2, 1, 1);
-    const patientText = `${animalName} ${contactLastName} (${animalSpecies})`;
-    const webAddress = `${sitePrefix}/?recordclass=Animal&recordid=${appointment.details.animal_id}`
-    const link = makeLink(patientText, webAddress);
-    ptCell.setRichTextValue(link);
-    reasonCell.setValue(appointment.details.description);
+    // const ptCell = range.offset(i, 1, 1, 1);
+    // const reasonCell = range.offset(i, 2, 1, 1);
+    // const patientText = `${animalName} ${contactLastName} (${animalSpecies})`;
+    // const webAddress = `${sitePrefix}/?recordclass=Animal&recordid=${appointment.details.animal_id}`
+    // const link = makeLink(patientText, webAddress);
+    // ptCell.setRichTextValue(link);
+    // reasonCell.setValue(appointment.details.description);
   }
 }
 
-function getAllAnimalAndContactData(dtAppts) {
+// get the animal, contact and attachment data associated with the appointment
+function getAllEzyVetData(dtAppts) {
   let animalRequests = [];
   let contactRequests = [];
   let animalAttachmentRequests = [];
