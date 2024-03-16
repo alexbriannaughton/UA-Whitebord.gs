@@ -1,41 +1,3 @@
-function downloadPdfToDrive() {
-  const dlLink = 'https://urbananimalnw.usw2.ezyvet.com/api/v1/attachment/download/4425719970';
-  const cache = CacheService.getScriptCache();
-  const token = cache.get('ezyVet_token');
-
-  if (!token) {
-    token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
-    cache.put('ezyVet_token', token, 300); // Cache the token for 5 minutes (adjust as needed)
-  }
-
-  const options = {
-    muteHttpExceptions: true,
-    method: "GET",
-    headers: {
-      authorization: token
-    }
-  };
-
-  let response = UrlFetchApp.fetch(dlLink, options);
-  if (response.getResponseCode() === 401) {
-    options.headers.authorization = updateToken(cache);
-    response = UrlFetchApp.fetch(dlLink, options);
-  }
-
-  const blob = response.getBlob();
-  const fileName = blob.getName();
-
-  const existingFiles = DriveApp.getFilesByName(fileName); // returns FileIterator object
-  const file = existingFiles.hasNext() // if the file exists
-    ? existingFiles.next() // use it
-    : DriveApp.createFile(blob); // otherwise create it in Drive, and use that
-
-  const fileUrl = file.getUrl();
-  const html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
-  SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
-  return;
-}
-
 function getTomorrowsDTAppts() {
   const [tomorrowStart, tomorrowEnd] = epochRangeForTomorrow();
   // send query for all appointments for tomorrow
@@ -149,6 +111,12 @@ function getAllEzyVetData(dtAppts) {
     const contact = JSON.parse(response.getContentText()).items.at(-1).contact;
     dtAppts[i].contact = contact;
   });
+  allConsultsForAnimalResponses.forEach((response, i) => {
+    const consults = JSON.parse(response.getContentText()).items;
+    const consultIDs = consults.map(({ consult }) => consult.id);
+    dtAppts[i].consultIDs = consultIDs;
+  });
+
   const animalAttachmentDownloadRequests = [];
   animalAttachmentResponses.forEach((response, i) => {
     const animalAttachments = JSON.parse(response.getContentText()).items;
@@ -164,32 +132,18 @@ function getAllEzyVetData(dtAppts) {
     // save the id numbers for the button that will open the drive files
     dtAppts[i].animalAttachments = animalAttachments;
   });
-  allConsultsForAnimalResponses.forEach((response, i) => {
-    const consults = JSON.parse(response.getContentText()).items;
-    const consultIDs = consults.map(({ consult }) => consult.id);
-    dtAppts[i].consultIDs = consultIDs;
-  });
-
   const animalAttachmentDownloadResponses = UrlFetchApp.fetchAll(animalAttachmentDownloadRequests);
   animalAttachmentDownloadResponses.forEach(response => {
     const blob = response.getBlob();
     const fileName = blob.getName();
     const existingFiles = DriveApp.getFilesByName(fileName); // returns FileIterator object
-    const file = existingFiles.hasNext() // if the file exists
+    existingFiles.hasNext() // if the file exists
       ? existingFiles.next() // use it
       : DriveApp.createFile(blob); // otherwise create it in Drive, and use that
-
-    // const fileUrl = file.getUrl();
-    // const html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
-    // SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
   })
 
   const consultAttachmentRequests = [];
   for (const appt of dtAppts) {
-    if (!appt.consultIDs) {
-      console.log('dont request past the first two appointments');
-      break;
-    }
     const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
     consultAttachmentRequests.push({
       muteHttpExceptions: true,
@@ -200,8 +154,65 @@ function getAllEzyVetData(dtAppts) {
   }
   const consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
 
+  const consultAttachmentDownloadRequests = [];
   consultAttachmentResponses.forEach((response, i) => {
-    const attachments = JSON.parse(response.getContentText()).items;
-    dtAppts[i].consultAttachments = attachments;
+    const consultAttachments = JSON.parse(response.getContentText()).items;
+    consultAttachments.forEach(({ attachment }) => {
+      consultAttachmentDownloadRequests.push({
+        muteHttpExceptions: true,
+        url: `${attachment.file_download_url}`,
+        method: "GET",
+        headers: { authorization: token }
+      })
+    })
+    // save the id numbers for the button that will open the drive files
+    dtAppts[i].consultAttachments = consultAttachments;
   });
+  const consultAttachmentDownloadResponses = UrlFetchApp.fetchAll(consultAttachmentDownloadRequests);
+  consultAttachmentDownloadResponses.forEach(response => {
+    const blob = response.getBlob();
+    const fileName = blob.getName();
+    const existingFiles = DriveApp.getFilesByName(fileName); // returns FileIterator object
+    existingFiles.hasNext() // if the file exists
+      ? existingFiles.next() // use it
+      : DriveApp.createFile(blob); // otherwise create it in Drive, and use that
+  });
+}
+
+function downloadPdfToDrive() {
+  const dlLink = 'https://urbananimalnw.usw2.ezyvet.com/api/v1/attachment/download/4425719970';
+  const cache = CacheService.getScriptCache();
+  const token = cache.get('ezyVet_token');
+
+  if (!token) {
+    token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
+    cache.put('ezyVet_token', token, 300); // Cache the token for 5 minutes (adjust as needed)
+  }
+
+  const options = {
+    muteHttpExceptions: true,
+    method: "GET",
+    headers: {
+      authorization: token
+    }
+  };
+
+  let response = UrlFetchApp.fetch(dlLink, options);
+  if (response.getResponseCode() === 401) {
+    options.headers.authorization = updateToken(cache);
+    response = UrlFetchApp.fetch(dlLink, options);
+  }
+
+  const blob = response.getBlob();
+  const fileName = blob.getName();
+
+  const existingFiles = DriveApp.getFilesByName(fileName); // returns FileIterator object
+  const file = existingFiles.hasNext() // if the file exists
+    ? existingFiles.next() // use it
+    : DriveApp.createFile(blob); // otherwise create it in Drive, and use that
+
+  const fileUrl = file.getUrl();
+  const html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
+  SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
+  return;
 }
