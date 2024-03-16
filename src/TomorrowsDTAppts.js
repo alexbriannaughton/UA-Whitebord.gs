@@ -54,7 +54,7 @@ function getTomorrowsDTAppts() {
     '56', // dt tech
     '1015', // used to be dt dvm 3, though it is not currently active 3/16/24
     '1082' // dt DVM :15/:45
-  ]); 
+  ]);
   const dtAppts = allOfTomorrowsAppts.items.filter(({ appointment }) => {
     return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in DT exam or tech column
       && appointment.details.appointment_type_id !== '4'; // is not a blocked off spot
@@ -92,7 +92,13 @@ function getTomorrowsDTAppts() {
     ptCell.setRichTextValue(link);
 
     const reasonCell = range.offset(i, 2, 1, 1);
-    reasonCell.setValue(appointment.details.description);
+    let descriptionString = appointment.details.description;
+    if (descriptionString.startsWith('VETSTORIA')) {
+      const itemsInParenthases = descriptionString.match(/\((.*?)\)/g);
+      const reason = itemsInParenthases.at(-1);
+      descriptionString = reason.slice(1, -1);
+    }
+    reasonCell.setValue(descriptionString);
   }
 }
 
