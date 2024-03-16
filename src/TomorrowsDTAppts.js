@@ -76,9 +76,9 @@ function getTomorrowsDTAppts() {
       animal,
       consultAttachments,
       animalAttachments
-    } = dtAppts[i];
+    } = allDTApptData[i];
 
-    console.log(dtAppts[i]);
+    console.log(allDTApptData[i]);
 
     const time = convertEpochToSeattleTime(appointment.start_time);
     const timeCell = range.offset(i, 0, 1, 1);
@@ -170,15 +170,6 @@ function getAllEzyVetData(dtAppts) {
     const attachments = JSON.parse(response.getContentText()).items;
     dtAppts[i].consultAttachments = attachments;
   });
-
-  dtAppts.forEach(appt => {
-    console.log('APPOINTMENT ', appt.appointment.id);
-    console.log('appointment details: ', appt.appointment.details);
-    console.log('animal: ', appt.animal);
-    console.log('contact', appt.contact);
-    console.log('animalAttachments: ', appt.animalAttachments);
-    console.log('consultAttachments: ', appt.consultAttachments);
-  })
 
   return dtAppts;
 }
