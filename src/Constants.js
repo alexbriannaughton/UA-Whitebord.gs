@@ -1,6 +1,8 @@
 const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
 
+const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
+
 // takes appointment.type_id and outputs a string for the procedure type
 const typeIDToCategoryMap = new Map([
     [7, 'sx'], [76, 'sx'], [89, 'sx'], [90, 'sx'],   // Surgery type IDs

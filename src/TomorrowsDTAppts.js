@@ -84,13 +84,15 @@ function getTomorrowsDTAppts() {
     const timeCell = range.offset(i, 0, 1, 1);
     timeCell.setValue(time);
 
-    // const ptCell = range.offset(i, 1, 1, 1);
-    // const reasonCell = range.offset(i, 2, 1, 1);
-    // const patientText = `${animalName} ${contactLastName} (${animalSpecies})`;
-    // const webAddress = `${sitePrefix}/?recordclass=Animal&recordid=${appointment.details.animal_id}`
-    // const link = makeLink(patientText, webAddress);
-    // ptCell.setRichTextValue(link);
-    // reasonCell.setValue(appointment.details.description);
+    const ptCell = range.offset(i, 1, 1, 1);
+    const ptSpecies = speciesMap[animal.species_id] || 'unknown species';
+    const ptText = `${animal.name} ${contact.lastName} (${ptSpecies})`;
+    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
+    const link = makeLink(ptText, animalURL);
+    ptCell.setRichTextValue(link);
+
+    const reasonCell = range.offset(i, 2, 1, 1);
+    reasonCell.setValue(appointment.details.description);
   }
 }
 
