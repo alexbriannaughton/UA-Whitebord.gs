@@ -63,22 +63,22 @@ function getTomorrowsDTAppts() {
   dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 
   const firstTwoApptsForTesting = dtAppts.slice(0, 2); // for prod we will use dtAppts instead
-  const allDTApptData = getAllEzyVetData(firstTwoApptsForTesting);
+  getAllEzyVetData(firstTwoApptsForTesting);
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
   const range = sheet.getRange(`A4:C204`)
   range.clearContent();
 
   for (let i = 0; i < dtAppts.length; i++) {
+    if (!dtAppts[i].contact) break; // this is just for dev, shouldnt be necessary in prod
+
     const {
       appointment,
       contact,
       animal,
       consultAttachments,
       animalAttachments
-    } = allDTApptData[i];
-
-    console.log(allDTApptData[i]);
+    } = dtAppts[i];
 
     const time = convertEpochToSeattleTime(appointment.start_time);
     const timeCell = range.offset(i, 0, 1, 1);
@@ -170,6 +170,4 @@ function getAllEzyVetData(dtAppts) {
     const attachments = JSON.parse(response.getContentText()).items;
     dtAppts[i].consultAttachments = attachments;
   });
-
-  return dtAppts;
 }
