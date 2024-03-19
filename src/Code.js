@@ -104,31 +104,31 @@ function handleUpdatedAppointment(appointment) {
 
 function doGet(_e) {
   try {
-    const chRowFourIndexToRoomNameMap = new Map([
-      [0, 'Room 1'],
-      [1, 'Room 2'],
-      [2, 'Room 3'],
-      [3, 'Room 4'],
-      [4, 'Room 5'],
-      [5, 'Cat Lobby 1'],
-      [6, 'Cat Lobby 2']
+    const chRowFourIndexToStatusIDMap = new Map([
+      [0, '18'],
+      [1, '25'],
+      [2, '26'],
+      [3, '27'],
+      [4, '28'],
+      [5, '40'],
+      [6, '40']
     ]);
 
     // this map works for both WC and DT, even though WC only has 5 rooms
-    const rowFourIndexToRoomNameMap = new Map([
-      [0, 'Room 1'],
-      [1, 'Room 2'],
-      [2, 'Room 3'],
-      [3, 'Room 4'],
-      [4, 'Room 5'],
-      [5, 'Room 6'],
-      [6, 'Room 7']
+    const rowFourIndexToStatusIDMap = new Map([
+      [0, '18'], //Room 1
+      [1, '25'], //Room 2
+      [2, '26'], //Room 3
+      [3, '27'], //Room 4
+      [4, '28'], //Room 5
+      [5, '29'], //Room 6
+      [6, '30'] //Room 7
     ]);
 
     const allRooms = {};
-    extractRooms('CH', 'C4:I14', chRowFourIndexToRoomNameMap, allRooms);
-    extractRooms('DT', 'C4:I4', rowFourIndexToRoomNameMap, allRooms);
-    extractRooms('WC', 'C4:G4', rowFourIndexToRoomNameMap, allRooms);
+    extractRooms('CH', 'C4:I14', chRowFourIndexToStatusIDMap, allRooms);
+    extractRooms('DT', 'C4:I4', rowFourIndexToStatusIDMap, allRooms);
+    extractRooms('WC', 'C4:G4', rowFourIndexToStatusIDMap, allRooms);
 
     return ContentService.createTextOutput(
       JSON.stringify(allRooms)

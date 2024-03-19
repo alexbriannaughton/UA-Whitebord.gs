@@ -1,4 +1,4 @@
-function extractRooms(sheetName, rangeCoords, indexToRoomNameMap, allRooms) {
+function extractRooms(sheetName, rangeCoords, indexToSatusIDMap, allRooms) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
     const vals = range.getValues();
@@ -6,29 +6,29 @@ function extractRooms(sheetName, rangeCoords, indexToRoomNameMap, allRooms) {
     const rowFourVals = vals[0];
     const rowFourRTVals = rtVals[0];
 
-    parseOneRow(rowFourVals, rowFourRTVals, indexToRoomNameMap, allRooms, sheetName);
+    parseOneRow(rowFourVals, rowFourRTVals, indexToSatusIDMap, allRooms, sheetName);
 
     if (sheetName === 'CH') {
         const rowFourteenVals = vals.at(-1);
         const rowFourteenRTVals = rtVals.at(-1);
-        const chRowFourteenIndexToRoomNameMap = new Map([
-            [0, 'Room 6'],
-            [1, 'Room 7'],
-            [2, 'Room 8'],
-            [3, 'Room 9'],
-            [4, 'Room 10'],
-            [5, 'Room 11'],
-            [6, 'Dog Lobby']
+        const chRowFourteenIndexToSatusIDMap = new Map([
+            [0, '29'], // room 6
+            [1, '30'], //Room 7
+            [2, '31'], //Room 8
+            [3, '32'], //Room 9
+            [4, '33'], //Room 10
+            [5, '36'], //Room 11
+            [6, '39'] //Dog Lobby
         ]);
-        parseOneRow(rowFourteenVals, rowFourteenRTVals, chRowFourteenIndexToRoomNameMap, allRooms, sheetName);
+        parseOneRow(rowFourteenVals, rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, allRooms, sheetName);
     }
 
     return allRooms;
 }
 
-function parseOneRow(rowVals, rowRTVals, indexToRoomNameMap, allRooms, sheetName) {
+function parseOneRow(rowVals, rowRTVals, indexToSatusIDMap, allRooms, sheetName) {
     for (let i = 0; i < rowVals.length; i++) {
-        const roomName = indexToRoomNameMap.get(i);
+        const statusID = indexToSatusIDMap.get(i);
         const val = rowVals[i];
         const richText = rowRTVals[i];
         const roomDetails = { val };
@@ -42,7 +42,7 @@ function parseOneRow(rowVals, rowRTVals, indexToRoomNameMap, allRooms, sheetName
             }
         }
 
-        const roomLocationKey = sheetName + roomName;
+        const roomLocationKey = sheetName + statusID;
         allRooms[roomLocationKey] = roomDetails;
 
     }
