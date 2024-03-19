@@ -9,20 +9,20 @@ function extractRooms(sheetName, rangeCoords, indexToRoomNameMap) {
 
     parseOneRow(rowFourVals, rowFourRTVals, indexToRoomNameMap, rooms);
 
-    if (sheetName !== 'CH') return rooms;
-    // check the bottom rooms if this is cap hill
-    const rowFourteenVals = vals.at(-1);
-    const rowFourteenRTVals = rtVals.at(-1);
-    const chRowFourteenIndexToRoomNameMap = new Map([
-        [0, 'Room 6'],
-        [1, 'Room 7'],
-        [2, 'Room 8'],
-        [3, 'Room 9'],
-        [4, 'Room 10'],
-        [5, 'Room 11'],
-        [6, 'Dog Lobby']
-    ]);
-    parseOneRow(rowFourteenVals, rowFourteenRTVals, chRowFourteenIndexToRoomNameMap, rooms);
+    if (sheetName === 'CH') {
+        const rowFourteenVals = vals.at(-1);
+        const rowFourteenRTVals = rtVals.at(-1);
+        const chRowFourteenIndexToRoomNameMap = new Map([
+            [0, 'Room 6'],
+            [1, 'Room 7'],
+            [2, 'Room 8'],
+            [3, 'Room 9'],
+            [4, 'Room 10'],
+            [5, 'Room 11'],
+            [6, 'Dog Lobby']
+        ]);
+        parseOneRow(rowFourteenVals, rowFourteenRTVals, chRowFourteenIndexToRoomNameMap, rooms);
+    }
 
     return rooms;
 }
