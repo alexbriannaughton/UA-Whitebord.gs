@@ -101,3 +101,32 @@ function handleUpdatedAppointment(appointment) {
   return;
 
 };
+
+function doGet(e) {
+  const stateOfRooms = {};
+  const chSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('CH');
+  const chRange = chSheet.getRange('C4:N21');
+  const chVals = chRange.getValues();
+  const chRTVals = chRange.getRichTextValues();
+
+  const rowFourVals = chVals[0];
+  const rowFourRTVals = chRTVals[0];
+  for (let i = 0; i < rowFourRTVals.length; i++) {
+    const roomNum = i + 1;
+    const val = rowFourRTVals[i];
+    const richText = rowFourRTVals[i];
+    stateOfRooms[`Room ${roomNum}`] = {
+      val,
+      link: null
+    };
+
+    const runs = richText.getRuns();
+    for (const richText of runs) {
+      const link = richText.getLinkUrl();
+      // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
+      if (link) {
+        
+      }
+    }
+  }
+}
