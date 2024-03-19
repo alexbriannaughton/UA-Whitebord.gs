@@ -105,14 +105,24 @@ function handleUpdatedAppointment(appointment) {
 function doGet(_e) {
   const stateOfRooms = {};
   const chSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('CH');
-  const chRange = chSheet.getRange('C4:N21');
+  const chRange = chSheet.getRange('C4:I14');
   const chVals = chRange.getValues();
   const chRTVals = chRange.getRichTextValues();
 
   const rowFourVals = chVals[0];
   const rowFourRTVals = chRTVals[0];
+  const rowFourIndexToRoomNameMap = new Map([
+    [0, 'Room 1'],
+    [1, 'Room 2'],
+    [2, 'Room 3'],
+    [3, 'Room 4'],
+    [4, 'Room 5'],
+    [5, 'Cat Lobby 1'],
+    [6, 'Cat Lobby 2']
+  ]);
+
   for (let i = 0; i < 7; i++) {
-    const roomNum = i + 1;
+    const roomName = rowFourIndexToRoomNameMap.get(i);
     const val = rowFourVals[i];
     const richText = rowFourRTVals[i];
     const roomDetails = { val, consultID: null };
@@ -126,7 +136,37 @@ function doGet(_e) {
       }
     }
 
-    stateOfRooms[`Room ${roomNum}`] = roomDetails;
+    stateOfRooms[roomName] = roomDetails;
+  }
+
+  const rowFourteenVals = chVals.at(-1);
+  const rowFourteenRTVals = chRTVals.at(-1);
+  const rowFourteenIndexToRoomNameMap = new Map([
+    [0, 'Room 6'],
+    [1, 'Room 7'],
+    [2, 'Room 8'],
+    [3, 'Room 9'],
+    [4, 'Room 10'],
+    [5, 'Room 11'],
+    [6, 'Dog Lobby']
+  ]);
+
+  for (let i = 0; i < 7; i++) {
+    const roomName = rowFourteenIndexToRoomNameMap.get(i);
+    const val = rowFourteenVals[i];
+    const richText = rowFourteenRTVals[i];
+    const roomDetails = { val, consultID: null };
+
+    const runs = richText.getRuns();
+    for (const richText of runs) {
+      const link = richText.getLinkUrl();
+      if (link?.includes('Consult')) {
+        roomDetails.consultID = link.split('=')[2];
+        break;
+      }
+    }
+
+    stateOfRooms[roomName] = roomDetails;
   }
 
   return ContentService.createTextOutput(JSON.stringify(stateOfRooms))
