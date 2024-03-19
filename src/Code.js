@@ -104,8 +104,6 @@ function handleUpdatedAppointment(appointment) {
 
 function doGet(_e) {
   try {
-    const allRooms = {};
-
     const chRowFourIndexToRoomNameMap = new Map([
       [0, 'Room 1'],
       [1, 'Room 2'],
@@ -127,15 +125,16 @@ function doGet(_e) {
       [6, 'Room 7']
     ]);
 
-    allRooms.CH = extractRooms('CH', 'C4:I14', chRowFourIndexToRoomNameMap);
-    allRooms.DT = extractRooms('DT', 'C4:I4', rowFourIndexToRoomNameMap);
-    allRooms.WC = extractRooms('WC', 'C4:G4', rowFourIndexToRoomNameMap);
+    const allRooms = {};
+    extractRooms('CH', 'C4:I14', chRowFourIndexToRoomNameMap, allRooms);
+    extractRooms('DT', 'C4:I4', rowFourIndexToRoomNameMap, allRooms);
+    extractRooms('WC', 'C4:G4', rowFourIndexToRoomNameMap, allRooms);
 
     return ContentService.createTextOutput(
       JSON.stringify(allRooms)
     ).setMimeType(ContentService.MimeType.JSON);
   }
-  
+
   catch (error) {
     return ContentService.createTextOutput(
       JSON.stringify({ error: error.message })
