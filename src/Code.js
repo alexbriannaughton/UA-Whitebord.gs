@@ -1,4 +1,3 @@
-// test directory rename 2
 // receive webhooks here. e = the webhook event
 function doPost(e) {
   try {
@@ -103,7 +102,7 @@ function handleUpdatedAppointment(appointment) {
 
 };
 
-function doGet(e) {
+function doGet(_e) {
   const stateOfRooms = {};
   const chSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('CH');
   const chRange = chSheet.getRange('C4:N21');
@@ -114,20 +113,22 @@ function doGet(e) {
   const rowFourRTVals = chRTVals[0];
   for (let i = 0; i < rowFourRTVals.length; i++) {
     const roomNum = i + 1;
-    const val = rowFourRTVals[i];
+    const val = rowFourVals[i];
     const richText = rowFourRTVals[i];
-    stateOfRooms[`Room ${roomNum}`] = {
-      val,
-      link: null
-    };
+    const roomDetails = { val, animalID: null };
 
     const runs = richText.getRuns();
     for (const richText of runs) {
       const link = richText.getLinkUrl();
-      // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
-      if (link) {
-        
+      if (link?.includes('Animal')) {
+        roomDetails.animalID = link.split('=')[2];
+        break;
       }
     }
+
+    stateOfRooms[`Room ${roomNum}`] = roomDetails;
   }
+
+  return ContentService.createTextOutput(JSON.stringify(stateOfRooms))
+    .setMimeType(ContentService.MimeType.JSON);
 }
