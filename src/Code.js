@@ -111,7 +111,7 @@ function doGet(_e) {
 
   const rowFourVals = chVals[0];
   const rowFourRTVals = chRTVals[0];
-  for (let i = 0; i < rowFourRTVals.length; i++) {
+  for (let i = 0; i < 7; i++) {
     const roomNum = i + 1;
     const val = rowFourVals[i];
     const richText = rowFourRTVals[i];
@@ -120,6 +120,7 @@ function doGet(_e) {
     const runs = richText.getRuns();
     for (const richText of runs) {
       const link = richText.getLinkUrl();
+      console.log('link: ', link)
       if (link?.includes('Animal')) {
         roomDetails.animalID = link.split('=')[2];
         break;
