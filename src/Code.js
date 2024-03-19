@@ -103,34 +103,42 @@ function handleUpdatedAppointment(appointment) {
 };
 
 function doGet(_e) {
-  const allRooms = {};
+  try {
+    const allRooms = {};
 
-  const chRowFourIndexToRoomNameMap = new Map([
-    [0, 'Room 1'],
-    [1, 'Room 2'],
-    [2, 'Room 3'],
-    [3, 'Room 4'],
-    [4, 'Room 5'],
-    [5, 'Cat Lobby 1'],
-    [6, 'Cat Lobby 2']
-  ]);
+    const chRowFourIndexToRoomNameMap = new Map([
+      [0, 'Room 1'],
+      [1, 'Room 2'],
+      [2, 'Room 3'],
+      [3, 'Room 4'],
+      [4, 'Room 5'],
+      [5, 'Cat Lobby 1'],
+      [6, 'Cat Lobby 2']
+    ]);
 
-  // this map works for both WC and DT, even though WC only has 5 rooms
-  const rowFourIndexToRoomNameMap = new Map([
-    [0, 'Room 1'],
-    [1, 'Room 2'],
-    [2, 'Room 3'],
-    [3, 'Room 4'],
-    [4, 'Room 5'],
-    [5, 'Room 6'],
-    [6, 'Room 7']
-  ]);
+    // this map works for both WC and DT, even though WC only has 5 rooms
+    const rowFourIndexToRoomNameMap = new Map([
+      [0, 'Room 1'],
+      [1, 'Room 2'],
+      [2, 'Room 3'],
+      [3, 'Room 4'],
+      [4, 'Room 5'],
+      [5, 'Room 6'],
+      [6, 'Room 7']
+    ]);
 
-  allRooms.CH = extractRooms('CH', 'C4:I14', chRowFourIndexToRoomNameMap);
-  allRooms.DT = extractRooms('DT', 'C4:I4', rowFourIndexToRoomNameMap);
-  allRooms.WC = extractRooms('WC', 'C4:G4', rowFourIndexToRoomNameMap);
+    allRooms.CH = extractRooms('CH', 'C4:I14', chRowFourIndexToRoomNameMap);
+    allRooms.DT = extractRooms('DT', 'C4:I4', rowFourIndexToRoomNameMap);
+    allRooms.WC = extractRooms('WC', 'C4:G4', rowFourIndexToRoomNameMap);
 
-  return ContentService.createTextOutput(
-    JSON.stringify(allRooms)
-  ).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(
+      JSON.stringify(allRooms)
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  catch (error) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ error: error.message })
+    ).setMimeType(ContentService.MimeType.JSON).setStatusCode(500);
+  }
 }
