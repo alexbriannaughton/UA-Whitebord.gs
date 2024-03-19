@@ -115,14 +115,13 @@ function doGet(_e) {
     const roomNum = i + 1;
     const val = rowFourVals[i];
     const richText = rowFourRTVals[i];
-    const roomDetails = { val, animalID: null };
+    const roomDetails = { val, consultID: null };
 
     const runs = richText.getRuns();
     for (const richText of runs) {
       const link = richText.getLinkUrl();
-      console.log('link: ', link)
-      if (link?.includes('Animal')) {
-        roomDetails.animalID = link.split('=')[2];
+      if (link?.includes('Consult')) {
+        roomDetails.consultID = link.split('=')[2];
         break;
       }
     }
