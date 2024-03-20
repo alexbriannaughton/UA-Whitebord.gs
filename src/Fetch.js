@@ -63,7 +63,6 @@ function fetchAndParse(url) {
 function getAnimalInfo(animalID) {
     const url = `${proxy}/v1/animal/${animalID}`;
     const animal = fetchAndParse(url).items.at(-1).animal;
-    const speciesMap = { 1: 'K9', 2: 'FEL' };
     const species = speciesMap[animal.species_id] || '';
 
     return [animal.name, species];

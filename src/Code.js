@@ -17,7 +17,7 @@ function doPost(e) {
     Utilities.sleep(3000);
     try {
       const params = JSON.parse(e.postData.contents);
-      console.log('second try params:', params);
+      console.log('second try appointment objects: ', params?.items);
       const apptItems = params.items;
 
       for (const { appointment } of apptItems) {
@@ -101,3 +101,43 @@ function handleUpdatedAppointment(appointment) {
   return;
 
 };
+
+function doGet(_e) {
+  try {
+    const chRowFourIndexToStatusIDMap = new Map([
+      [0, '18'],
+      [1, '25'],
+      [2, '26'],
+      [3, '27'],
+      [4, '28'],
+      [5, '40'],
+      [6, '40']
+    ]);
+
+    // this map works for both WC and DT, even though WC only has 5 rooms
+    const rowFourIndexToStatusIDMap = new Map([
+      [0, '18'], //Room 1
+      [1, '25'], //Room 2
+      [2, '26'], //Room 3
+      [3, '27'], //Room 4
+      [4, '28'], //Room 5
+      [5, '29'], //Room 6
+      [6, '30'] //Room 7
+    ]);
+
+    const allRooms = {};
+    extractRooms('CH', 'C4:I14', chRowFourIndexToStatusIDMap, allRooms);
+    extractRooms('DT', 'C4:I4', rowFourIndexToStatusIDMap, allRooms);
+    extractRooms('WC', 'C4:G4', rowFourIndexToStatusIDMap, allRooms);
+
+    return ContentService.createTextOutput(
+      JSON.stringify(allRooms)
+    ).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  catch (error) {
+    return ContentService.createTextOutput(
+      JSON.stringify({ error: error.message })
+    ).setMimeType(ContentService.MimeType.JSON).setStatusCode(500);
+  }
+}
