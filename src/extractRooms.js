@@ -23,15 +23,20 @@ function extractRooms(sheetName, rangeCoords, indexToSatusIDMap, allRooms) {
 function parseOneRow(rowRTVals, indexToSatusIDMap, allRooms, sheetName) {
     for (let i = 0; i < rowRTVals.length; i++) {
         const statusID = indexToSatusIDMap.get(i);
+        const roomLocationKey = sheetName + statusID;
         const richText = rowRTVals[i];
         const runs = richText.getRuns();
         for (const richText of runs) {
             const link = richText.getLinkUrl();
-            if (link?.includes('Consult')) {
-                const consultID = link.split('=')[2];
-                const roomLocationKey = sheetName + statusID;
-                allRooms[roomLocationKey] = consultID;
+            if (!link) continue;
+            if (link.includes('Consult')) {
+                const whiteboardConsultID = link.split('=')[2];
+                allRooms[roomLocationKey] = { whiteboardConsultID };
                 break;
+            }
+            else if (link.includes('Contact')) {
+                const whiteboardContactID = link.split('=')[2];
+                allRooms[roomLocationKey] = { whiteboardContactID };
             }
         }
     }

@@ -101,7 +101,8 @@ function getLocationPtCellRanges(location, sheet) {
 
 function checkLinksForID(locationPtCellRanges, appointment, targetCellRowsBelowMain) {
   for (ptCell of locationPtCellRanges) {
-    const link = ptCell.getRichTextValue().getLinkUrl();
+    const runs = ptCell.getRichTextValue().getRuns();
+    const link = getLinkFromRuns(runs);
     if (!link) continue;
     if (foundCorrectRoom(link, appointment)) {
       return ptCell.offset(targetCellRowsBelowMain, 0);

@@ -102,6 +102,7 @@ function handleUpdatedAppointment(appointment) {
 
 };
 
+// supabase cloud function that will trigger this, and should return the current state of patients in rooms
 function doGet(_e) {
   try {
     const chRowFourIndexToStatusIDMap = new Map([
