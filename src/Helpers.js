@@ -147,3 +147,10 @@ function findEmptyRow(range, consultID, keyToConsultID) {
 
   return emptyRowRange;
 };
+
+function getLinkFromRuns(runs) {
+  for (const run of runs) {
+    const link = run.getLinkUrl();
+    if (link) return link;
+  }
+}

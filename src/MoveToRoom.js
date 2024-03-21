@@ -78,11 +78,12 @@ function parseTheRoom(
   rangeForSecondCatLobbyColumn // will be undefined unless the first cat lobby column is unavailable
 ) {
 
-  const roomRange = !rangeForSecondCatLobbyColumn
+  const roomRange = rangeForSecondCatLobbyColumn === undefined
     ? findRoomRange(sheet, appointment.status_id, location)
     : rangeForSecondCatLobbyColumn;
   const ptCell = roomRange.offset(1, 0, 1, 1);
-  const curLink = ptCell.getRichTextValue().getLinkUrl();
+  const ptCellRuns = ptCell.getRichTextValue().getRuns();
+  const curLink = getLinkFromRuns(ptCellRuns);
   console.log('curlink: ', curLink);
   // if this appointment is already in the room, don't worry about it
   // we check this by comparing the link that's currently in the cell with the incoming appt's consult id
