@@ -3,10 +3,8 @@ function extractRooms(sheetName, rangeCoords, indexToSatusIDMap, allRooms) {
     const range = sheet.getRange(rangeCoords);
     const rtVals = range.getRichTextValues();
     const rowFourRTVals = rtVals[0];
-
     parseOneRow(rowFourRTVals, indexToSatusIDMap, allRooms, sheetName);
-
-    if (sheetName === 'CH') {
+    if (sheetName === 'CH') { // cap hill has 2 lobbies, so we have this extra step
         const rowFourteenRTVals = rtVals.at(-1);
         const chRowFourteenIndexToSatusIDMap = new Map([
             [0, '29'], // room 6
@@ -19,7 +17,6 @@ function extractRooms(sheetName, rangeCoords, indexToSatusIDMap, allRooms) {
         ]);
         parseOneRow(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, allRooms, sheetName);
     }
-
     return allRooms;
 }
 
@@ -37,7 +34,5 @@ function parseOneRow(rowRTVals, indexToSatusIDMap, allRooms, sheetName) {
                 break;
             }
         }
-
     }
-
 }

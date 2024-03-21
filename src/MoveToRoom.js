@@ -83,7 +83,7 @@ function parseTheRoom(
     : rangeForSecondCatLobbyColumn;
   const ptCell = roomRange.offset(1, 0, 1, 1);
   const curLink = ptCell.getRichTextValue().getLinkUrl();
-
+  console.log('curlink: ', curLink);
   // if this appointment is already in the room, don't worry about it
   // we check this by comparing the link that's currently in the cell with the incoming appt's consult id
   if (curLink?.includes(appointment.consult_id)) {
@@ -176,10 +176,11 @@ function findRoomRange(sheet, statusID, location) {
   // status ids for rooms 6 - 11 and dog/cat lobby statuses are 29 and greater
   if (location === 'CH' && statusID >= 29) {
     // handle for cat or dog lobby statuses
-    if (statusID === 40 || statusID === 39) {
-      timeRow = statusID === 40
+    const isCatLobbyStatus = statusID === 40;
+    if (isCatLobbyStatus || statusID === 39) {
+      timeRow = isCatLobbyStatus
         ? 3 : 13;
-      timeColumn = statusID === 40
+      timeColumn = isCatLobbyStatus
         ? 'H' : 'I';
     }
 
