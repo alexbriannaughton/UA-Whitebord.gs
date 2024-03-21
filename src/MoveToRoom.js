@@ -84,11 +84,10 @@ function parseTheRoom(
   const ptCell = roomRange.offset(1, 0, 1, 1);
   const ptCellRuns = ptCell.getRichTextValue().getRuns();
   const curLink = getLinkFromRuns(ptCellRuns);
-  console.log('curlink: ', curLink);
   // if this appointment is already in the room, don't worry about it
   // we check this by comparing the link that's currently in the cell with the incoming appt's consult id
   if (curLink?.includes(appointment.consult_id)) {
-    // we return deleteFromWaitlist bc there's a chance that this execution is an exponential backoff retry
+    // we return deleteFromWaitlist bc there's a chance that this execution is a retry
     // this assumes the logic that if it's in a room, it doesnt need to be on the waitlist
     return deleteFromWaitlist(location, appointment.consult_id);
   }
@@ -285,7 +284,8 @@ function deleteFromWaitlist(location, consultID) {
   const patientNameRichText = waitlistSheet.getRange(`C7:D75`).getRichTextValues();
 
   for (let i = 0; i < patientNameRichText.length; i++) {
-    const link = patientNameRichText[i][0].getLinkUrl();
+    const runs = patientNameRichText[i][0].getRuns();
+    const link = getLinkFromRuns(runs);
     if (link?.includes(consultID)) {
       return waitlistSheet.deleteRow(i + 7);
     }
