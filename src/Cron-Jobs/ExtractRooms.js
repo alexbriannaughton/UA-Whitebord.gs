@@ -1,9 +1,10 @@
-function extractRooms(sheetName, rangeCoords, indexToSatusIDMap, allRooms) {
+// this is called from doGet(), which is triggered by supabase edge function that runs every 15 minutes during open hours
+function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
     const rtVals = range.getRichTextValues();
     const rowFourRTVals = rtVals[0];
-    parseOneRow(rowFourRTVals, indexToSatusIDMap, allRooms, sheetName);
+    parseOneRow(rowFourRTVals, indexToStatusIDMap, allRooms, sheetName);
     if (sheetName === 'CH') { // cap hill has 2 lobbies, so we have this extra step
         const rowFourteenRTVals = rtVals.at(-1);
         const chRowFourteenIndexToSatusIDMap = new Map([
@@ -20,12 +21,11 @@ function extractRooms(sheetName, rangeCoords, indexToSatusIDMap, allRooms) {
     return allRooms;
 }
 
-function parseOneRow(rowRTVals, indexToSatusIDMap, allRooms, sheetName) {
+function parseOneRow(rowRTVals, indexToStatusIDMap, allRooms, sheetName) {
     for (let i = 0; i < rowRTVals.length; i++) {
-        const statusID = indexToSatusIDMap.get(i);
+        const statusID = indexToStatusIDMap.get(i);
         const roomLocationKey = sheetName + statusID;
-        const richText = rowRTVals[i];
-        const runs = richText.getRuns();
+        const runs = rowRTVals[i].getRuns();
         for (const richText of runs) {
             const link = richText.getLinkUrl();
             if (!link) continue;
