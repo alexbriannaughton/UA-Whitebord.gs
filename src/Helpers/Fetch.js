@@ -61,7 +61,7 @@ function fetchAndParse(url) {
 function getAnimalInfo(animalID) {
     const url = `${proxy}/v1/animal/${animalID}`;
     const animal = fetchAndParse(url).items.at(-1).animal;
-    const species = speciesMap[animal.species_id] || '';
+    const species = speciesMap[animal.species_id] || undefined;
 
     return [animal.name, species];
 };
@@ -114,7 +114,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
     const parsedAnimal = JSON.parse(animalJSON);
     const animal = parsedAnimal.items.at(-1).animal;
     const speciesMap = { 1: 'K9', 2: 'FEL' };
-    const animalSpecies = speciesMap[animal.species_id] || 'Unknown species';
+    const animalSpecies = speciesMap[animal.species_id] || undefined;
 
     const contactJSON = contactResponse.getContentText();
     const parsedContact = JSON.parse(contactJSON);

@@ -32,7 +32,7 @@ function addToWaitlist(appointment) {
 
   // populate cat or dog dropdown
   const speciesCell = rowRange.offset(0, 3, 1, 1);
-  speciesCell.setValue(animalSpecies);
+  animalSpecies ? speciesCell.setValue(animalSpecies) : null;
 
   // reason for visit
   const reasonCell = rowRange.offset(0, 7, 1, 2).merge();
