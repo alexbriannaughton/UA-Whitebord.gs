@@ -1,8 +1,4 @@
-function putTokenInCache(cache, token) {
-    cache.put('ezyVet_token', token, 30600); // store for 8.5 hours
-}
-
-function updateToken(cache) {
+function updateToken(cache = CacheService.getScriptCache()) {
     const url = `${proxy}/v2/oauth/access_token`;
     const props = PropertiesService.getScriptProperties();
     const payload = {
