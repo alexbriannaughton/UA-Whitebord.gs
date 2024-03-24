@@ -1,5 +1,3 @@
-let token; // token is a global variable
-
 function putTokenInCache(cache, token) {
     cache.put('ezyVet_token', token, 30600); // store for 8.5 hours
 }

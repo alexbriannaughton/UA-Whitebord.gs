@@ -78,18 +78,19 @@ function parseTheRoom(
   rangeForSecondCatLobbyColumn // will be undefined unless the first cat lobby column is unavailable
 ) {
 
-  const roomRange = !rangeForSecondCatLobbyColumn
+  const roomRange = rangeForSecondCatLobbyColumn === undefined
     ? findRoomRange(sheet, appointment.status_id, location)
     : rangeForSecondCatLobbyColumn;
   const ptCell = roomRange.offset(1, 0, 1, 1);
-  const curLink = ptCell.getRichTextValue().getLinkUrl();
-
+  const ptCellRuns = ptCell.getRichTextValue().getRuns();
+  const curLink = getLinkFromRuns(ptCellRuns);
   // if this appointment is already in the room, don't worry about it
   // we check this by comparing the link that's currently in the cell with the incoming appt's consult id
   if (curLink?.includes(appointment.consult_id)) {
-    // we return deleteFromWaitlist bc there's a chance that this execution is an exponential backoff retry
+    // we return deleteFromWaitlist bc there's a chance that this execution is a retry
     // this assumes the logic that if it's in a room, it doesnt need to be on the waitlist
-    return deleteFromWaitlist(location, appointment.consult_id);
+    deleteFromWaitlist(location, appointment.consult_id);
+    return;
   }
 
   const [animalName, animalSpecies] = getAnimalInfo(appointment.animal_id);
@@ -97,22 +98,31 @@ function parseTheRoom(
 
   const roomValues = roomRange.getValues();
 
-  // if the room range (time through dvm cells) are not all blank,
-  if (!roomValues.every(roomVal => roomVal.every(cellContents => !cellContents || /^\s*$/.test(cellContents)))) {
-    // another check to see if the incoming appointment is already in the room, as multiple pet room will not carry the consult id
-    if (roomValues[1][0].includes(incomingAnimalText)) return stopMovingToRoom(appointment);
+  // if the room's cells are not fully blank,
+  if (!roomIsEmpty(roomValues)) {
+    const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
+    
+    // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
+    if (roomValues[1][0].includes(incomingAnimalText)) {
+      stopMovingToRoom(appointment);
+      return;
+    }
 
     if (!curLink) { // if theres not a link in the ptCell,
-      return appointment.status_id === 40 && roomRange.getColumn() === 8// and if this is the first cat lobby column, 
-        ? parseTheRoom( // check the second cat lobby column
+      if (isFirstCatLobbyCol) { // and if we just checked the first cat lobby column,
+        return parseTheRoom( // check the second cat lobby column
           sheet,
           appointment,
           location,
           roomRange.offset(0, 1) // this is the range for the second cat lobby column
         )
-        : stopMovingToRoom(appointment); // otherwise we're done here bc we dont want to overwrite whatever is in the column
+      }
+      else stopMovingToRoom(appointment); // otherwise we're done here bc we dont want to overwrite whatever is in the column
+      return;
     }
 
+    // else we are checking a room which is not blank, that has a link that doesnt have the incoming appointment's consult id
+    // i.e. we are checking to see if this is a multiple pet room
     let alreadyMultiplePets = false;
     let curContactID;
 
@@ -143,8 +153,10 @@ function parseTheRoom(
       return;
     }
 
-    // if we are checking the first cat lobby cell range
-    if (appointment.status_id === 40 && roomRange.getColumn() === 8) {
+    // else this is not a multiple pet room...
+
+
+    if (isFirstCatLobbyCol) {  // if we are checking the first cat lobby cell range
       // we want to check the second cat lobby cell range
       return parseTheRoom(
         sheet,
@@ -155,7 +167,8 @@ function parseTheRoom(
     }
 
     // otherwise dont move to room because the room is not empty
-    return stopMovingToRoom(appointment);
+    stopMovingToRoom(appointment);
+    return;
   }
 
   // otherwise, this is a normal empty room
@@ -176,10 +189,11 @@ function findRoomRange(sheet, statusID, location) {
   // status ids for rooms 6 - 11 and dog/cat lobby statuses are 29 and greater
   if (location === 'CH' && statusID >= 29) {
     // handle for cat or dog lobby statuses
-    if (statusID === 40 || statusID === 39) {
-      timeRow = statusID === 40
+    const isCatLobbyStatus = statusID === 40;
+    if (isCatLobbyStatus || statusID === 39) {
+      timeRow = isCatLobbyStatus
         ? 3 : 13;
-      timeColumn = statusID === 40
+      timeColumn = isCatLobbyStatus
         ? 'H' : 'I';
     }
 
@@ -229,7 +243,9 @@ function techText(typeID) {
 
 function stopMovingToRoom(appointment) {
   // add it to the waitlist if it was just created
-  if (appointment.created_at === appointment.modified_at) addToWaitlist(appointment);
+  if (appointment.created_at === appointment.modified_at) {
+    addToWaitlist(appointment);
+  }
   return;
 }
 
@@ -271,7 +287,7 @@ function getContactIDFromConsultID(consultID) {
   const url1 = `${proxy}/v1/consult/${consultID}`;
   const animalID = fetchAndParse(url1).items[0].consult.animal_id;
 
-  const url2 = `${proxy}/v1/animal/${animalID}`
+  const url2 = `${proxy}/v1/animal/${animalID}`;
   const contactID = fetchAndParse(url2).items[0].animal.contact_id;
 
   return contactID;
@@ -283,11 +299,17 @@ function deleteFromWaitlist(location, consultID) {
   const patientNameRichText = waitlistSheet.getRange(`C7:D75`).getRichTextValues();
 
   for (let i = 0; i < patientNameRichText.length; i++) {
-    const link = patientNameRichText[i][0].getLinkUrl();
+    const runs = patientNameRichText[i][0].getRuns();
+    const link = getLinkFromRuns(runs);
     if (link?.includes(consultID)) {
-      return waitlistSheet.deleteRow(i + 7);
+      waitlistSheet.deleteRow(i + 7);
+      return;
     }
   }
 
   return;
+}
+
+function roomIsEmpty(roomValues) {
+  return roomValues.every(roomVal => roomVal.every(cellContents => !cellContents || /^\s*$/.test(cellContents)));
 }

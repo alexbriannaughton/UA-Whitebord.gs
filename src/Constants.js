@@ -1,5 +1,6 @@
 const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
+let token; // global variable
 
 const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
@@ -27,4 +28,18 @@ const typeCategoryToColorMap = new Map([
     ['h/c', '#fce5cd'],// light orangish
     ['secondary', '#fce5cd'],// light orangish
     ['IM', '#d9d2e9'] // light purplish
-]); 
+]);
+
+// for obtaining a particular location's default background color for the inpatient box
+const inpatientDefaultColorMap = new Map([
+    ['CH', '#f3f3f3'], // gray for cap hill
+    ['DT', '#d0e0e3'], // cyan for downtown
+    ['WC', '#ead1dc']  // magenta for white center
+]);
+
+// returns the cell coordinates for the location's inpatient box
+function inpatientBoxCoords(location) {
+    return location === 'CH'
+        ? 'R3:W36' // coords for cap hills inpatient box
+        : 'B14:H42'; // coords for dt and wc inpatient boxes
+};
