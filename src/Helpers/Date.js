@@ -14,8 +14,11 @@ function isTodayInUserTimezone(timestamp) {
 }
 
 function convertEpochToUserTimezone(epoch) {
-    const date = new Date(epoch * 1000);
-    return Utilities.formatDate(date, userTimezone, 'hh:mm a');
+    return Utilities.formatDate(
+        new Date(epoch * 1000),
+        userTimezone,
+        'h:mm a'
+    );
 };
 
 function epochRangeForTomorrow() {
