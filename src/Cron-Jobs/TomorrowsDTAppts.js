@@ -24,7 +24,7 @@
 //       animalAttachments
 //     } = dtAppts[i];
 
-//     const time = convertEpochToSeattleTime(appointment.start_time);
+//     const time = convertEpochToUserTimezone(appointment.start_time);
 //     const timeCell = range.offset(i, 0, 1, 1);
 //     timeCell.setValue(time);
 

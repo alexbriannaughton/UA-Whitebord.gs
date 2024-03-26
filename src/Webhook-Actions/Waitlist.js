@@ -22,7 +22,7 @@ function addToWaitlist(appointment) {
   // populate time cell
   const timeCell = rowRange.offset(0, 0, 1, 1);
   timeCell.setValue(
-    convertEpochToSeattleTime(appointment.created_at)
+    convertEpochToUserTimezone(appointment.created_at)
   );
 
   // populate name cell

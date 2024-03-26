@@ -26,7 +26,7 @@ function addTechAppt(appointment) {
 
   // find column to left of mainCell and add time
   mainCell.offset(0, -1, 1, 1).setValue(
-    convertEpochToSeattleTime(appointment.modified_at)
+    convertEpochToUserTimezone(appointment.modified_at)
   );
 
   // check the ezyVet checkbox

@@ -1,6 +1,6 @@
 // handle the details we care about
 function handleAppointment(webhookType, appointment) {
-    if (!isTodayInSeattle(appointment.start_at) || !appointment.active) return;
+    if (!isTodayInUserTimezone(appointment.start_at) || !appointment.active) return;
 
     // if it has a room status (no matter the webhookType), move it to a room
     if (isRoomStatus(appointment.status_id)) {

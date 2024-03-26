@@ -40,7 +40,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
   // time cell
   roomRange.offset(0, 0, 1, 1)
     .setValue(
-      convertEpochToSeattleTime(appointment.modified_at)
+      convertEpochToUserTimezone(appointment.modified_at)
     );
 
   // name/species/link cell

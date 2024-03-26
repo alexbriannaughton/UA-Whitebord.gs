@@ -8,6 +8,8 @@ function putTokenInCache(cache, token) {
 
 const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
+const userTimezone = 'America/Los_Angeles';
+
 // takes appointment.type_id and outputs a string for the procedure type
 const typeIDToCategoryMap = new Map([
     [7, 'sx'], [76, 'sx'], [89, 'sx'], [90, 'sx'],   // Surgery type IDs
