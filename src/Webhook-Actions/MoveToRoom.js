@@ -39,7 +39,9 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
 
   // time cell
   roomRange.offset(0, 0, 1, 1)
-    .setValue(getTime(appointment.modified_at));
+    .setValue(
+      convertEpochToSeattleTime(appointment.modified_at)
+    );
 
   // name/species/link cell
   const link = makeLink(
@@ -101,7 +103,7 @@ function parseTheRoom(
   // if the room's cells are not fully blank,
   if (!roomIsEmpty(roomValues)) {
     const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
-    
+
     // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
     if (roomValues[1][0].includes(incomingAnimalText)) {
       stopMovingToRoom(appointment);

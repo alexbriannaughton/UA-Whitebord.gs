@@ -25,12 +25,14 @@ function addTechAppt(appointment) {
   mainCell.setRichTextValue(link);
 
   // find column to left of mainCell and add time
-  mainCell.offset(0, -1, 1, 1).setValue(getTime(appointment.modified_at));
+  mainCell.offset(0, -1, 1, 1).setValue(
+    convertEpochToSeattleTime(appointment.modified_at)
+  );
 
   // check the ezyVet checkbox
   const checkboxCell = rowRange.offset(0, rowRange.getNumColumns(), 1, 1);
   checkboxCell.setDataValidation(createCheckbox()).setValue(true);
 
   return;
-  
+
 }

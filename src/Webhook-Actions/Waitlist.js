@@ -21,7 +21,9 @@ function addToWaitlist(appointment) {
 
   // populate time cell
   const timeCell = rowRange.offset(0, 0, 1, 1);
-  timeCell.setValue(getTime(appointment.created_at));
+  timeCell.setValue(
+    convertEpochToSeattleTime(appointment.created_at)
+  );
 
   // populate name cell
   const patientCell = rowRange.offset(0, 1, 1, 2).merge();
@@ -43,5 +45,5 @@ function addToWaitlist(appointment) {
   ezyVetCell.setDataValidation(createCheckbox()).setValue(true);
 
   return;
-  
+
 }
