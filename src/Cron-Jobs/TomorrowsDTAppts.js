@@ -47,7 +47,7 @@ function getTomorrowsDTAppts() {
         const rtVals = attachmentDriveURLs.map((url, j) => {
             return makeLink(`link ${j + 1}`, url);
         });
-
+        recordsCell.setRichTextValue(rtVals);
     }
 };
 
