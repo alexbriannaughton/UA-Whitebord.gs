@@ -11,9 +11,8 @@ function getTomorrowsDTAppts() {
     range.clearContent();
     range.setWrap(true);
 
-    const ezyvetFolderIterator = DriveApp.getFoldersByName('ezyvet-attachments');
-    console.log('ezyvetfolderiterator: ', ezyvetFolderIterator);
-    const ezyvetFolder = ezyvetFolderIterator.next();
+    const ezyVetFolderIterator = DriveApp.getFoldersByName('ezyVet-attachments');
+    const ezyVetFolder = ezyVetFolderIterator.next();
 
     for (let i = 0; i < dtAppts.length; i++) {
         const {
@@ -48,7 +47,7 @@ function getTomorrowsDTAppts() {
         const animalAttachmentDriveURLs = [];
         animalAttachments.forEach(({ attachment }) => {
             const id = attachment.file_download_url.split('/').at(-1);
-            const fileIterator = ezyvetFolder.getfilesByName(id);
+            const fileIterator = ezyVetFolder.getFilesByName(id);
             console.log('fileIterator.hasNext()-->', fileIterator.hasNext());
             const file =  fileIterator.hasNext ? fileIterator.next() : null;
             console.log('file: ', file)
@@ -120,7 +119,7 @@ function getAllEzyVetData(dtAppts) {
     });
 
     // start dealing with attachment stuff
-    const ezyvetFolder = DriveApp.getFoldersByName('ezyvet-attachments').next();
+    const ezyvetFolder = DriveApp.getFoldersByName('ezyVet-attachments').next();
 
     const animalAttachmentDownloadRequests = [];
     animalAttachmentResponses.forEach((response, i) => {
