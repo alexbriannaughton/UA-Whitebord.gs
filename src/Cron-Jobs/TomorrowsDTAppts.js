@@ -6,13 +6,15 @@ function getTomorrowsDTAppts() {
     const dtAppts = filterAndSortDTAppts(allOfTomorrowsAppts);
     getAllEzyVetData(dtAppts);
 
+    console.log('dtappts:', dtAppts)
+
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
     const range = sheet.getRange(`A4:C204`)
     range.clearContent();
     range.setWrap(true);
 
-    const ezyVetFolderIterator = DriveApp.getFoldersByName('ezyVet-attachments');
-    const ezyVetFolder = ezyVetFolderIterator.next();
+    // const ezyVetFolderIterator = DriveApp.getFoldersByName('ezyVet-attachments');
+    // const ezyVetFolder = ezyVetFolderIterator.next();
 
     for (let i = 0; i < dtAppts.length; i++) {
         const {
@@ -44,15 +46,15 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const recordsCell = range.offset(i, 4, 1, 1);
-        const animalAttachmentDriveURLs = [];
-        animalAttachments.forEach(({ attachment }) => {
-            const id = attachment.file_download_url.split('/').at(-1);
-            const fileIterator = ezyVetFolder.getFilesByName(id);
-            const file = fileIterator.next();
-            const url = file.getUrl();
-            animalAttachmentDriveURLs.push(url);
-        });
-        console.log('animalAttachmentDriveURLs', animalAttachmentDriveURLs)
+        // const animalAttachmentDriveURLs = [];
+        // animalAttachments.forEach(({ attachment }) => {
+        //     const id = attachment.file_download_url.split('/').at(-1);
+        //     const fileIterator = ezyVetFolder.getFilesByName(id);
+        //     const file = fileIterator.next();
+        //     const url = file.getUrl();
+        //     animalAttachmentDriveURLs.push(url);
+        // });
+        // console.log('animalAttachmentDriveURLs', animalAttachmentDriveURLs)
     }
 };
 
