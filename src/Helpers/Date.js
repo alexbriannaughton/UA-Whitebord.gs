@@ -17,7 +17,7 @@ function convertEpochToUserTimezone(epoch) {
     return Utilities.formatDate(
         new Date(epoch * 1000),
         userTimezone,
-        'h:mm a'
+        'h:mm'
     );
 };
 
