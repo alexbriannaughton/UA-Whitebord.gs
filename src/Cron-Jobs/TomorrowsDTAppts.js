@@ -121,19 +121,37 @@ function getAllEzyVetData(dtAppts) {
     // start dealing with attachment stuff
     const ezyvetFolder = DriveApp.getFoldersByName('ezyVet-attachments').next();
 
-    // const animalAttachmentDownloadRequests = [];
+    const consultAttachmentRequests = [];
+    for (const appt of dtAppts) {
+        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
+        consultAttachmentRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${encodedConsultIDs}`)
+        );
+    }
+    const consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
+
     animalAttachmentResponses.forEach((response, i) => {
-        const oneAnimalAttachmentDownloadRequests = [];
+        const attachmentDownloadRequests = [];
         const animalAttachments = JSON.parse(response.getContentText()).items;
         animalAttachments.forEach(({ attachment }) => {
-            animalAttachmentDownloadRequests.push(
+            attachmentDownloadRequests.push(
                 bodyForEzyVetGet(`${attachment.file_download_url}`)
             );
         });
         dtAppts[i].animalAttachments = animalAttachments;
-        const oneAnimalAttachmentDownloadResponses = UrlFetchApp.fetchAll(oneAnimalAttachmentDownloadRequests);
-        const animalAttachmentDriveURLs = []
-        oneAnimalAttachmentDownloadResponses.forEach(response => {
+
+        const consultAttachmentsResponse = consultAttachmentResponses[i];
+        const consultAttachments = JSON.parse(consultAttachmentsResponse.getContentText()).items;
+        consultAttachments.forEach(({ attachment }) => {
+            attachmentDownloadRequests.push(
+                bodyForEzyVetGet(`${attachment.file_download_url}`)
+            );
+        });
+        dtAppts[i].consultAttachments = consultAttachments;
+
+        const attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
+        const attachmentDriveURLs = []
+        attachmentDownloadResponses.forEach(response => {
             const blob = response.getBlob();
             const fileName = blob.getName();
             const existingFiles = ezyvetFolder.getFilesByName(fileName); // returns FileIterator object
@@ -141,48 +159,10 @@ function getAllEzyVetData(dtAppts) {
                 ? existingFiles.next() // use it
                 : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
             const url = driveFile.getUrl();
-            animalAttachmentDriveURLs.push(url);
+            attachmentDriveURLs.push(url);
         });
-        dtAppts[i].animalAttachmentDriveURLs = animalAttachmentDriveURLs;
+        dtAppts[i].attachmentDriveURLs = attachmentDriveURLs;
     });
-    // const animalAttachmentDownloadResponses = UrlFetchApp.fetchAll(animalAttachmentDownloadRequests);
-    // animalAttachmentDownloadResponses.forEach(response => {
-    //     const blob = response.getBlob();
-    //     const fileName = blob.getName();
-    //     const existingFiles = ezyvetFolder.getFilesByName(fileName); // returns FileIterator object
-    //     const driveFile = existingFiles.hasNext() // if the file exists
-    //         ? existingFiles.next() // use it
-    //         : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
-    // });
-
-    // const consultAttachmentRequests = [];
-    // for (const appt of dtAppts) {
-    //     const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
-    //     consultAttachmentRequests.push(
-    //         bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${encodedConsultIDs}`)
-    //     );
-    // }
-    // const consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
-    // const consultAttachmentDownloadRequests = [];
-    // consultAttachmentResponses.forEach((response, i) => {
-    //     const consultAttachments = JSON.parse(response.getContentText()).items;
-    //     consultAttachments.forEach(({ attachment }) => {
-    //         consultAttachmentDownloadRequests.push(
-    //             bodyForEzyVetGet(`${attachment.file_download_url}`)
-    //         );
-    //     });
-    //     // save the id numbers for the button that will open the drive files
-    //     dtAppts[i].consultAttachments = consultAttachments;
-    // });
-    // const consultAttachmentDownloadResponses = UrlFetchApp.fetchAll(consultAttachmentDownloadRequests);
-    // consultAttachmentDownloadResponses.forEach(response => {
-    //     const blob = response.getBlob();
-    //     const fileName = blob.getName();
-    //     const existingFiles = ezyvetFolder.getFilesByName(fileName); // returns FileIterator object
-    //     const driveFile = existingFiles.hasNext() // if the file exists
-    //         ? existingFiles.next() // use it
-    //         : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
-    // });
 }
 
 function bodyForEzyVetGet(url) {
