@@ -45,8 +45,11 @@ function getTomorrowsDTAppts() {
         const animalAttachmentDriveURLs = [];
         animalAttachments.forEach(({ attachment }) => {
             const id = attachment.file_download_url.split('/').at(-1);
-            const file = ezyvetFolder.getFilesByName(id).getNext();
-            const url = file.getUrl();
+            const fileIterator = ezyvetFolder.getfileIteratorsByName(id);
+            console.log('fileIterator.hasNext()-->', fileIterator.hasNext());
+            const file =  fileIterator.hasNext ? fileIterator.next() : null;
+            console.log('file: ', file)
+            const url = file?.getUrl();
             animalAttachmentDriveURLs.push(url);
         });
         console.log('animalAttachmentDriveURLs', animalAttachmentDriveURLs)
