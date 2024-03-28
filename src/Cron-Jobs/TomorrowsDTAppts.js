@@ -13,16 +13,14 @@ function getTomorrowsDTAppts() {
     range.clearContent();
     range.setWrap(true);
 
-    // const ezyVetFolderIterator = DriveApp.getFoldersByName('ezyVet-attachments');
-    // const ezyVetFolder = ezyVetFolderIterator.next();
-
     for (let i = 0; i < dtAppts.length; i++) {
         const {
             appointment,
             contact,
             animal,
             consultAttachments,
-            animalAttachments
+            animalAttachments,
+            attachmentDriveURLs
         } = dtAppts[i];
 
         const time = convertEpochToUserTimezone(appointment.start_time);
@@ -46,15 +44,8 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const recordsCell = range.offset(i, 4, 1, 1);
-        // const animalAttachmentDriveURLs = [];
-        // animalAttachments.forEach(({ attachment }) => {
-        //     const id = attachment.file_download_url.split('/').at(-1);
-        //     const fileIterator = ezyVetFolder.getFilesByName(id);
-        //     const file = fileIterator.next();
-        //     const url = file.getUrl();
-        //     animalAttachmentDriveURLs.push(url);
-        // });
-        // console.log('animalAttachmentDriveURLs', animalAttachmentDriveURLs)
+        const URLsAsString = attachmentDriveURLs.join(', ');
+        recordsCell.setValue(URLsAsString);
     }
 };
 
