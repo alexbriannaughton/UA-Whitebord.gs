@@ -1,11 +1,20 @@
 // receive appointment webhook events here
 function doPost(e) {
+  const startTime = new Date(); // this is for logging executions that hang exessively 
+
   try {
     const params = JSON.parse(e.postData.contents);
     const apptItems = params.items;
 
     for (const { appointment } of apptItems) {
       handleAppointment(params.meta.event, appointment);
+    }
+
+    const endTime = new Date();
+    const executionTime = (endTime - startTime) / 1000;
+    if (executionTime > 10) {
+      console.log('EXECUTION TOOK LONGER THAN 10 SECONDS');
+      console.log('appt items --->', apptItems);
     }
 
     return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
