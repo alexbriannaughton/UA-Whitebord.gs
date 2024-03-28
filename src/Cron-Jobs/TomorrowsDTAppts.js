@@ -6,8 +6,6 @@ function getTomorrowsDTAppts() {
     const dtAppts = filterAndSortDTAppts(allOfTomorrowsAppts);
     getAllEzyVetData(dtAppts);
 
-    console.log('dtappts: ', dtAppts);
-
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
     const range = sheet.getRange(`A4:C204`)
     range.clearContent();
@@ -43,6 +41,8 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const recordsCell = range.offset(i, 4, 1, 1);
+        console.log('animal attachments: ', animalAttachments);
+        console.log('consult attachments: ', consultAttachments);
 
     }
 };
@@ -122,7 +122,6 @@ function getAllEzyVetData(dtAppts) {
         dtAppts[i].animalAttachments = animalAttachments;
     });
     const animalAttachmentDownloadResponses = UrlFetchApp.fetchAll(animalAttachmentDownloadRequests);
-    const animalAttachmentDriveURLs = [];
     animalAttachmentDownloadResponses.forEach(response => {
         const blob = response.getBlob();
         const fileName = blob.getName();
@@ -130,9 +129,6 @@ function getAllEzyVetData(dtAppts) {
         const driveFile = existingFiles.hasNext() // if the file exists
             ? existingFiles.next() // use it
             : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
-        const url = driveFile.getUrl();
-        console.log('url: ', url)
-        animalAttachmentDriveURLs.push(url);
     });
 
     const consultAttachmentRequests = [];
@@ -155,7 +151,6 @@ function getAllEzyVetData(dtAppts) {
         dtAppts[i].consultAttachments = consultAttachments;
     });
     const consultAttachmentDownloadResponses = UrlFetchApp.fetchAll(consultAttachmentDownloadRequests);
-    const consultAttachmentDriveURLs = [];
     consultAttachmentDownloadResponses.forEach(response => {
         const blob = response.getBlob();
         const fileName = blob.getName();
@@ -163,9 +158,6 @@ function getAllEzyVetData(dtAppts) {
         const driveFile = existingFiles.hasNext() // if the file exists
             ? existingFiles.next() // use it
             : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
-        const url = driveFile.getUrl();
-        console.log('url: ', url)
-        consultAttachmentDriveURLs.push(url);
     });
 }
 
