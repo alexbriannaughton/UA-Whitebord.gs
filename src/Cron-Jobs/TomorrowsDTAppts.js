@@ -44,10 +44,18 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const recordsCell = range.offset(i, 4, 1, 1);
-        const rtVals = attachmentDriveURLs.map((url, j) => {
-            return makeLink(`link ${j + 1}`, url);
-        });
-        recordsCell.setRichTextValue(rtVals);
+        let linkText = '';
+        for (let j = 0; j < attachmentDriveURLs.length; j++) {
+            linkText += `link ${j + 1}`;
+        }
+        const value = SpreadsheetApp.newRichTextValue().setText(linkText);
+        let prevCharEnd = 0;
+        for (let j = 0; j < attachmentDriveURLs.length; j++) {
+            value.setLinkUrl(prevCharEnd, prevCharEnd + 5, attachmentDriveURLs[j]);
+            prevCharEnd += 5;
+        }
+        value.build();
+        recordsCell.setRichTextValue(value);
     }
 };
 
