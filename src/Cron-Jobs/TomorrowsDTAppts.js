@@ -44,8 +44,10 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const recordsCell = range.offset(i, 4, 1, 1);
-        const URLsAsString = attachmentDriveURLs.join(', ');
-        recordsCell.setValue(URLsAsString);
+        const rtVals = attachmentDriveURLs.map((url, j) => {
+            return makeLink(`link ${j + 1}`, url);
+        });
+
     }
 };
 
