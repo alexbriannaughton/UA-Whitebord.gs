@@ -41,9 +41,15 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const recordsCell = range.offset(i, 4, 1, 1);
-        console.log('animal attachments: ', animalAttachments);
-        console.log('consult attachments: ', consultAttachments);
-
+        const ezyvetFolder = DriveApp.getFoldersByName('ezyvet-attachments').next();
+        const animalAttachmentDriveURLs = [];
+        animalAttachments.forEach(({ attachment }) => {
+            const id = attachment.file_download_url.split('/').at(-1);
+            const file = ezyvetFolder.getFilesByName(id).getNext();
+            const url = file.getUrl();
+            animalAttachmentDriveURLs.push(url);
+        });
+        console.log('animalAttachmentDriveURLs', animalAttachmentDriveURLs)
     }
 };
 
