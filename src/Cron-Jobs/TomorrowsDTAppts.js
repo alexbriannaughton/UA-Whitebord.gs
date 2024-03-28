@@ -6,6 +6,8 @@ function getTomorrowsDTAppts() {
     const dtAppts = filterAndSortDTAppts(allOfTomorrowsAppts);
     getAllEzyVetData(dtAppts);
 
+    console.log('dtappts: ', dtAppts);
+
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
     const range = sheet.getRange(`A4:C204`)
     range.clearContent();
@@ -107,10 +109,10 @@ function getAllEzyVetData(dtAppts) {
 
     // start dealing with attachment stuff
     const ezyvetFolder = DriveApp.getFoldersByName('ezyvet-attachments').next();
+
     const animalAttachmentDownloadRequests = [];
     animalAttachmentResponses.forEach((response, i) => {
         const animalAttachments = JSON.parse(response.getContentText()).items;
-        // download all of these into drive
         animalAttachments.forEach(({ attachment }) => {
             animalAttachmentDownloadRequests.push(
                 bodyForEzyVetGet(`${attachment.file_download_url}`)
@@ -120,6 +122,7 @@ function getAllEzyVetData(dtAppts) {
         dtAppts[i].animalAttachments = animalAttachments;
     });
     const animalAttachmentDownloadResponses = UrlFetchApp.fetchAll(animalAttachmentDownloadRequests);
+    const animalAttachmentDriveURLs = [];
     animalAttachmentDownloadResponses.forEach(response => {
         const blob = response.getBlob();
         const fileName = blob.getName();
@@ -127,7 +130,9 @@ function getAllEzyVetData(dtAppts) {
         const driveFile = existingFiles.hasNext() // if the file exists
             ? existingFiles.next() // use it
             : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
-        console.log('animal attachment drive file: ', driveFile)
+        const url = driveFile.getUrl();
+        console.log('url: ', url)
+        animalAttachmentDriveURLs.push(url);
     });
 
     const consultAttachmentRequests = [];
@@ -150,6 +155,7 @@ function getAllEzyVetData(dtAppts) {
         dtAppts[i].consultAttachments = consultAttachments;
     });
     const consultAttachmentDownloadResponses = UrlFetchApp.fetchAll(consultAttachmentDownloadRequests);
+    const consultAttachmentDriveURLs = [];
     consultAttachmentDownloadResponses.forEach(response => {
         const blob = response.getBlob();
         const fileName = blob.getName();
@@ -157,7 +163,9 @@ function getAllEzyVetData(dtAppts) {
         const driveFile = existingFiles.hasNext() // if the file exists
             ? existingFiles.next() // use it
             : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
-        console.log('consult attachment drive file: ', driveFile);
+        const url = driveFile.getUrl();
+        console.log('url: ', url)
+        consultAttachmentDriveURLs.push(url);
     });
 }
 
