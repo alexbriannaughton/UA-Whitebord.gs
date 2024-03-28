@@ -11,6 +11,10 @@ function getTomorrowsDTAppts() {
     range.clearContent();
     range.setWrap(true);
 
+    const ezyvetFolderIterator = DriveApp.getFoldersByName('ezyvet-attachments');
+    console.log('ezyvetfolderiterator: ', ezyvetFolderIterator);
+    const ezyvetFolder = ezyvetFolderIterator.next();
+
     for (let i = 0; i < dtAppts.length; i++) {
         const {
             appointment,
@@ -41,11 +45,10 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const recordsCell = range.offset(i, 4, 1, 1);
-        const ezyvetFolder = DriveApp.getFoldersByName('ezyvet-attachments').next();
         const animalAttachmentDriveURLs = [];
         animalAttachments.forEach(({ attachment }) => {
             const id = attachment.file_download_url.split('/').at(-1);
-            const fileIterator = ezyvetFolder.getfileIteratorsByName(id);
+            const fileIterator = ezyvetFolder.getfilesByName(id);
             console.log('fileIterator.hasNext()-->', fileIterator.hasNext());
             const file =  fileIterator.hasNext ? fileIterator.next() : null;
             console.log('file: ', file)
