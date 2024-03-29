@@ -46,16 +46,15 @@ function getTomorrowsDTAppts() {
         const recordsCell = range.offset(i, 4, 1, 1);
         let linkText = '';
         for (let j = 0; j < attachmentDriveURLs.length; j++) {
-            linkText += `link ${j + 1}`;
+            linkText += `link ${j + 1},`;
         }
         const value = SpreadsheetApp.newRichTextValue().setText(linkText);
         let prevCharEnd = 0;
         for (let j = 0; j < attachmentDriveURLs.length; j++) {
-            value.setLinkUrl(prevCharEnd, prevCharEnd + 5, attachmentDriveURLs[j]);
-            prevCharEnd += 5;
-        }
-        value.build();
-        recordsCell.setRichTextValue(value);
+            value.setLinkUrl(prevCharEnd, prevCharEnd + 7, attachmentDriveURLs[j]);
+            prevCharEnd += 7;
+        };
+        recordsCell.setRichTextValue(value.build());
     }
 };
 
