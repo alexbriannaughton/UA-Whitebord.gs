@@ -46,7 +46,7 @@ function getTomorrowsDTAppts() {
         const recordsCell = range.offset(i, 4, 1, 1);
         let linkText = '';
         for (let j = 0; j < attachmentDriveURLs.length; j++) {
-            linkText += `link ${j + 1},`;
+            linkText += `link ${j + 1},\n`;
         }
         const value = SpreadsheetApp.newRichTextValue().setText(linkText);
         let prevCharEnd = 0;
