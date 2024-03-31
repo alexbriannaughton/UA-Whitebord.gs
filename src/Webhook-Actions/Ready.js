@@ -10,7 +10,7 @@ function handleReadyStatus(appointment) {
   );
 
   if (readyCell?.isBlank()) {
-    const time = getTime(appointment.modified_at);
+    const time = convertEpochToUserTimezone(appointment.modified_at);
     const text = `ready@ ${time}`;
     readyCell.setValue(text);
   }
