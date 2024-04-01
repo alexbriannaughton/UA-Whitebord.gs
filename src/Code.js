@@ -12,7 +12,7 @@ function doPost(e) {
     const endTime = new Date();
     const executionTime = (endTime - startTime) / 1000;
     if (executionTime > 10) {
-      console.log('EXECUTION TOOK LONGER THAN 10 SECONDS');
+      console.log(`EXECUTION TOOK ${executionTime} SECONDS`);
       console.log('appt items --->', apptItems);
     }
 
