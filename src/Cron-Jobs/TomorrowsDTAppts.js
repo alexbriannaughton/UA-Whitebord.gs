@@ -45,9 +45,17 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const firstTimeHereCell = range.offset(i, 3, 1, 1);
-        console.log('consultIDs.length:', consultIDs.length);
+        const yesOrNo = consultIDs.length < 2
+            ? 'yes' : 'no';
+        firstTimeHereCell.setValue(yesOrNo);
+        // TODO:
+        // check if this is the vetstoria placeholder account
+        // yes if vetstoria placeholder account OR if consultIDs.length < 2
 
 
+        // TODO:
+        // make this better lol
+        // combine all downloads into one pdf?
         const recordsCell = range.offset(i, 4, 1, 1);
         let linkText = '';
         for (let j = 0; j < attachmentDriveURLs.length; j++) {
@@ -60,6 +68,8 @@ function getTomorrowsDTAppts() {
             prevCharEnd += 7;
         };
         recordsCell.setRichTextValue(value.build());
+
+        
     }
 };
 
