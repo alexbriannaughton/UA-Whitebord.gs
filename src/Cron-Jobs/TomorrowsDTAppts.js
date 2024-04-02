@@ -74,7 +74,7 @@ function getTomorrowsDTAppts() {
         hxFractiousCell.setValue(yesOrNoForFractious);
 
 
-        processPrescriptionItems(prescriptionItems);
+        processPrescriptionItems(prescriptions, prescriptionItems);
 
     }
 };
@@ -147,6 +147,7 @@ function getAllEzyVetData(dtAppts) {
     prescriptionResponses.forEach((response, i) => {
         const prescriptions = JSON.parse(response.getContentText()).items;
         const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
+        dtAppts[i].prescriptions = prescriptions;
         dtAppts[i].prescriptionIDs = prescriptionIDs;
     });
 
@@ -220,19 +221,34 @@ function bodyForEzyVetGet(url) {
     }
 };
 
-function processPrescriptionItems(prescriptionItems) {
+function processPrescriptionItems(prescriptions, prescriptionItems) {
     const gabaProductIDSet = new Set('794', '1201', '1249', '5799', '1343');
     const trazProductIDSet = new Set('1244', '950');
 
-    let output = '';
-    let dataLastFilled = -Infinity;
+    let sedativeName = sedativeDate
+    let sedativeDateLastFilled = -Infinity;
 
     for (const { prescriptionitem } of prescriptionItems) {
         const productID = prescriptionitem.product_id;
         if (gabaProductIDSet.has(productID)) {
-            
+            sedativeName = 'gabapentin';
+            const rx = prescriptions.find(({ prescription }) => {
+                return prescription.id === prescriptionitem.id;
+            });
+            const date = rx.prescription.date_of_prescription;
+            sedativeDateLastFilled = Math.max(date, sedativeDateLastFilled);
+        }
+        else if (trazProductIDSet.has(productID)) {
+            sedativeName = 'trazadone';
+            const rx = prescriptions.find(({ prescription }) => {
+                return prescription.id === prescriptionitem.id;
+            });
+            const date = rx.prescription.date_of_prescription;
+            sedativeDateLastFilled = Math.max(date, sedativeDateLastFilled);
         }
     }
+
+    return { sedativeName, sedativeDateLastFilled }
 }
 
 function downloadPdfToDrive() {
@@ -268,7 +284,7 @@ function downloadPdfToDrive() {
         : DriveApp.createFile(blob); // otherwise create it in Drive, and use that
 
     const fileUrl = file.getUrl();
-    const html = HtmlService.createHtmlOutput('<script>window.open("' + fileUrl + '");</script>');
+    const html = HtmlService.createHtmlsedativeName('sedativeDateipt>window.open("' + fileUrl + '");</script>');
     SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
     return;
 }
