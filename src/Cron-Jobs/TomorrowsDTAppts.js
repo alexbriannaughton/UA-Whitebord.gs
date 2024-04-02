@@ -20,9 +20,12 @@ function getTomorrowsDTAppts() {
             animal,
             consultAttachments,
             animalAttachments,
+            prescriptionItems,
             consultIDs,
             attachmentDriveURLs
         } = dtAppts[i];
+
+        console.log('rx items;', prescriptionItems);
 
         const time = convertEpochToUserTimezone(appointment.start_time);
         const timeCell = range.offset(i, 0, 1, 1);
@@ -45,12 +48,12 @@ function getTomorrowsDTAppts() {
         reasonCell.setValue(descriptionString);
 
         const firstTimeHereCell = range.offset(i, 3, 1, 1);
-        const yesOrNo = consultIDs.length < 2
-            ? 'yes' : 'no';
-        firstTimeHereCell.setValue(yesOrNo);
+        const yesOrNoForFirstTime = consultIDs.length < 2;
+        firstTimeHereCell.setValue(yesOrNoForFirstTime);
         // TODO:
         // check if this is the vetstoria placeholder account
         // yes if vetstoria placeholder account OR if consultIDs.length < 2
+        // this would check if pt's first time. do we want to check O's first time?
 
 
         // TODO:
@@ -70,6 +73,10 @@ function getTomorrowsDTAppts() {
         recordsCell.setRichTextValue(value.build());
 
         
+        const hxFractiousCell = range.offset(i, 5, 1, 1);
+        const yesOrNoForFractious = animal.is_hostile;
+        hxFractiousCell.setValue(yesOrNoForFractious);
+
     }
 };
 
@@ -88,7 +95,7 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
     });
 
     return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time)
-        .slice(5, 7); // for dev we are just slicing the first two
+        .slice(0, 2); // for dev we are just slicing the first two
 }
 
 // get the animal, contact and attachment data associated with the appointment
@@ -97,20 +104,25 @@ function getAllEzyVetData(dtAppts) {
     const contactRequests = [];
     const animalAttachmentRequests = [];
     const allConsultsForAnimalRequests = [];
+    const prescriptionRequests = [];
     dtAppts.forEach(({ appointment }) => {
+        const animalID = appointment.details.animal_id;
         animalRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/animal/${appointment.details.animal_id}`)
+            bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`)
         );
         contactRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`)
         );
         animalAttachmentRequests.push(
             bodyForEzyVetGet(
-                `${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${appointment.details.animal_id}`
+                `${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`
             )
         );
         allConsultsForAnimalRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${appointment.details.animal_id}`)
+            bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`)
+        );
+        prescriptionRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`)
         );
     });
 
@@ -118,6 +130,7 @@ function getAllEzyVetData(dtAppts) {
     const contactResponses = UrlFetchApp.fetchAll(contactRequests);
     const animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
     const allConsultsForAnimalResponses = UrlFetchApp.fetchAll(allConsultsForAnimalRequests);
+    const prescriptionResponses = UrlFetchApp.fetchAll(prescriptionRequests);
 
     animalResponses.forEach((response, i) => {
         const { animal } = JSON.parse(response.getContentText()).items.at(-1);
@@ -132,20 +145,37 @@ function getAllEzyVetData(dtAppts) {
         const consultIDs = consults.map(({ consult }) => consult.id);
         dtAppts[i].consultIDs = consultIDs;
     });
+    prescriptionResponses.forEach((response, i) => {
+        const prescriptions = JSON.parse(response.getContentText()).items;
+        const prescriptionIDs = prescriptions.map(({prescription}) => prescription.id);
+        dtAppts[i].prescriptionIDs = prescriptionIDs;
+    });
+    
 
-    // start dealing with attachment stuff
+
     const ezyvetFolder = DriveApp.getFoldersByName('ezyVet-attachments').next();
 
     const consultAttachmentRequests = [];
+    const prescriptionItemRequests = [];
     for (const appt of dtAppts) {
         const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
         consultAttachmentRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${encodedConsultIDs}`)
         );
+        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
+        prescriptionItemRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
+        );
     }
     const consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
+    const prescriptionItemResponses = UrlFetchApp.fetchAll(prescriptionItemRequests);
 
     animalAttachmentResponses.forEach((response, i) => {
+        const prescriptionItemResponse = prescriptionItemResponses[i];
+        const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
+        dtAppts[i].prescriptionItems = prescriptionItems;
+
+
         const attachmentDownloadRequests = [];
         const animalAttachments = JSON.parse(response.getContentText()).items;
         animalAttachments.forEach(({ attachment }) => {
@@ -163,8 +193,10 @@ function getAllEzyVetData(dtAppts) {
             );
         });
         dtAppts[i].consultAttachments = consultAttachments;
-
         const attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
+
+        
+
         const attachmentDriveURLs = []
         attachmentDownloadResponses.forEach(response => {
             const blob = response.getBlob();
