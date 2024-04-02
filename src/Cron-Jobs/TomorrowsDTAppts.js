@@ -18,6 +18,7 @@ function getTomorrowsDTAppts() {
             animal,
             consultAttachments,
             animalAttachments,
+            prescriptions,
             prescriptionItems,
             consultIDs,
             attachmentDriveURLs
@@ -74,7 +75,9 @@ function getTomorrowsDTAppts() {
         hxFractiousCell.setValue(yesOrNoForFractious);
 
 
-        processPrescriptionItems(prescriptions, prescriptionItems);
+        const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
+        console.log('sedative name: ',sedativeName);
+        console.log(sedativeDateLastFilled)
 
     }
 };
@@ -225,30 +228,37 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
     const gabaProductIDSet = new Set('794', '1201', '1249', '5799', '1343');
     const trazProductIDSet = new Set('1244', '950');
 
-    let sedativeName = sedativeDate
+    let sedativeName;
     let sedativeDateLastFilled = -Infinity;
 
     for (const { prescriptionitem } of prescriptionItems) {
         const productID = prescriptionitem.product_id;
+
         if (gabaProductIDSet.has(productID)) {
-            sedativeName = 'gabapentin';
-            const rx = prescriptions.find(({ prescription }) => {
-                return prescription.id === prescriptionitem.id;
-            });
-            const date = rx.prescription.date_of_prescription;
-            sedativeDateLastFilled = Math.max(date, sedativeDateLastFilled);
+            const rxDate = getRxDate(prescriptions, prescriptionitem.id);
+            if (rxDate > sedativeDateLastFilled) {
+                sedativeName = 'gabapentin';
+                sedativeDateLastFilled = rxDate;
+            }
+
         }
         else if (trazProductIDSet.has(productID)) {
-            sedativeName = 'trazadone';
-            const rx = prescriptions.find(({ prescription }) => {
-                return prescription.id === prescriptionitem.id;
-            });
-            const date = rx.prescription.date_of_prescription;
-            sedativeDateLastFilled = Math.max(date, sedativeDateLastFilled);
+            const rxDate = getRxDate(prescriptions, prescriptionitem.id);
+            if (rxDate > sedativeDateLastFilled) {
+                sedativeName = 'trazadone';
+                sedativeDateLastFilled = rxDate;
+            }
         }
     }
 
-    return { sedativeName, sedativeDateLastFilled }
+    return { sedativeName, sedativeDateLastFilled };
+}
+
+function getRxDate(prescriptions, prescriptionItemID) {
+    const rx = prescriptions.find(({ prescription }) => {
+        return prescription.id === prescriptionItemID;
+    });
+    return Number(rx.prescription.date_of_prescription);
 }
 
 function downloadPdfToDrive() {
