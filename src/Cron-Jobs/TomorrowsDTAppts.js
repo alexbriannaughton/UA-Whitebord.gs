@@ -69,9 +69,7 @@ function getTomorrowsDTAppts() {
         // };
         // recordsCell.setRichTextValue(value.build());
         
-        recordsCell.setRichTextValue(
-            makeLink(ptText, recordsURL)
-        );
+        recordsCell.setValue(recordsURL);
 
 
         const hxFractiousCell = range.offset(i, 5, 1, 1);
