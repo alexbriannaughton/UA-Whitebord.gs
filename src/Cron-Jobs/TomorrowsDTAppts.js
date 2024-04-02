@@ -21,7 +21,7 @@ function getTomorrowsDTAppts() {
             prescriptions,
             prescriptionItems,
             consultIDs,
-            attachmentDriveURLs
+            recordsURL
         } = dtAppts[i];
 
         const time = convertEpochToUserTimezone(appointment.start_time);
@@ -57,17 +57,21 @@ function getTomorrowsDTAppts() {
         // make this better lol
         // combine all downloads into one pdf?
         const recordsCell = range.offset(i, 4, 1, 1);
-        let linkText = '';
-        for (let j = 0; j < attachmentDriveURLs.length; j++) {
-            linkText += `link ${j + 1},\n`;
-        }
-        const value = SpreadsheetApp.newRichTextValue().setText(linkText);
-        let prevCharEnd = 0;
-        for (let j = 0; j < attachmentDriveURLs.length; j++) {
-            value.setLinkUrl(prevCharEnd, prevCharEnd + 7, attachmentDriveURLs[j]);
-            prevCharEnd += 7;
-        };
-        recordsCell.setRichTextValue(value.build());
+        // let linkText = '';
+        // for (let j = 0; j < attachmentDriveURLs.length; j++) {
+        //     linkText += `link ${j + 1},\n`;
+        // }
+        // const value = SpreadsheetApp.newRichTextValue().setText(linkText);
+        // let prevCharEnd = 0;
+        // for (let j = 0; j < attachmentDriveURLs.length; j++) {
+        //     value.setLinkUrl(prevCharEnd, prevCharEnd + 7, attachmentDriveURLs[j]);
+        //     prevCharEnd += 7;
+        // };
+        // recordsCell.setRichTextValue(value.build());
+        
+        recordsCell.setRichTextValue(
+            makeLink(ptText, recordsURL)
+        );
 
 
         const hxFractiousCell = range.offset(i, 5, 1, 1);
@@ -237,14 +241,14 @@ async function getAllEzyVetData(dtAppts) {
 
         const animalName = dtAppts[i].animal.name;
         const animalLastName = dtAppts[i].contact.last_name;
-        const mergedPDFDriveFile = ezyvetFolder.createFile(
+        const mergedPDFDriveFileURL = ezyvetFolder.createFile(
             Utilities.newBlob(
                 [...new Int8Array(bytes)],
                 MimeType.PDF,
                 `${animalName} ${animalLastName}.pdf`
             )
-        );
-        dtAppts[i].mergedPDFDriveFile = mergedPDFDriveFile;
+        ).getUrl();
+        dtAppts[i].recordsURL = mergedPDFDriveFileURL;
     });
 }
 
