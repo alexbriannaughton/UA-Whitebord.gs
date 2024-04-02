@@ -103,7 +103,7 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
 }
 
 // get the animal, contact and attachment data associated with the appointment
-function getAllEzyVetData(dtAppts) {
+async function getAllEzyVetData(dtAppts) {
     const animalRequests = [];
     const contactRequests = [];
     const animalAttachmentRequests = [];
@@ -175,11 +175,13 @@ function getAllEzyVetData(dtAppts) {
     const consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
     const prescriptionItemResponses = UrlFetchApp.fetchAll(prescriptionItemRequests);
 
-    animalAttachmentResponses.forEach((response, i) => {
+    const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
+    eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
+
+    animalAttachmentResponses.forEach(async (response, i) => {
         const prescriptionItemResponse = prescriptionItemResponses[i];
         const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
         dtAppts[i].prescriptionItems = prescriptionItems;
-
 
         const attachmentDownloadRequests = [];
         const animalAttachments = JSON.parse(response.getContentText()).items;
@@ -201,19 +203,48 @@ function getAllEzyVetData(dtAppts) {
         const attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
 
 
+        const mergedPDF = await PDFLib.PDFDocument.create();
+        // const attachmentDriveURLs = []
+        attachmentDownloadResponses.forEach(async (response) => {
+            // const blob = response.getBlob();
+            // const fileName = blob.getName();
+            // const existingFiles = ezyvetFolder.getFilesByName(fileName); // returns FileIterator object
+            // const driveFile = existingFiles.hasNext() // if the file exists
+            //     ? existingFiles.next() // use it
+            //     : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
+            // const url = driveFile.getUrl();
+            // attachmentDriveURLs.push(url);
 
-        const attachmentDriveURLs = []
-        attachmentDownloadResponses.forEach(response => {
             const blob = response.getBlob();
-            const fileName = blob.getName();
-            const existingFiles = ezyvetFolder.getFilesByName(fileName); // returns FileIterator object
-            const driveFile = existingFiles.hasNext() // if the file exists
-                ? existingFiles.next() // use it
-                : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
-            const url = driveFile.getUrl();
-            attachmentDriveURLs.push(url);
+            const name = blob.getName();
+            if (name.includes('.pdf')) {
+                const d = new Uint8Array(file.getBlob().getBytes());
+                const pdfData = await PDFLib.PDFDocument.load(d);
+                const pages = await mergedPDF.copyPages(pdfData, [...Array(pdfData.getPageCount())].map((_, i) => i));
+                pages.forEach(page => mergedPDF.addPage(page));
+            }
+
+            else if (name.includes('.jpg') || name.includes('.jpeg')) {
+                const d = new Uint8Array(file.getBlob().getBytes());
+                const image = await mergedPDF.embedJpg(d);
+                const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
+                page.drawImage(image);
+            }
+
         });
-        dtAppts[i].attachmentDriveURLs = attachmentDriveURLs;
+        // dtAppts[i].attachmentDriveURLs = attachmentDriveURLs;
+        const bytes = await mergedPDF.save();
+
+        const animalName = dtAppts[i].animal.name;
+        const animalLastName = dtAppts[i].contact.last_name;
+        const mergedPDFDriveFile = ezyvetFolder.createFile(
+            Utilities.newBlob(
+                [...new Int8Array(bytes)],
+                MimeType.PDF,
+                `${animalName} ${animalLastName}.pdf`
+            )
+        );
+        dtAppts[i].mergedPDFDriveFile = mergedPDFDriveFile;
     });
 }
 
@@ -300,4 +331,42 @@ function downloadPdfToDrive() {
     const html = HtmlService.createHtmlsedativeName('sedativeDateipt>window.open("' + fileUrl + '");</script>');
     SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
     return;
+}
+
+async function go() {
+    const ezyvetFolder = DriveApp.getFoldersByName('ezyVet-attachments').next();
+    const files = ezyvetFolder.getFiles();
+
+    const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
+    eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
+
+    const pdfDoc = await PDFLib.PDFDocument.create();
+    while (files.hasNext()) {
+        const file = files.next();
+        const name = file.getName();
+
+        if (name.includes('.pdf')) {
+            const d = new Uint8Array(file.getBlob().getBytes());
+            const pdfData = await PDFLib.PDFDocument.load(d);
+            const pages = await pdfDoc.copyPages(pdfData, [...Array(pdfData.getPageCount())].map((_, i) => i));
+            pages.forEach(page => pdfDoc.addPage(page));
+        }
+
+        else if (name.includes('.jpg') || name.includes('.jpeg')) {
+            const d = new Uint8Array(file.getBlob().getBytes());
+            const image = await pdfDoc.embedJpg(d);
+            const imageSize = image.scale(1); // No scaling, keep original size
+            const page = pdfDoc.addPage([imageSize.width, imageSize.height]); // Create page with same size as image
+            page.drawImage(image, {
+                x: 0,
+                y: 0,
+                width: imageSize.width,
+                height: imageSize.height,
+            });
+        }
+    }
+    const bytes = await pdfDoc.save();
+
+    // Create a PDF file.
+    DriveApp.createFile(Utilities.newBlob([...new Int8Array(bytes)], MimeType.PDF, "sample2.pdf"));
 }
