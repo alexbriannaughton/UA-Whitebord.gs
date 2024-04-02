@@ -76,9 +76,11 @@ function getTomorrowsDTAppts() {
 
 
         const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
-        console.log('sedative name: ',sedativeName);
-        console.log(sedativeDateLastFilled)
-
+        const hasSedCell = range.offset(i, 6, 1, 1);
+        const sedCellVal = sedativeName === undefined
+            ? 'no'
+            : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
+        hasSedCell.setValue(sedCellVal);
     }
 };
 
@@ -225,8 +227,8 @@ function bodyForEzyVetGet(url) {
 };
 
 function processPrescriptionItems(prescriptions, prescriptionItems) {
-    const gabaProductIDSet = new Set('794', '1201', '1249', '5799', '1343');
-    const trazProductIDSet = new Set('1244', '950');
+    const gabaProductIDSet = new Set(['794', '1201', '1249', '5799', '1343']);
+    const trazProductIDSet = new Set(['1244', '950']);
 
     let sedativeName;
     let sedativeDateLastFilled = -Infinity;
@@ -235,7 +237,8 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
         const productID = prescriptionitem.product_id;
 
         if (gabaProductIDSet.has(productID)) {
-            const rxDate = getRxDate(prescriptions, prescriptionitem.id);
+            const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
+            console.log('rx date: ', rxDate)
             if (rxDate > sedativeDateLastFilled) {
                 sedativeName = 'gabapentin';
                 sedativeDateLastFilled = rxDate;
@@ -243,7 +246,7 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
 
         }
         else if (trazProductIDSet.has(productID)) {
-            const rxDate = getRxDate(prescriptions, prescriptionitem.id);
+            const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
             if (rxDate > sedativeDateLastFilled) {
                 sedativeName = 'trazadone';
                 sedativeDateLastFilled = rxDate;
@@ -254,9 +257,9 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
     return { sedativeName, sedativeDateLastFilled };
 }
 
-function getRxDate(prescriptions, prescriptionItemID) {
+function getRxDate(prescriptions, prescriptionID) {
     const rx = prescriptions.find(({ prescription }) => {
-        return prescription.id === prescriptionItemID;
+        return prescription.id === prescriptionID;
     });
     return Number(rx.prescription.date_of_prescription);
 }

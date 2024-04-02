@@ -21,6 +21,14 @@ function convertEpochToUserTimezone(epoch) {
     );
 };
 
+function convertEpochToUserTimezoneDate(epoch) {
+    return Utilities.formatDate(
+        new Date(epoch * 1000),
+        userTimezone,
+        'MM/dd/yyyy'
+    );
+}
+
 function epochRangeForTomorrow() {
     // get epochs for range of tomorrow
     const now = new Date().toLocaleString("en-US", { timeZone: userTimezone });
