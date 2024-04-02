@@ -239,14 +239,18 @@ async function getAllEzyVetData(dtAppts) {
 
         const animalName = dtAppts[i].animal.name;
         const animalLastName = dtAppts[i].contact.last_name;
-        const mergedPDFDriveFileURL = ezyvetFolder.createFile(
+        const mergedPDFDriveFile = ezyvetFolder.createFile(
             Utilities.newBlob(
                 [...new Int8Array(bytes)],
                 MimeType.PDF,
                 `${animalName} ${animalLastName}.pdf`
             )
-        ).getUrl();
-        dtAppts[i].recordsURL = mergedPDFDriveFileURL;
+        );
+        console.log('merged pdf drive file: ', mergedPDFDriveFile);
+        const url = mergedPDFDriveFile.getUrl();   
+        console.log('url: ', url)  
+
+        dtAppts[i].recordsURL = url;
     });
 }
 
