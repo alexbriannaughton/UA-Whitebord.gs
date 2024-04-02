@@ -220,14 +220,14 @@ async function getAllEzyVetData(dtAppts) {
             const blob = response.getBlob();
             const name = blob.getName();
             if (name.includes('.pdf')) {
-                const d = new Uint8Array(file.getBlob().getBytes());
+                const d = new Uint8Array(blob.getBytes());
                 const pdfData = await PDFLib.PDFDocument.load(d);
                 const pages = await mergedPDF.copyPages(pdfData, [...Array(pdfData.getPageCount())].map((_, i) => i));
                 pages.forEach(page => mergedPDF.addPage(page));
             }
 
             else if (name.includes('.jpg') || name.includes('.jpeg')) {
-                const d = new Uint8Array(file.getBlob().getBytes());
+                const d = new Uint8Array(blob.getBytes());
                 const image = await mergedPDF.embedJpg(d);
                 const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
                 page.drawImage(image);
