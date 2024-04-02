@@ -6,8 +6,6 @@ function getTomorrowsDTAppts() {
     const dtAppts = filterAndSortDTAppts(allOfTomorrowsAppts);
     getAllEzyVetData(dtAppts);
 
-    console.log('dtappts:', dtAppts)
-
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
     const range = sheet.getRange(`A4:C204`)
     range.clearContent();
@@ -24,8 +22,6 @@ function getTomorrowsDTAppts() {
             consultIDs,
             attachmentDriveURLs
         } = dtAppts[i];
-
-        console.log('rx items;', prescriptionItems);
 
         const time = convertEpochToUserTimezone(appointment.start_time);
         const timeCell = range.offset(i, 0, 1, 1);
@@ -72,10 +68,13 @@ function getTomorrowsDTAppts() {
         };
         recordsCell.setRichTextValue(value.build());
 
-        
+
         const hxFractiousCell = range.offset(i, 5, 1, 1);
         const yesOrNoForFractious = animal.is_hostile;
         hxFractiousCell.setValue(yesOrNoForFractious);
+
+
+        processPrescriptionItems(prescriptionItems);
 
     }
 };
@@ -147,10 +146,10 @@ function getAllEzyVetData(dtAppts) {
     });
     prescriptionResponses.forEach((response, i) => {
         const prescriptions = JSON.parse(response.getContentText()).items;
-        const prescriptionIDs = prescriptions.map(({prescription}) => prescription.id);
+        const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
         dtAppts[i].prescriptionIDs = prescriptionIDs;
     });
-    
+
 
 
     const ezyvetFolder = DriveApp.getFoldersByName('ezyVet-attachments').next();
@@ -195,7 +194,7 @@ function getAllEzyVetData(dtAppts) {
         dtAppts[i].consultAttachments = consultAttachments;
         const attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
 
-        
+
 
         const attachmentDriveURLs = []
         attachmentDownloadResponses.forEach(response => {
@@ -220,6 +219,21 @@ function bodyForEzyVetGet(url) {
         headers: { authorization: token }
     }
 };
+
+function processPrescriptionItems(prescriptionItems) {
+    const gabaProductIDSet = new Set('794', '1201', '1249', '5799', '1343');
+    const trazProductIDSet = new Set('1244', '950');
+
+    let output = '';
+    let dataLastFilled = -Infinity;
+
+    for (const { prescriptionitem } of prescriptionItems) {
+        const productID = prescriptionitem.product_id;
+        if (gabaProductIDSet.has(productID)) {
+            
+        }
+    }
+}
 
 function downloadPdfToDrive() {
     const dlLink = 'https://urbananimalnw.usw2.ezyvet.com/api/v1/attachment/download/4425719970';
