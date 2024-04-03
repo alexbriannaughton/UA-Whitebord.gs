@@ -1,10 +1,10 @@
-function getTomorrowsDTAppts() {
+async function getTomorrowsDTAppts() {
     const [tomorrowStart, tomorrowEnd] = epochRangeForTomorrow();
     // send query for all appointments for tomorrow
     const url = `${proxy}/v1/appointment?active=1&time_range_start=${tomorrowStart}&time_range_end=${tomorrowEnd}&limit=200`;
     const allOfTomorrowsAppts = fetchAndParse(url);
     const dtAppts = filterAndSortDTAppts(allOfTomorrowsAppts);
-    getAllEzyVetData(dtAppts);
+    await getAllEzyVetData(dtAppts);
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
     const range = sheet.getRange(`A4:C204`)
@@ -68,7 +68,7 @@ function getTomorrowsDTAppts() {
         //     prevCharEnd += 7;
         // };
         // recordsCell.setRichTextValue(value.build());
-        
+
         recordsCell.setValue(recordsURL);
 
 
@@ -180,7 +180,8 @@ async function getAllEzyVetData(dtAppts) {
     const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
     eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
 
-    animalAttachmentResponses.forEach(async (response, i) => {
+    for (let i = 0; i < animalAttachmentResponses.length; i++) {
+        const response = animalAttachmentResponses[i];
         const prescriptionItemResponse = prescriptionItemResponses[i];
         const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
         dtAppts[i].prescriptionItems = prescriptionItems;
@@ -247,11 +248,11 @@ async function getAllEzyVetData(dtAppts) {
             )
         );
         console.log('merged pdf drive file: ', mergedPDFDriveFile);
-        const url = mergedPDFDriveFile.getUrl();   
-        console.log('url: ', url)  
+        const url = mergedPDFDriveFile.getUrl();
+        console.log('url: ', url)
 
         dtAppts[i].recordsURL = url;
-    });
+    };
 }
 
 function bodyForEzyVetGet(url) {
