@@ -230,6 +230,7 @@ async function getAllEzyVetData(dtAppts) {
             else if (name.includes('.jpg') || name.includes('.jpeg')) {
                 const d = new Uint8Array(blob.getBytes());
                 const image = await mergedPDF.embedJpg(d);
+                const imageSize = image.scale(1);
                 const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
                 page.drawImage(image);
             }
