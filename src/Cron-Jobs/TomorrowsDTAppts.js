@@ -52,30 +52,12 @@ async function getTomorrowsDTAppts() {
         // yes if vetstoria placeholder account OR if consultIDs.length < 2
         // this would check if pt's first time. do we want to check O's first time?
 
-
-        // TODO:
-        // make this better lol
-        // combine all downloads into one pdf?
         const recordsCell = range.offset(i, 4, 1, 1);
-        // let linkText = '';
-        // for (let j = 0; j < attachmentDriveURLs.length; j++) {
-        //     linkText += `link ${j + 1},\n`;
-        // }
-        // const value = SpreadsheetApp.newRichTextValue().setText(linkText);
-        // let prevCharEnd = 0;
-        // for (let j = 0; j < attachmentDriveURLs.length; j++) {
-        //     value.setLinkUrl(prevCharEnd, prevCharEnd + 7, attachmentDriveURLs[j]);
-        //     prevCharEnd += 7;
-        // };
-        // recordsCell.setRichTextValue(value.build());
-
         recordsCell.setValue(recordsURL);
-
 
         const hxFractiousCell = range.offset(i, 5, 1, 1);
         const yesOrNoForFractious = animal.is_hostile;
         hxFractiousCell.setValue(yesOrNoForFractious);
-
 
         const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
         const hasSedCell = range.offset(i, 6, 1, 1);
@@ -158,8 +140,6 @@ async function getAllEzyVetData(dtAppts) {
         dtAppts[i].prescriptionIDs = prescriptionIDs;
     });
 
-
-
     const ezyvetFolder = DriveApp.getFoldersByName('ezyVet-attachments').next();
 
     const consultAttachmentRequests = [];
@@ -207,16 +187,7 @@ async function getAllEzyVetData(dtAppts) {
 
 
         const mergedPDF = await PDFLib.PDFDocument.create();
-        // const attachmentDriveURLs = []
         for (let j = 0; j < attachmentDownloadResponses.length; j++) {
-            // const blob = response.getBlob();
-            // const fileName = blob.getName();
-            // const existingFiles = ezyvetFolder.getFilesByName(fileName); // returns FileIterator object
-            // const driveFile = existingFiles.hasNext() // if the file exists
-            //     ? existingFiles.next() // use it
-            //     : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
-            // const url = driveFile.getUrl();
-            // attachmentDriveURLs.push(url);
             const response = attachmentDownloadResponses[j];
             const blob = response.getBlob();
             const name = blob.getName();
@@ -236,7 +207,6 @@ async function getAllEzyVetData(dtAppts) {
             }
 
         }
-        // dtAppts[i].attachmentDriveURLs = attachmentDriveURLs;
         const bytes = await mergedPDF.save();
 
         const animalName = dtAppts[i].animal.name;
@@ -248,10 +218,7 @@ async function getAllEzyVetData(dtAppts) {
                 `${animalName} ${animalLastName}.pdf`
             )
         );
-        console.log('merged pdf drive file: ', mergedPDFDriveFile);
         const url = mergedPDFDriveFile.getUrl();
-        console.log('url: ', url)
-
         dtAppts[i].recordsURL = url;
     };
 }
