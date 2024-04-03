@@ -208,7 +208,7 @@ async function getAllEzyVetData(dtAppts) {
 
         const mergedPDF = await PDFLib.PDFDocument.create();
         // const attachmentDriveURLs = []
-        attachmentDownloadResponses.forEach(async (response) => {
+        for (let j = 0; j < attachmentDownloadResponses.length; j++) {
             // const blob = response.getBlob();
             // const fileName = blob.getName();
             // const existingFiles = ezyvetFolder.getFilesByName(fileName); // returns FileIterator object
@@ -217,7 +217,7 @@ async function getAllEzyVetData(dtAppts) {
             //     : ezyvetFolder.createFile(blob); // otherwise create it in Drive, and use that
             // const url = driveFile.getUrl();
             // attachmentDriveURLs.push(url);
-
+            const response = attachmentDownloadResponses[j];
             const blob = response.getBlob();
             const name = blob.getName();
             if (name.includes('.pdf')) {
@@ -234,7 +234,7 @@ async function getAllEzyVetData(dtAppts) {
                 page.drawImage(image);
             }
 
-        });
+        }
         // dtAppts[i].attachmentDriveURLs = attachmentDriveURLs;
         const bytes = await mergedPDF.save();
 
