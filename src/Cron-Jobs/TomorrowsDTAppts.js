@@ -31,8 +31,8 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
             && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
     });
 
-    return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time)
-        .slice(0, 2); // for dev we are just slicing the first two
+    return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+        // .slice(0, 2); // for dev we are just slicing the first two
 }
 
 // get the animal, contact and attachment data associated with the appointment
