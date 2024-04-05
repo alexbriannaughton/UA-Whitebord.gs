@@ -1,71 +1,18 @@
 async function getTomorrowsDTAppts() {
     const [tomorrowStart, tomorrowEnd] = epochRangeForTomorrow();
+    const dateStr = convertEpochToUserTimezoneDate(tomorrowStart);
     // send query for all appointments for tomorrow
     const url = `${proxy}/v1/appointment?active=1&time_range_start=${tomorrowStart}&time_range_end=${tomorrowEnd}&limit=200`;
     const allOfTomorrowsAppts = fetchAndParse(url);
     const dtAppts = filterAndSortDTAppts(allOfTomorrowsAppts);
-    await getAllEzyVetData(dtAppts);
+    await getAllEzyVetData(dtAppts, dateStr);
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
-    const range = sheet.getRange(`A4:C204`)
+    const range = sheet.getRange(`A4:H204`)
     range.clearContent();
     range.setWrap(true);
 
-    putDataOnSheet(dtAppts, range);
-
-    // for (let i = 0; i < dtAppts.length; i++) {
-    //     const {
-    //         appointment,
-    //         contact,
-    //         animal,
-    //         prescriptions,
-    //         prescriptionItems,
-    //         consultIDs,
-    //         recordsURL
-    //     } = dtAppts[i];
-
-    //     const time = convertEpochToUserTimezone(appointment.start_time);
-    //     const timeCell = range.offset(i, 0, 1, 1);
-    //     timeCell.setValue(time);
-
-    //     const ptCell = range.offset(i, 1, 1, 1);
-    //     const ptSpecies = speciesMap[animal.species_id] || 'unknown species';
-    //     const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
-    //     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
-    //     const link = makeLink(ptText, animalURL);
-    //     ptCell.setRichTextValue(link);
-
-    //     const reasonCell = range.offset(i, 2, 1, 1);
-    //     let descriptionString = appointment.details.description;
-    //     if (descriptionString.startsWith('VETSTORIA')) {
-    //         const itemsInParentheses = descriptionString.match(/\((.*?)\)/g);
-    //         const lastItem = itemsInParentheses.at(-1);
-    //         descriptionString = lastItem.slice(1, -1); // remove parentheses
-    //     }
-    //     reasonCell.setValue(descriptionString);
-
-    //     const firstTimeHereCell = range.offset(i, 3, 1, 1);
-    //     const yesOrNoForFirstTime = consultIDs.length < 2;
-    //     firstTimeHereCell.setValue(yesOrNoForFirstTime);
-    //     // TODO:
-    //     // check if this is the vetstoria placeholder account
-    //     // yes if vetstoria placeholder account OR if consultIDs.length < 2
-    //     // this would check if pt's first time. do we want to check O's first time?
-
-    //     const recordsCell = range.offset(i, 4, 1, 1);
-    //     recordsCell.setValue(recordsURL);
-
-    //     const hxFractiousCell = range.offset(i, 5, 1, 1);
-    //     const yesOrNoForFractious = animal.is_hostile;
-    //     hxFractiousCell.setValue(yesOrNoForFractious);
-
-    //     const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
-    //     const hasSedCell = range.offset(i, 6, 1, 1);
-    //     const sedCellVal = sedativeName === undefined
-    //         ? 'no'
-    //         : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
-    //     hasSedCell.setValue(sedCellVal);
-    // }
+    putDataOnSheet(dtAppts, range, dateStr);
 };
 
 function filterAndSortDTAppts(allOfTomorrowsAppts) {
@@ -87,7 +34,7 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
 }
 
 // get the animal, contact and attachment data associated with the appointment
-async function getAllEzyVetData(dtAppts) {
+async function getAllEzyVetData(dtAppts, dateStr) {
     const animalRequests = [];
     const contactRequests = [];
     const animalAttachmentRequests = [];
@@ -140,7 +87,16 @@ async function getAllEzyVetData(dtAppts) {
         dtAppts[i].prescriptionIDs = prescriptionIDs;
     });
 
-    const ezyvetFolder = DriveApp.getFoldersByName('ezyVet-attachments').next();
+    const folderNamePrefix = 'ezyVet-attachments-';
+    const rootFolders = DriveApp.getFolders();
+    while (rootFolders.hasNext()) {
+        const folder = rootFolders.next();
+        const folderName = folder.getName();
+        if (folderName.includes(folderNamePrefix)) {
+            folder.setTrashed(true);
+        }
+    }
+    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + dateStr);
 
     const consultAttachmentRequests = [];
     const prescriptionItemRequests = [];
@@ -211,7 +167,7 @@ async function getAllEzyVetData(dtAppts) {
 
         const animalName = dtAppts[i].animal.name;
         const animalLastName = dtAppts[i].contact.last_name;
-        const mergedPDFDriveFile = ezyvetFolder.createFile(
+        const mergedPDFDriveFile = ezyVetFolder.createFile(
             Utilities.newBlob(
                 [...new Int8Array(bytes)],
                 MimeType.PDF,
@@ -270,7 +226,10 @@ function getRxDate(prescriptions, prescriptionID) {
     return Number(rx.prescription.date_of_prescription);
 }
 
-function putDataOnSheet(dtAppts, range, ) {
+function putDataOnSheet(dtAppts, range, dateStr) {
+    const dateCell = range.offset(-2, 0, 1, 1);
+    dateCell.setValue(dateStr);
+
     for (let i = 0; i < dtAppts.length; i++) {
         const {
             appointment,
@@ -324,81 +283,4 @@ function putDataOnSheet(dtAppts, range, ) {
             : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
         hasSedCell.setValue(sedCellVal);
     }
-}
-
-// the following are functions that ive used for testing
-function downloadPdfToDrive() {
-    const dlLink = 'https://urbananimalnw.usw2.ezyvet.com/api/v1/attachment/download/4425719970';
-    const cache = CacheService.getScriptCache();
-    const token = cache.get('ezyVet_token');
-
-    if (!token) {
-        token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
-        cache.put('ezyVet_token', token, 300); // Cache the token for 5 minutes (adjust as needed)
-    }
-
-    const options = {
-        muteHttpExceptions: true,
-        method: "GET",
-        headers: {
-            authorization: token
-        }
-    };
-
-    let response = UrlFetchApp.fetch(dlLink, options);
-    if (response.getResponseCode() === 401) {
-        options.headers.authorization = updateToken(cache);
-        response = UrlFetchApp.fetch(dlLink, options);
-    }
-
-    const blob = response.getBlob();
-    const fileName = blob.getName();
-
-    const existingFiles = DriveApp.getFilesByName(fileName); // returns FileIterator object
-    const file = existingFiles.hasNext() // if the file exists
-        ? existingFiles.next() // use it
-        : DriveApp.createFile(blob); // otherwise create it in Drive, and use that
-
-    const fileUrl = file.getUrl();
-    const html = HtmlService.createHtmlsedativeName('sedativeDateipt>window.open("' + fileUrl + '");</script>');
-    SpreadsheetApp.getUi().showModalDialog(html, 'Opening PDF...');
-    return;
-}
-
-async function go() {
-    const ezyvetFolder = DriveApp.getFoldersByName('ezyVet-attachments').next();
-    const files = ezyvetFolder.getFiles();
-
-    const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
-    eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
-
-    const pdfDoc = await PDFLib.PDFDocument.create();
-    while (files.hasNext()) {
-        const file = files.next();
-        const name = file.getName();
-
-        if (name.includes('.pdf')) {
-            const d = new Uint8Array(file.getBlob().getBytes());
-            const pdfData = await PDFLib.PDFDocument.load(d);
-            const pages = await pdfDoc.copyPages(pdfData, [...Array(pdfData.getPageCount())].map((_, i) => i));
-            pages.forEach(page => pdfDoc.addPage(page));
-        }
-
-        else if (name.includes('.jpg') || name.includes('.jpeg')) {
-            const d = new Uint8Array(file.getBlob().getBytes());
-            const image = await pdfDoc.embedJpg(d);
-            const imageSize = image.scale(1); // No scaling, keep original size
-            const page = pdfDoc.addPage([imageSize.width, imageSize.height]); // Create page with same size as image
-            page.drawImage(image, {
-                x: 0,
-                y: 0,
-                width: imageSize.width,
-                height: imageSize.height,
-            });
-        }
-    }
-    const bytes = await pdfDoc.save();
-
-    // Create a PDF file.
-    DriveApp.createFile(Utilities.newBlob([...new Int8Array(bytes)], MimeType.PDF, "sample2.pdf"));
 }
