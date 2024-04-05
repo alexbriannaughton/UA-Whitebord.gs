@@ -14,7 +14,6 @@ async function getTomorrowsDTAppts() {
     range.setFontColor("black");
     range.setFontLine("none");
 
-
     putDataOnSheet(dtAppts, range, dateStr);
 };
 
