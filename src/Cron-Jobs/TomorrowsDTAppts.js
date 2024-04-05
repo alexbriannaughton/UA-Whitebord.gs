@@ -204,7 +204,6 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
 
         if (gabaProductIDSet.has(productID)) {
             const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
-            console.log('rx date: ', rxDate)
             if (rxDate > sedativeDateLastFilled) {
                 sedativeName = 'gabapentin';
                 sedativeDateLastFilled = rxDate;
@@ -274,7 +273,8 @@ function putDataOnSheet(dtAppts, range, dateStr) {
         // this would check if pt's first time. do we want to check O's first time?
 
         const recordsCell = range.offset(i, 4, 1, 1);
-        recordsCell.setValue(recordsURL);
+        const recordsCellVal = recordsURL === null ? 'no' : recordsURL;
+        recordsCell.setValue(recordsCellVal);
 
         const hxFractiousCell = range.offset(i, 5, 1, 1);
         const yesOrNoForFractious = animal.is_hostile;
