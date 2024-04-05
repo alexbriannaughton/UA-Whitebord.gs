@@ -141,6 +141,10 @@ async function getAllEzyVetData(dtAppts, dateStr) {
         dtAppts[i].consultAttachments = consultAttachments;
         const attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
 
+        if (attachmentDownloadResponses.length < 1) {
+            dtAppts[i].recordsURL = null;
+            break;
+        }
 
         const mergedPDF = await PDFLib.PDFDocument.create();
         for (let j = 0; j < attachmentDownloadResponses.length; j++) {
