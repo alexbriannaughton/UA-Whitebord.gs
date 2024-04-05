@@ -11,65 +11,65 @@ async function getTomorrowsDTAppts() {
     range.clearContent();
     range.setWrap(true);
 
-    for (let i = 0; i < dtAppts.length; i++) {
-        const {
-            appointment,
-            contact,
-            animal,
-            consultAttachments,
-            animalAttachments,
-            prescriptions,
-            prescriptionItems,
-            consultIDs,
-            recordsURL
-        } = dtAppts[i];
+    putDataOnSheet(dtAppts, range);
 
-        const time = convertEpochToUserTimezone(appointment.start_time);
-        const timeCell = range.offset(i, 0, 1, 1);
-        timeCell.setValue(time);
+    // for (let i = 0; i < dtAppts.length; i++) {
+    //     const {
+    //         appointment,
+    //         contact,
+    //         animal,
+    //         prescriptions,
+    //         prescriptionItems,
+    //         consultIDs,
+    //         recordsURL
+    //     } = dtAppts[i];
 
-        const ptCell = range.offset(i, 1, 1, 1);
-        const ptSpecies = speciesMap[animal.species_id] || 'unknown species';
-        const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
-        const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
-        const link = makeLink(ptText, animalURL);
-        ptCell.setRichTextValue(link);
+    //     const time = convertEpochToUserTimezone(appointment.start_time);
+    //     const timeCell = range.offset(i, 0, 1, 1);
+    //     timeCell.setValue(time);
 
-        const reasonCell = range.offset(i, 2, 1, 1);
-        let descriptionString = appointment.details.description;
-        if (descriptionString.startsWith('VETSTORIA')) {
-            const itemsInParentheses = descriptionString.match(/\((.*?)\)/g);
-            const lastItem = itemsInParentheses.at(-1);
-            descriptionString = lastItem.slice(1, -1); // remove parentheses
-        }
-        reasonCell.setValue(descriptionString);
+    //     const ptCell = range.offset(i, 1, 1, 1);
+    //     const ptSpecies = speciesMap[animal.species_id] || 'unknown species';
+    //     const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
+    //     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
+    //     const link = makeLink(ptText, animalURL);
+    //     ptCell.setRichTextValue(link);
 
-        const firstTimeHereCell = range.offset(i, 3, 1, 1);
-        const yesOrNoForFirstTime = consultIDs.length < 2;
-        firstTimeHereCell.setValue(yesOrNoForFirstTime);
-        // TODO:
-        // check if this is the vetstoria placeholder account
-        // yes if vetstoria placeholder account OR if consultIDs.length < 2
-        // this would check if pt's first time. do we want to check O's first time?
+    //     const reasonCell = range.offset(i, 2, 1, 1);
+    //     let descriptionString = appointment.details.description;
+    //     if (descriptionString.startsWith('VETSTORIA')) {
+    //         const itemsInParentheses = descriptionString.match(/\((.*?)\)/g);
+    //         const lastItem = itemsInParentheses.at(-1);
+    //         descriptionString = lastItem.slice(1, -1); // remove parentheses
+    //     }
+    //     reasonCell.setValue(descriptionString);
 
-        const recordsCell = range.offset(i, 4, 1, 1);
-        recordsCell.setValue(recordsURL);
+    //     const firstTimeHereCell = range.offset(i, 3, 1, 1);
+    //     const yesOrNoForFirstTime = consultIDs.length < 2;
+    //     firstTimeHereCell.setValue(yesOrNoForFirstTime);
+    //     // TODO:
+    //     // check if this is the vetstoria placeholder account
+    //     // yes if vetstoria placeholder account OR if consultIDs.length < 2
+    //     // this would check if pt's first time. do we want to check O's first time?
 
-        const hxFractiousCell = range.offset(i, 5, 1, 1);
-        const yesOrNoForFractious = animal.is_hostile;
-        hxFractiousCell.setValue(yesOrNoForFractious);
+    //     const recordsCell = range.offset(i, 4, 1, 1);
+    //     recordsCell.setValue(recordsURL);
 
-        const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
-        const hasSedCell = range.offset(i, 6, 1, 1);
-        const sedCellVal = sedativeName === undefined
-            ? 'no'
-            : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
-        hasSedCell.setValue(sedCellVal);
-    }
+    //     const hxFractiousCell = range.offset(i, 5, 1, 1);
+    //     const yesOrNoForFractious = animal.is_hostile;
+    //     hxFractiousCell.setValue(yesOrNoForFractious);
+
+    //     const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
+    //     const hasSedCell = range.offset(i, 6, 1, 1);
+    //     const sedCellVal = sedativeName === undefined
+    //         ? 'no'
+    //         : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
+    //     hasSedCell.setValue(sedCellVal);
+    // }
 };
 
 function filterAndSortDTAppts(allOfTomorrowsAppts) {
-    // filter all appts down to DT exams and techs
+    // filter all appts down to DT exams/techs
     const dtResourceIDs = new Set([ // non procedures dt columns
         '35', // dt dvm 1
         '55', // used to be dt dvm 2, though it is not currently active 3/16/24
@@ -79,7 +79,7 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
     ]);
     const dtAppts = allOfTomorrowsAppts.items.filter(({ appointment }) => {
         return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT exam or tech column
-            && appointment.details.appointment_type_id !== '4'; // is not a blocked off spot
+            && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
     });
 
     return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time)
@@ -270,6 +270,63 @@ function getRxDate(prescriptions, prescriptionID) {
     return Number(rx.prescription.date_of_prescription);
 }
 
+function putDataOnSheet(dtAppts, range, ) {
+    for (let i = 0; i < dtAppts.length; i++) {
+        const {
+            appointment,
+            contact,
+            animal,
+            prescriptions,
+            prescriptionItems,
+            consultIDs,
+            recordsURL
+        } = dtAppts[i];
+
+        const time = convertEpochToUserTimezone(appointment.start_time);
+        const timeCell = range.offset(i, 0, 1, 1);
+        timeCell.setValue(time);
+
+        const ptCell = range.offset(i, 1, 1, 1);
+        const ptSpecies = speciesMap[animal.species_id] || 'unknown species';
+        const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
+        const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
+        const link = makeLink(ptText, animalURL);
+        ptCell.setRichTextValue(link);
+
+        const reasonCell = range.offset(i, 2, 1, 1);
+        let descriptionString = appointment.details.description;
+        if (descriptionString.startsWith('VETSTORIA')) {
+            const itemsInParentheses = descriptionString.match(/\((.*?)\)/g);
+            const lastItem = itemsInParentheses.at(-1);
+            descriptionString = lastItem.slice(1, -1); // remove parentheses
+        }
+        reasonCell.setValue(descriptionString);
+
+        const firstTimeHereCell = range.offset(i, 3, 1, 1);
+        const yesOrNoForFirstTime = consultIDs.length < 2;
+        firstTimeHereCell.setValue(yesOrNoForFirstTime);
+        // TODO:
+        // check if this is the vetstoria placeholder account
+        // yes if vetstoria placeholder account OR if consultIDs.length < 2
+        // this would check if pt's first time. do we want to check O's first time?
+
+        const recordsCell = range.offset(i, 4, 1, 1);
+        recordsCell.setValue(recordsURL);
+
+        const hxFractiousCell = range.offset(i, 5, 1, 1);
+        const yesOrNoForFractious = animal.is_hostile;
+        hxFractiousCell.setValue(yesOrNoForFractious);
+
+        const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
+        const hasSedCell = range.offset(i, 6, 1, 1);
+        const sedCellVal = sedativeName === undefined
+            ? 'no'
+            : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
+        hasSedCell.setValue(sedCellVal);
+    }
+}
+
+// the following are functions that ive used for testing
 function downloadPdfToDrive() {
     const dlLink = 'https://urbananimalnw.usw2.ezyvet.com/api/v1/attachment/download/4425719970';
     const cache = CacheService.getScriptCache();

@@ -37,6 +37,7 @@ function parseOneRow(rowRTVals, indexToStatusIDMap, allRooms, sheetName) {
             else if (link.includes('Contact')) {
                 const whiteboardContactID = link.split('=')[2];
                 allRooms[roomLocationKey] = { whiteboardContactID };
+                break;
             }
         }
     }

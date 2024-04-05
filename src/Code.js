@@ -54,7 +54,7 @@ function doGet(_e) {
       [3, '27'],//Room 4
       [4, '28'],//Room 5
       [5, '40'],// cat lobby (column 1)
-      [6, '40']//cat lobby (column 2)
+      [6, '40'],//cat lobby (column 2)
     ]);
 
     // this map works for both WC and DT, even though WC only has 5 rooms
@@ -65,7 +65,7 @@ function doGet(_e) {
       [3, '27'], //Room 4
       [4, '28'], //Room 5
       [5, '29'], //Room 6
-      [6, '30'] //Room 7
+      [6, '30'], //Room 7
     ]);
 
     const allRooms = {};
