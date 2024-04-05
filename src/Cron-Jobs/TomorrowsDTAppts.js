@@ -11,6 +11,9 @@ async function getTomorrowsDTAppts() {
     const range = sheet.getRange(`A4:H204`)
     range.clearContent();
     range.setWrap(true);
+    range.setFontColor("black");
+    range.setFontLine("none");
+
 
     putDataOnSheet(dtAppts, range, dateStr);
 };
