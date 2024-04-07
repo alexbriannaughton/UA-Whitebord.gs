@@ -31,8 +31,8 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
             && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
     });
 
-    return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
-        // .slice(0, 2); // for dev we are just slicing the first two
+    return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time)
+        .slice(4, 5); // for dev we are just slicing the first two
 }
 
 // get the animal, contact and attachment data associated with the appointment
@@ -83,7 +83,9 @@ async function getAllEzyVetData(dtAppts, dateStr) {
         dtAppts[i].consultIDs = consultIDs;
     });
     prescriptionResponses.forEach((response, i) => {
+        console.log('prescriptionResponse: ', response);
         const prescriptions = JSON.parse(response.getContentText()).items;
+        console.log('prescription: ', prescriptions);
         const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
         dtAppts[i].prescriptions = prescriptions;
         dtAppts[i].prescriptionIDs = prescriptionIDs;
@@ -121,7 +123,9 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     for (let i = 0; i < animalAttachmentResponses.length; i++) {
         const response = animalAttachmentResponses[i];
         const prescriptionItemResponse = prescriptionItemResponses[i];
+        console.log('prescriptionItemResponse: ', prescriptionItemResponse);
         const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
+        console.log('prescriptionItems: ', prescriptionItems);
         dtAppts[i].prescriptionItems = prescriptionItems;
 
         const attachmentDownloadRequests = [];
