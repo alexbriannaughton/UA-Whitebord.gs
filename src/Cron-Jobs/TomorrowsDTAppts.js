@@ -83,6 +83,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
         dtAppts[i].consultIDs = consultIDs;
     });
     prescriptionResponses.forEach((response, i) => {
+        console.log(dtAppts[i].animal.name);
         console.log('prescriptionResponse: ', response);
         const prescriptions = JSON.parse(response.getContentText()).items;
         console.log('prescription: ', prescriptions);
