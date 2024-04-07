@@ -83,10 +83,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
         dtAppts[i].consultIDs = consultIDs;
     });
     prescriptionResponses.forEach((response, i) => {
-        console.log(dtAppts[i].animal.name);
-        console.log('prescriptionResponse: ', response);
         const prescriptions = JSON.parse(response.getContentText()).items;
-        console.log('prescription: ', prescriptions);
         const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
         dtAppts[i].prescriptions = prescriptions;
         dtAppts[i].prescriptionIDs = prescriptionIDs;
@@ -124,9 +121,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     for (let i = 0; i < animalAttachmentResponses.length; i++) {
         const response = animalAttachmentResponses[i];
         const prescriptionItemResponse = prescriptionItemResponses[i];
-        console.log('prescriptionItemResponse: ', prescriptionItemResponse);
         const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
-        console.log('prescriptionItems: ', prescriptionItems);
         dtAppts[i].prescriptionItems = prescriptionItems;
 
         const attachmentDownloadRequests = [];
@@ -250,6 +245,9 @@ function putDataOnSheet(dtAppts, range, dateStr) {
             consultIDs,
             recordsURL
         } = dtAppts[i];
+        console.log(animal.name)
+        console.log('prescriptions: ', prescriptions)
+        console.log('prescriptionItems: ', prescriptionItems)
 
         const time = convertEpochToUserTimezone(appointment.start_time);
         const timeCell = range.offset(i, 0, 1, 1);
