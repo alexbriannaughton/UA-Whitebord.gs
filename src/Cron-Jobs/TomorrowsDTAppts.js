@@ -86,7 +86,10 @@ async function getAllEzyVetData(dtAppts, dateStr) {
         const prescriptions = JSON.parse(response.getContentText()).items;
         const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
         dtAppts[i].prescriptions = prescriptions;
+        const name = dtAppts[i].animal.name;
+        console.log(name)
         dtAppts[i].prescriptionIDs = prescriptionIDs;
+    if (name === 'Barry') console.log(prescriptions, prescriptionIDs)
     });
 
     const folderNamePrefix = 'ezyVet-attachments-';
@@ -245,9 +248,6 @@ function putDataOnSheet(dtAppts, range, dateStr) {
             consultIDs,
             recordsURL
         } = dtAppts[i];
-        console.log(animal.name)
-        console.log('prescriptions: ', prescriptions)
-        console.log('prescriptionItems: ', prescriptionItems)
 
         const time = convertEpochToUserTimezone(appointment.start_time);
         const timeCell = range.offset(i, 0, 1, 1);
