@@ -86,10 +86,7 @@ async function getTomorrowsDTAppts() {
       const prescriptions = JSON.parse(response.getContentText()).items;
       const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
       dtAppts[i].prescriptions = prescriptions;
-      const name = dtAppts[i].animal.name;
-      // console.log(name)
       dtAppts[i].prescriptionIDs = prescriptionIDs;
-      // if (name === 'Barry') console.log(prescriptions, prescriptionIDs)
     });
   
     const folderNamePrefix = 'ezyVet-attachments-';
@@ -146,7 +143,6 @@ async function getTomorrowsDTAppts() {
       dtAppts[i].consultAttachments = consultAttachments;
   
       let attachmentDownloadResponses;
-  
       try {
         attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
       }
@@ -156,7 +152,6 @@ async function getTomorrowsDTAppts() {
         dtAppts[i].recordsURL = 'there was an error trying to download these records.';
         continue;
       }
-  
       if (attachmentDownloadResponses.length < 1) {
         dtAppts[i].recordsURL = null;
         continue;
