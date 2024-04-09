@@ -22,7 +22,7 @@ async function getTomorrowsDTAppts() {
     const dtResourceIDs = new Set([ // non procedures dt columns
       '35', // dt dvm 1
       '55', // used to be dt dvm 2, though it is not currently active 3/16/24
-      '56', // dt tech
+      // '56', // dt tech
       '1015', // used to be dt dvm 3, though it is not currently active 3/16/24
       '1082' // dt DVM :15/:45
     ]);
@@ -123,9 +123,17 @@ async function getTomorrowsDTAppts() {
       const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
       dtAppts[i].prescriptionItems = prescriptionItems;
   
-      const response = animalAttachmentResponses[i];
+      const animalAttachmentResponse = animalAttachmentResponses[i];
+      const animalAttachments = JSON.parse(animalAttachmentResponse.getContentText()).items;
+      const consultAttachmentsResponse = consultAttachmentResponses[i];
+      const consultAttachments = JSON.parse(consultAttachmentsResponse.getContentText()).items;
+      const numOfAttachments = animalAttachments.length + consultAttachments.length;
+      if (numOfAttachments > 10) {
+        dtAppts[i].recordsURL = 'yes';
+        continue;
+      }
+
       const attachmentDownloadRequests = [];
-      const animalAttachments = JSON.parse(response.getContentText()).items;
       animalAttachments.forEach(({ attachment }) => {
         attachmentDownloadRequests.push(
           bodyForEzyVetGet(`${attachment.file_download_url}`)
@@ -133,8 +141,6 @@ async function getTomorrowsDTAppts() {
       });
       dtAppts[i].animalAttachments = animalAttachments;
   
-      const consultAttachmentsResponse = consultAttachmentResponses[i];
-      const consultAttachments = JSON.parse(consultAttachmentsResponse.getContentText()).items;
       consultAttachments.forEach(({ attachment }) => {
         attachmentDownloadRequests.push(
           bodyForEzyVetGet(`${attachment.file_download_url}`)
@@ -157,7 +163,7 @@ async function getTomorrowsDTAppts() {
         continue;
       }
 
-      Utilities.sleep(20000); // to comply with ezyVet's rate limiting
+      // Utilities.sleep(12000); // to comply with ezyVet's rate limiting
   
       const mergedPDF = await PDFLib.PDFDocument.create();
       for (let j = 0; j < attachmentDownloadResponses.length; j++) {
