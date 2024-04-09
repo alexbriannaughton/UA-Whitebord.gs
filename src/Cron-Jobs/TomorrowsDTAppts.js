@@ -149,13 +149,15 @@ async function getTomorrowsDTAppts() {
       catch(error) {
         console.log(error);
         console.log('error^^ after trying to dl attachments for ', dtAppts[i].animal.name, dtAppts[i].contact.last_name);
-        dtAppts[i].recordsURL = 'there was an error trying to download these records.';
+        dtAppts[i].recordsURL = 'there was an error trying to download these records. i bet you at least one of them has the incorrect file type... like it says ".pdf" at the end its actually a jpeg file';
         continue;
       }
       if (attachmentDownloadResponses.length < 1) {
         dtAppts[i].recordsURL = null;
         continue;
       }
+
+      Utilities.sleep(20000); // to comply with ezyVet's rate limiting
   
       const mergedPDF = await PDFLib.PDFDocument.create();
       for (let j = 0; j < attachmentDownloadResponses.length; j++) {
@@ -210,7 +212,7 @@ async function getTomorrowsDTAppts() {
     let sedativeName;
     let sedativeDateLastFilled = -Infinity;
   
-    for (const { prescriptionitem } of prescriptionItems || []) {
+    for (const { prescriptionitem } of prescriptionItems) {
       const productID = prescriptionitem.product_id;
   
       if (gabaProductIDSet.has(productID)) {
