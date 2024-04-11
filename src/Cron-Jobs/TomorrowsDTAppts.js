@@ -63,11 +63,42 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     );
   });
 
-  const animalResponses = UrlFetchApp.fetchAll(animalRequests);
-  const contactResponses = UrlFetchApp.fetchAll(contactRequests);
-  const animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
-  const allConsultsForAnimalResponses = UrlFetchApp.fetchAll(allConsultsForAnimalRequests);
-  const prescriptionResponses = UrlFetchApp.fetchAll(prescriptionRequests);
+  let animalResponses, contactResponses, animalAttachmentResponses, allConsultsForAnimalResponses, prescriptionResponses;
+  try {
+    animalResponses = UrlFetchApp.fetchAll(animalRequests);
+  } catch (error) {
+    console.error("Error fetching animal data:", error);
+    console.error("Animal Request body:", animalRequests);
+  }
+
+  try {
+    contactResponses = UrlFetchApp.fetchAll(contactRequests);
+  } catch (error) {
+    console.error("Error fetching contact data:", error);
+    console.error("Contact Request body:", contactRequests);
+  }
+
+  try {
+    animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
+  } catch (error) {
+    console.error("Error fetching animal attachment data:", error);
+    console.error("Animal Attachment Request body:", animalAttachmentRequests);
+  }
+
+  try {
+    allConsultsForAnimalResponses = UrlFetchApp.fetchAll(allConsultsForAnimalRequests);
+  } catch (error) {
+    console.error("Error fetching consult data:", error);
+    console.error("All Consults Request body:", allConsultsForAnimalRequests);
+  }
+
+  try {
+    prescriptionResponses = UrlFetchApp.fetchAll(prescriptionRequests);
+  } catch (error) {
+    console.error("Error fetching prescription data:", error);
+    console.error("Prescription Request body:", prescriptionRequests);
+  }
+
 
   animalResponses.forEach((response, i) => {
     const { animal } = JSON.parse(response.getContentText()).items.at(-1);
@@ -113,8 +144,21 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
     );
   }
-  const consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
-  const prescriptionItemResponses = UrlFetchApp.fetchAll(prescriptionItemRequests);
+  let consultAttachmentResponses, prescriptionItemResponses;
+  try {
+    consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
+  } catch (error) {
+    console.error("Error fetching consult attachment data:", error);
+    console.error("Consult Attachments Request body:", consultAttachmentRequests);
+  }
+
+  try {
+    prescriptionItemResponses = UrlFetchApp.fetchAll(prescriptionItemRequests);
+  } catch (error) {
+    console.error("Error fetching prescription item data:", error);
+    console.error("Prescription Item Request body:", prescriptionItemRequests);
+  }
+
 
   const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
   eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
@@ -154,7 +198,8 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
     }
     catch (error) {
-      console.log(error);
+      console.log('error at attachment download fetches: ',error);
+      console.log('attachment download bodies: ', attachmentDownloadRequests);
       console.log('error^^ after trying to dl attachments for ', dtAppts[i].animal.name, dtAppts[i].contact.last_name);
       dtAppts[i].recordsURL = "error when trying to download these records. it's probably from an incorrectly labeled file. e.g. there is a .jpg file that is labeled as a .pdf.";
       continue;
