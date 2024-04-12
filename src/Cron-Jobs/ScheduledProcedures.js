@@ -1,5 +1,6 @@
 // this will run with a daily trigger to put scheduled procedures in the in patient box.
 function getTodaysAppointments() {
+    console.log('running getTodaysAppointments in ScheduledProcedures.js...');
     const [todayStart, todayEnd] = getTodayRange();
     const url = `${proxy}/v1/appointment?time_range_start=${todayStart}&time_range_end=${todayEnd}&limit=200`;
     const appts = fetchAndParse(url);

@@ -1,6 +1,8 @@
 function updateToken(cache = CacheService.getScriptCache()) {
     const url = `${proxy}/v2/oauth/access_token`;
-    const props = PropertiesService.getScriptProperties();
+    props = props === undefined
+        ? PropertiesService.getScriptProperties()
+        : props;
     const payload = {
         partner_id: props.getProperty('partner_id'),
         client_id: props.getProperty('client_id'),
