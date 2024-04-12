@@ -1,7 +1,8 @@
 async function getTomorrowsDTAppts() {
+  console.log('running getTomrrowsDTAppts job...');
   const [tomorrowStart, tomorrowEnd] = epochRangeForTomorrow();
   const dateStr = convertEpochToUserTimezoneDate(tomorrowStart);
-  // send query for all appointments for tomorrow
+  console.log('querying for tomorrows appointments...')
   const url = `${proxy}/v1/appointment?active=1&time_range_start=${tomorrowStart}&time_range_end=${tomorrowEnd}&limit=200`;
   const allOfTomorrowsAppts = fetchAndParse(url);
   const dtAppts = filterAndSortDTAppts(allOfTomorrowsAppts);
@@ -31,8 +32,8 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
       && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
   });
 
-  return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time)
-  // .slice(4, 5); // for dev we are just slicing the first two
+  return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+  // .slice(4, 5); // slicing for dev
 }
 
 // get the animal, contact and attachment data associated with the appointment
@@ -65,6 +66,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
 
   let animalResponses, contactResponses, animalAttachmentResponses, allConsultsForAnimalResponses, prescriptionResponses;
   try {
+    console.log('getting all animal data...');
     animalResponses = UrlFetchApp.fetchAll(animalRequests);
   } catch (error) {
     console.error("Error fetching animal data:", error);
@@ -72,6 +74,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   }
 
   try {
+    console.log('getting all contact data...');
     contactResponses = UrlFetchApp.fetchAll(contactRequests);
   } catch (error) {
     console.error("Error fetching contact data:", error);
@@ -79,6 +82,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   }
 
   try {
+    console.log('getting all animal attachments...');
     animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
   } catch (error) {
     console.error("Error fetching animal attachment data:", error);
@@ -86,6 +90,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   }
 
   try {
+    console.log('getting data for consults for each animal...');
     allConsultsForAnimalResponses = UrlFetchApp.fetchAll(allConsultsForAnimalRequests);
   } catch (error) {
     console.error("Error fetching consult data:", error);
@@ -93,6 +98,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   }
 
   try {
+    console.log('getting all prescriptions data...')
     prescriptionResponses = UrlFetchApp.fetchAll(prescriptionRequests);
   } catch (error) {
     console.error("Error fetching prescription data:", error);
@@ -121,7 +127,9 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   });
 
   const folderNamePrefix = 'ezyVet-attachments-';
+  console.log('getting drive folders...');
   const rootFolders = DriveApp.getFolders();
+  console.log('trashing old ezyvet folders...');
   while (rootFolders.hasNext()) {
     const folder = rootFolders.next();
     const folderName = folder.getName();
@@ -129,6 +137,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       folder.setTrashed(true);
     }
   }
+  console.log('creating new drive folder for today...');
   const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + dateStr);
   ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
 
@@ -152,7 +161,9 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     console.error("Consult Attachments Request body:", consultAttachmentRequests);
   }
 
+  const animalName = `${appt.animal.name} ${appt.contact.last_name}`;
   try {
+    console.log(`getting prescription items for ${animalName}`);
     prescriptionItemResponses = UrlFetchApp.fetchAll(prescriptionItemRequests);
   } catch (error) {
     console.error("Error fetching prescription item data:", error);
@@ -161,6 +172,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
 
 
   const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
+  console.log('loading PDFLib...');
   eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
 
   for (let i = 0; i < animalAttachmentResponses.length; i++) {
@@ -177,6 +189,10 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       dtAppts[i].recordsURL = 'yes';
       continue;
     }
+    if (numOfAttachments < 1) {
+      dtAppts[i].recordsURL = 'no';
+      continue;
+    }
 
     const attachmentDownloadRequests = [];
     animalAttachments.forEach(({ attachment }) => {
@@ -184,33 +200,31 @@ async function getAllEzyVetData(dtAppts, dateStr) {
         bodyForEzyVetGet(`${attachment.file_download_url}`)
       );
     });
-    dtAppts[i].animalAttachments = animalAttachments;
+    // dtAppts[i].animalAttachments = animalAttachments;
 
     consultAttachments.forEach(({ attachment }) => {
       attachmentDownloadRequests.push(
         bodyForEzyVetGet(`${attachment.file_download_url}`)
       );
     });
-    dtAppts[i].consultAttachments = consultAttachments;
+    // dtAppts[i].consultAttachments = consultAttachments;
 
+    const animalName = `${dtAppts[i].animal.name} ${dtAppts[i].contact.last_name}`;
     let attachmentDownloadResponses;
     try {
+      console.log(`downloading attachments for ${animalName}`);
       attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
     }
     catch (error) {
-      console.log('error at attachment download fetches: ',error);
+      console.log('error at attachment download fetches: ', error);
       console.log('attachment download bodies: ', attachmentDownloadRequests);
-      console.log('error^^ after trying to dl attachments for ', dtAppts[i].animal.name, dtAppts[i].contact.last_name);
-      dtAppts[i].recordsURL = "error when trying to download these records. it's probably from an incorrectly labeled file. e.g. there is a .jpg file that is labeled as a .pdf.";
-      continue;
-    }
-    if (attachmentDownloadResponses.length < 1) {
-      dtAppts[i].recordsURL = 'no';
+      console.log(`error^^ after trying to dl attachments for ${animalName}`);
+      dtAppts[i].recordsURL = "error when trying to download these records. it might be from an incorrectly labeled file. e.g. there is a .jpg file that is labeled as a .pdf.";
       continue;
     }
 
     // Utilities.sleep(12000); // to comply with ezyVet's rate limiting
-
+    console.log(`building .pdf for ${animalName}`);
     const mergedPDF = await PDFLib.PDFDocument.create();
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
       const response = attachmentDownloadResponses[j];
@@ -219,7 +233,10 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       if (name.includes('.pdf')) {
         const d = new Uint8Array(blob.getBytes());
         const pdfData = await PDFLib.PDFDocument.load(d);
-        const pages = await mergedPDF.copyPages(pdfData, [...Array(pdfData.getPageCount())].map((_, i) => i));
+        const pages = await mergedPDF.copyPages(
+          pdfData,
+          [...Array(pdfData.getPageCount())].map((_, ind) => ind)
+        );
         pages.forEach(page => mergedPDF.addPage(page));
       }
 
@@ -232,15 +249,14 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       }
 
     }
+    console.log(`saving .pdf for ${animalName}`);
     const bytes = await mergedPDF.save();
-
-    const animalName = dtAppts[i].animal.name;
-    const animalLastName = dtAppts[i].contact.last_name;
+    console.log(`creating file in drive for ${animalName}'s .pdf`);
     const mergedPDFDriveFile = ezyVetFolder.createFile(
       Utilities.newBlob(
         [...new Int8Array(bytes)],
         MimeType.PDF,
-        `${animalName} ${animalLastName}.pdf`
+        `${animalName}.pdf`
       )
     );
     const url = mergedPDFDriveFile.getUrl();
