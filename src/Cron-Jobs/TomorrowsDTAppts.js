@@ -292,16 +292,16 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   };
 
   const consultsForAllContactAnimalRequests = [];
-  const didAFetchMap = [];
+  const contactHasOtherAnimalsArray = [];
   for (const appt of dtAppts) {
     if (appt.animalIDsOfContact.length > 1) {
       const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": appt.animalIDsOfContact }));
       consultsForAllContactAnimalRequests.push(
         bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animal_id=${encodedAnimalIDs}`)
       );
-      didAFetchMap.push(true);
+      contactHasOtherAnimalsArray.push(true);
     }
-    else didAFetchMap.push(false);
+    else contactHasOtherAnimalsArray.push(false);
   }
   let consultsForAllContactAnimalResponses;
   try {
@@ -312,11 +312,14 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     console.error("Consults For All Contact Animal Requests", consultsForAllContactAnimalRequests);
   }
 
-  let didAFetchIndex = 0;
+  let hasOtherAnimalsArrayIndex = 0;
   for (let i = 0; i < dtAppts.length; i++) {
-    const didAFetchForConsultsForAllContactAnimals = didAFetchMap[i];
+    const appt = dtAppts[i];
+    console.log('appt: ', appt);
+    const didAFetchForConsultsForAllContactAnimals = contactHasOtherAnimalsArray[i];
+    console.log(`${appt.animal.name}'s o has other animals: ${didAFetchForConsultsForAllContactAnimals}`)
     if (didAFetchForConsultsForAllContactAnimals) {
-      const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[didAFetchIndex++];
+      const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[hasOtherAnimalsArrayIndex++];
       const consultsForAllContactAnimals = JSON.parse(consultsForAllContactAnimalResponse.getContentText()).items;
       dtAppts[i].ownerHasBeenHere = consultsForAllContactAnimals.length > 0;
     }
