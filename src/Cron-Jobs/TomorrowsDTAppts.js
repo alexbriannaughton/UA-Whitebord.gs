@@ -406,12 +406,12 @@ function putDataOnSheet(dtAppts, range, dateStr) {
     reasonCell.setValue(descriptionString);
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
-    const animalHasBeenHere = consultIDs.length < 2;
+    const animalHasBeenHere = consultIDs.length > 2;
     if (ownerHasBeenHere === false) {
-      firstTimeHereCell.setValue('no').setBackground(highPriorityColor);
+      firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
     }
     else if (animalHasBeenHere === true) {
-      firstTimeHereCell.setValue('yes');
+      firstTimeHereCell.setValue('no');
     }
     else if (ownerHasBeenHere === true && animalHasBeenHere === false) {
       firstTimeHereCell.setValue(`O has brought other pets--first time for ${animal.name}.`);
@@ -429,7 +429,7 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 
 
     const hxFractiousCell = range.offset(i, 5, 1, 1);
-    animal.is_hostile === '0'
+    animal.is_hostile === '1'
       ? hxFractiousCell.setValue('yes').setBackground(highPriorityColor)
       : hxFractiousCell.setValue('no');
 
