@@ -2,10 +2,10 @@
 function handleAppointment(webhookType, appointment) {
     // handle for possible send to aus/echo tracker sheet/script
     if (echoApptTypeIDsSet.has(appointment.type_id)) {
-        handleEchoOrAUS('Echos');
+        handleEchoOrAUS(appointment, 'Echos');
     }
     if (ausApptTypeIDsSet.has(appointment.type_id)) {
-        handleEchoOrAUS('AUS');
+        handleEchoOrAUS(appointment, 'AUS');
     }
 
     // below here is for this script
@@ -28,7 +28,7 @@ function handleAppointment(webhookType, appointment) {
 
 }
 
-function handleEchoOrAUS(sheetName) {
+function handleEchoOrAUS(appointment, sheetName) {
     props = PropertiesService.getScriptProperties();
     const url = props.getProperty('echo_and_ultrasound_tracker_app_url');
     const data = { appointment, sheetName };
@@ -39,6 +39,7 @@ function handleEchoOrAUS(sheetName) {
         payload: JSON.stringify(data)
     };
     UrlFetchApp.fetch(url, options);
+    return;
 }
 
 function handleCreatedAppointment(appointment) {
