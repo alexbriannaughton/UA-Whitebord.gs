@@ -12,10 +12,11 @@ async function getTomorrowsDTAppts() {
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
   const range = sheet.getRange(`A4:H204`)
-  range.clearContent();
-  range.setWrap(true);
-  range.setFontColor("black");
-  range.setFontLine("none");
+  range.clearContent()
+    .setWrap(true)
+    .setFontColor("black")
+    .setBackground("white")
+    .setFontLine("none");
 
   putDataOnSheet(dtAppts, range, dateStr);
 };
