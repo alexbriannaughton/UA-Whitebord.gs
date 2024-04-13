@@ -286,7 +286,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     if (appt.animalIDsOfContact.length > 1) {
       const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": appt.animalIDsOfContact }));
       consultsForAllContactAnimalRequests.push(
-        bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animalID=${encodedAnimalIDs}`)
+        bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animal_id=${encodedAnimalIDs}`)
       );
       didAFetchMap.push(true);
     }
@@ -307,7 +307,6 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     if (didAFetchForConsultsForAllContactAnimals) {
       const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[didAFetchIndex++];
       const consultsForAllContactAnimals = JSON.parse(consultsForAllContactAnimalResponse.getContentText()).items;
-      console.log('----->', consultsForAllContactAnimals)
       dtAppts[i].ownerHasBeenHere = consultsForAllContactAnimals.length > 0;
     }
     else dtAppts[i].ownerHasBeenHere = false;
@@ -398,13 +397,13 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
     const animalHasBeenHere = consultIDs.length < 2;
-    if (!ownerHasBeenHere) {
+    if (ownerHasBeenHere === false) {
       firstTimeHereCell.setValue('no');
     }
-    else if (animalHasBeenHere) {
+    else if (animalHasBeenHere === true) {
       firstTimeHereCell.setValue('yes');
     }
-    else if (ownerHasBeenHere && !animalHasBeenHere) {
+    else if (ownerHasBeenHere === true && animalHasBeenHere === false) {
       firstTimeHereCell.setValue(`O has brought other pets--first time for ${animal.name}.`);
     }
 
