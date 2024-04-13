@@ -314,17 +314,13 @@ async function getAllEzyVetData(dtAppts, dateStr) {
 
   let hasOtherAnimalsArrayIndex = 0;
   for (let i = 0; i < dtAppts.length; i++) {
-    const appt = dtAppts[i];
-    console.log('appt: ', appt);
     const didAFetchForConsultsForAllContactAnimals = contactHasOtherAnimalsArray[i];
-    console.log(`${appt.animal.name}'s o has other animals: ${didAFetchForConsultsForAllContactAnimals}`)
     if (didAFetchForConsultsForAllContactAnimals) {
       const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[hasOtherAnimalsArrayIndex++];
       const consultsForAllContactAnimals = JSON.parse(consultsForAllContactAnimalResponse.getContentText()).items;
-      console.log(`${appt.animal.name}'s family's consults: `, consultsForAllContactAnimals)
-      dtAppts[i].ownerHasBeenHere = consultsForAllContactAnimals.length > 0;
+      dtAppts[i].ownerHasBeenHereWithAnotherPatient = consultsForAllContactAnimals.length > 0;
     }
-    else dtAppts[i].ownerHasBeenHere = false;
+    else dtAppts[i].ownerHasBeenHereWithAnotherPatient = false;
   }
 }
 
@@ -386,7 +382,7 @@ function putDataOnSheet(dtAppts, range, dateStr) {
       prescriptions,
       prescriptionItems,
       consultIDs,
-      ownerHasBeenHere,
+      ownerHasBeenHereWithAnotherPatient,
       records
     } = dtAppts[i];
 
@@ -412,13 +408,14 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
     const animalHasBeenHere = consultIDs.length > 2;
-    if (ownerHasBeenHere === false) {
-      firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
-    }
-    else if (animalHasBeenHere === true) {
+    if (animalHasBeenHere === true) {
       firstTimeHereCell.setValue('no');
     }
-    else if (ownerHasBeenHere === true && animalHasBeenHere === false) {
+    // else this is the animal's first time here...
+    else if (ownerHasBeenHereWithAnotherPatient === false) {
+      firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
+    }
+    else if (ownerHasBeenHereWithAnotherPatient === true) {
       firstTimeHereCell.setValue(`O has brought other pets--first time for ${animal.name}.`);
     }
 
