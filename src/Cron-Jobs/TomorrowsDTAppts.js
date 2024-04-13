@@ -354,11 +354,11 @@ function putDataOnSheet(dtAppts, range, dateStr) {
     // this would check if pt's first time. do we want to check O's first time?
 
     const recordsCell = range.offset(i, 4, 1, 1);
-    const recordsCellVal = recordsURL.startsWith('https')
+    recordsURL.startsWith('https')
       ? recordsCell.setRichTextValue(
-        makeLink('need to manually check', recordsURL)
+        makeLink(`there's a few records...`, recordsURL)
       )
-      : recordsCell.setValue(recordsCellVal);
+      : recordsCell.setValue(recordsURL);
 
 
     const hxFractiousCell = range.offset(i, 5, 1, 1);
