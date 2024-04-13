@@ -286,18 +286,18 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     if (appt.animalIDsOfContact.length > 1) {
       const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": appt.animalIDsOfContact }));
       consultsForAllContactAnimalRequests.push(
-        bodyForEzyVetGet(`${proxy}/v1/consult?limit=200&active=1&animalID=${encodedAnimalIDs}`)
+        bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animalID=${encodedAnimalIDs}`)
       );
       didAFetchMap.push(true);
     }
     else didAFetchMap.push(false);
   }
-
+  console.log('consultsForAllContactAnimalRequests.length', consultsForAllContactAnimalRequests.length);
+  console.log('didAFetchMap.length', didAFetchMap.length);
   let consultsForAllContactAnimalResponses;
   try {
     console.log('getting consults for all contact animals...')
-    const filteredRequests = consultsForAllContactAnimalRequests.filter((_, i) => didAFetchMap[i]);
-    consultsForAllContactAnimalResponses = UrlFetchApp.fetchAll(filteredRequests);
+    consultsForAllContactAnimalResponses = UrlFetchApp.fetchAll(consultsForAllContactAnimalRequests);
   } catch (error) {
     console.error("Error fetching prescription item data:", error);
     console.error("Consults For All Contact Animal Requests", consultsForAllContactAnimalRequests);
@@ -305,7 +305,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
 
   let didAFetchIndex = 0;
   for (let i = 0; i < dtAppts.length; i++) {
-    const didAFetchForConsultsForAllContactAnimals = didAFetchMap[didAFetchIndex];
+    const didAFetchForConsultsForAllContactAnimals = didAFetchMap[i];
     if (didAFetchForConsultsForAllContactAnimals) {
       const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[didAFetchIndex++];
       const consultsForAllContactAnimals = JSON.parse(consultsForAllContactAnimalResponse.getContentText()).items;
