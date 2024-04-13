@@ -70,7 +70,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     animalResponses = UrlFetchApp.fetchAll(animalRequests);
   } catch (error) {
     console.error("Error fetching animal data:", error);
-    console.error("Animal Request body:", animalRequests);
+    console.error("Animal Requests:", animalRequests);
   }
 
   try {
@@ -78,7 +78,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     contactResponses = UrlFetchApp.fetchAll(contactRequests);
   } catch (error) {
     console.error("Error fetching contact data:", error);
-    console.error("Contact Request body:", contactRequests);
+    console.error("Contact Requests:", contactRequests);
   }
 
   try {
@@ -86,7 +86,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
   } catch (error) {
     console.error("Error fetching animal attachment data:", error);
-    console.error("Animal Attachment Request body:", animalAttachmentRequests);
+    console.error("Animal Attachment Requests:", animalAttachmentRequests);
   }
 
   try {
@@ -94,7 +94,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     allConsultsForAnimalResponses = UrlFetchApp.fetchAll(allConsultsForAnimalRequests);
   } catch (error) {
     console.error("Error fetching consult data:", error);
-    console.error("All Consults Request body:", allConsultsForAnimalRequests);
+    console.error("All Consults Requests:", allConsultsForAnimalRequests);
   }
 
   try {
@@ -102,7 +102,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     prescriptionResponses = UrlFetchApp.fetchAll(prescriptionRequests);
   } catch (error) {
     console.error("Error fetching prescription data:", error);
-    console.error("Prescription Request body:", prescriptionRequests);
+    console.error("Prescription Requests:", prescriptionRequests);
   }
 
 
@@ -143,6 +143,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
 
   const consultAttachmentRequests = [];
   const prescriptionItemRequests = [];
+  const animalsOfContactRequests = [];
   for (const appt of dtAppts) {
     const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
     consultAttachmentRequests.push(
@@ -152,14 +153,17 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     prescriptionItemRequests.push(
       bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
     );
+    animalsOfContactRequests.push(
+      bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
+    );
   }
-  let consultAttachmentResponses, prescriptionItemResponses;
+  let consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses;
   try {
     console.log(`getting consult attachments...`);
     consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
   } catch (error) {
     console.error("Error fetching consult attachment data:", error);
-    console.error("Consult Attachments Request body:", consultAttachmentRequests);
+    console.error("Consult Attachments Requests:", consultAttachmentRequests);
   }
 
   try {
@@ -167,7 +171,15 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     prescriptionItemResponses = UrlFetchApp.fetchAll(prescriptionItemRequests);
   } catch (error) {
     console.error("Error fetching prescription item data:", error);
-    console.error("Prescription Item Request body:", prescriptionItemRequests);
+    console.error("Prescription Item Requests:", prescriptionItemRequests);
+  }
+
+  try {
+    console.log(`getting animals of contact...`);
+    animalsOfContactResponses = UrlFetchApp.fetchAll(animalsOfContactRequests);
+  } catch (error) {
+    console.error("Error fetching consult attachment data:", error);
+    console.error("Animals of contacts requests:", animalsOfContactRequests);
   }
 
 
@@ -179,6 +191,11 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     const prescriptionItemResponse = prescriptionItemResponses[i];
     const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
     dtAppts[i].prescriptionItems = prescriptionItems;
+
+    const animalsOfContactResponse = animalsOfContactResponses[i];
+    const animalsOfContact = JSON.parse(animalsOfContactResponse.getContentText()).items;
+    const animalIDsOfContact = animalsOfContact.map(({ animal }) => animal.id);
+    dtAppts[i].animalIDsOfContact = animalIDsOfContact;
 
     const animalAttachmentResponse = animalAttachmentResponses[i];
     const animalAttachments = JSON.parse(animalAttachmentResponse.getContentText()).items;
@@ -262,6 +279,40 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     const url = mergedPDFDriveFile.getUrl();
     dtAppts[i].recordsURL = url;
   };
+
+  const consultsForAllContactAnimalRequests = [];
+  const didAFetchMap = [];
+  for (const appt of dtAppts) {
+    if (appt.animalIDsOfContact.length > 1) {
+      const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": appt.animalIDsOfContact }));
+      consultsForAllContactAnimalRequests.push(
+        bodyForEzyVetGet(`${proxy}/v1/consult?limit=200&active=1&animalID=${encodedAnimalIDs}`)
+      );
+      didAFetchMap.push(true);
+    }
+    else didAFetchMap.push(false);
+  }
+
+  let consultsForAllContactAnimalResponses;
+  try {
+    console.log('getting consults for all contact animals...')
+    const filteredRequests = consultsForAllContactAnimalRequests.filter((_, i) => didAFetchMap[i]);
+    consultsForAllContactAnimalResponses = UrlFetchApp.fetchAll(filteredRequests);
+  } catch (error) {
+    console.error("Error fetching prescription item data:", error);
+    console.error("Consults For All Contact Animal Requests", consultsForAllContactAnimalRequests);
+  }
+
+  let didAFetchIndex = 0;
+  for (let i = 0; i < dtAppts.length; i++) {
+    const didAFetchForConsultsForAllContactAnimals = didAFetchMap[didAFetchIndex];
+    if (didAFetchForConsultsForAllContactAnimals) {
+      const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[didAFetchIndex++];
+      const consultsForAllContactAnimals = JSON.parse(consultsForAllContactAnimalResponse.getContentText()).items;
+      dtAppts[i].ownerHasBeenHere = consultsForAllContactAnimals.length > 0;
+    }
+    else dtAppts[i].ownerHasBeenHere = false;
+  }
 }
 
 function bodyForEzyVetGet(url) {
@@ -322,6 +373,7 @@ function putDataOnSheet(dtAppts, range, dateStr) {
       prescriptions,
       prescriptionItems,
       consultIDs,
+      ownerHasBeenHere,
       recordsURL
     } = dtAppts[i];
 
@@ -346,12 +398,16 @@ function putDataOnSheet(dtAppts, range, dateStr) {
     reasonCell.setValue(descriptionString);
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
-    const yesOrNoForFirstTime = consultIDs.length < 2;
-    firstTimeHereCell.setValue(yesOrNoForFirstTime);
-    // TODO:
-    // check if this is the vetstoria placeholder account
-    // yes if vetstoria placeholder account OR if consultIDs.length < 2
-    // this would check if pt's first time. do we want to check O's first time?
+    const animalHasBeenHere = consultIDs.length < 2;
+    if (!ownerHasBeenHere) {
+      firstTimeHereCell.setValue('no');
+    }
+    else if (animalHasBeenHere) {
+      firstTimeHereCell.setValue('yes');
+    }
+    else if (ownerHasBeenHere && !animalHasBeenHere) {
+      firstTimeHereCell.setValue(`O has brought other pets--first time for ${animal.name}.`);
+    }
 
     const recordsCell = range.offset(i, 4, 1, 1);
     recordsURL.startsWith('https')
