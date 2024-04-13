@@ -321,6 +321,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     if (didAFetchForConsultsForAllContactAnimals) {
       const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[hasOtherAnimalsArrayIndex++];
       const consultsForAllContactAnimals = JSON.parse(consultsForAllContactAnimalResponse.getContentText()).items;
+      console.log(`${appt.animal.name}'s family's consults: `, consultsForAllContactAnimals)
       dtAppts[i].ownerHasBeenHere = consultsForAllContactAnimals.length > 0;
     }
     else dtAppts[i].ownerHasBeenHere = false;
