@@ -155,15 +155,15 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   }
   let consultAttachmentResponses, prescriptionItemResponses;
   try {
+    console.log(`getting consult attachments...`);
     consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
   } catch (error) {
     console.error("Error fetching consult attachment data:", error);
     console.error("Consult Attachments Request body:", consultAttachmentRequests);
   }
 
-  const animalName = `${appt.animal.name} ${appt.contact.last_name}`;
   try {
-    console.log(`getting prescription items for ${animalName}`);
+    console.log('getting prescription items...')
     prescriptionItemResponses = UrlFetchApp.fetchAll(prescriptionItemRequests);
   } catch (error) {
     console.error("Error fetching prescription item data:", error);
