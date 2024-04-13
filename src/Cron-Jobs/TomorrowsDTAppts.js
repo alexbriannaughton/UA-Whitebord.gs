@@ -1,3 +1,5 @@
+const highPriorityColor = '#ffff00';
+
 async function getTomorrowsDTAppts() {
   console.log('running getTomrrowsDTAppts job...');
   const [tomorrowStart, tomorrowEnd] = epochRangeForTomorrow();
@@ -203,11 +205,16 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     const consultAttachments = JSON.parse(consultAttachmentsResponse.getContentText()).items;
     const numOfAttachments = animalAttachments.length + consultAttachments.length;
     if (numOfAttachments > 10) {
-      dtAppts[i].recordsURL = 'yes';
+      dtAppts[i].records = {
+        text: 'yes',
+      };
       continue;
     }
     if (numOfAttachments < 1) {
-      dtAppts[i].recordsURL = 'no';
+      dtAppts[i].records = {
+        text: 'no',
+        highPriority: true
+      };
       continue;
     }
 
@@ -236,7 +243,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       console.log('error at attachment download fetches: ', error);
       console.log('attachment download bodies: ', attachmentDownloadRequests);
       console.log(`error^^ after trying to dl attachments for ${animalName}`);
-      dtAppts[i].recordsURL = "error when trying to download these records. it might be from an incorrectly labeled file. e.g. there is a .jpg file that is labeled as a .pdf.";
+      dtAppts[i].records = "error when trying to download these records. it might be from an incorrectly labeled file. e.g. there is a .jpg file that is labeled as a .pdf.";
       continue;
     }
 
@@ -277,7 +284,10 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       )
     );
     const url = mergedPDFDriveFile.getUrl();
-    dtAppts[i].recordsURL = url;
+    dtAppts[i].records = {
+      link: url,
+      text: `there's a few records...`
+    };
   };
 
   const consultsForAllContactAnimalRequests = [];
@@ -372,7 +382,7 @@ function putDataOnSheet(dtAppts, range, dateStr) {
       prescriptionItems,
       consultIDs,
       ownerHasBeenHere,
-      recordsURL
+      records
     } = dtAppts[i];
 
     const time = convertEpochToUserTimezone(appointment.start_time);
@@ -398,7 +408,7 @@ function putDataOnSheet(dtAppts, range, dateStr) {
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
     const animalHasBeenHere = consultIDs.length < 2;
     if (ownerHasBeenHere === false) {
-      firstTimeHereCell.setValue('no');
+      firstTimeHereCell.setValue('no').setBackground(highPriorityColor);
     }
     else if (animalHasBeenHere === true) {
       firstTimeHereCell.setValue('yes');
@@ -408,17 +418,21 @@ function putDataOnSheet(dtAppts, range, dateStr) {
     }
 
     const recordsCell = range.offset(i, 4, 1, 1);
-    recordsURL.startsWith('https')
+    records.link
       ? recordsCell.setRichTextValue(
-        makeLink(`there's a few records...`, recordsURL)
+        makeLink(records.text, records.link)
       )
-      : recordsCell.setValue(recordsURL);
+      : recordsCell.setValue(records.text);
+    if (records.highPriority) {
+      recordsCell.setBackground(highPriorityColor);
+    }
 
 
     const hxFractiousCell = range.offset(i, 5, 1, 1);
-    const yesOrNoForFractious = animal.is_hostile === '0'
-      ? 'no' : 'yes';
-    hxFractiousCell.setValue(yesOrNoForFractious);
+    animal.is_hostile === '0'
+      ? hxFractiousCell.setValue('yes').setBackground(highPriorityColor)
+      : hxFractiousCell.setValue('no');
+
 
     const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
     const hasSedCell = range.offset(i, 6, 1, 1);
