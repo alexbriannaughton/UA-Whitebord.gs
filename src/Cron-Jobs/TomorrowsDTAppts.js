@@ -137,7 +137,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       folder.setTrashed(true);
     }
   }
-  console.log('creating new drive folder for today...');
+  console.log(`creating new drive folder for ${dateStr}...`);
   const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + dateStr);
   ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
 
@@ -292,8 +292,6 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     }
     else didAFetchMap.push(false);
   }
-  console.log('consultsForAllContactAnimalRequests.length', consultsForAllContactAnimalRequests.length);
-  console.log('didAFetchMap.length', didAFetchMap.length);
   let consultsForAllContactAnimalResponses;
   try {
     console.log('getting consults for all contact animals...')
@@ -309,6 +307,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     if (didAFetchForConsultsForAllContactAnimals) {
       const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[didAFetchIndex++];
       const consultsForAllContactAnimals = JSON.parse(consultsForAllContactAnimalResponse.getContentText()).items;
+      console.log('----->', consultsForAllContactAnimals)
       dtAppts[i].ownerHasBeenHere = consultsForAllContactAnimals.length > 0;
     }
     else dtAppts[i].ownerHasBeenHere = false;
