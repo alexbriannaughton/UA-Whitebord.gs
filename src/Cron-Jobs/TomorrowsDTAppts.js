@@ -458,7 +458,12 @@ function handleUnmatchedRecord(appointment, ptCell) {
   [_, wonkyAnimalData, contactName, emailAndPhone] = descriptionString.split(' - ');
   const [email, phone] = emailAndPhone.split(" ");
   const animalName = wonkyAnimalData.split(') ')[1];
-  ptCell.setValue(`UNMATCHED PATIENT/CLIENT:\np: ${animalName}\no: ${contactName}\ne: ${email}\np: ${phone}`);
+  ptCell.setValue(`
+  UNMATCHED PATIENT/CLIENT:\n
+  ${animalName}\n
+  ${contactName}\n${email}\n
+  ${phone}
+  `);
   ptCell.setBackground(highPriorityColor);
 
   let columnDistFromPtCell = 2;
