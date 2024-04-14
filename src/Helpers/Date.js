@@ -32,7 +32,7 @@ function convertEpochToUserTimezoneDate(epoch) {
 function epochRangeForTomorrow() {
     const now = new Date().toLocaleString("en-US", { timeZone: userTimezone });
     const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1); // Move to tomorrow
+    tomorrow.setDate(tomorrow.getDate() + 2); // Move to tomorrow
     const tomorrowStart = Math.floor(tomorrow.setHours(0, 0, 0, 0) / 1000);
     const tomorrowEnd = Math.floor(tomorrow.setHours(23, 59, 59, 999) / 1000);
     return [tomorrowStart, tomorrowEnd];
