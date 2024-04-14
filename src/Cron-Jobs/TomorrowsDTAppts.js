@@ -386,16 +386,10 @@ function putDataOnSheet(dtAppts, range, dateStr) {
       records
     } = dtAppts[i];
 
+    // time and reason cell are handled the same whether or not the appointment has an unmatched contact/animal record
     const time = convertEpochToUserTimezone(appointment.start_time);
     const timeCell = range.offset(i, 0, 1, 1);
     timeCell.setValue(time);
-
-    const ptCell = range.offset(i, 1, 1, 1);
-    const ptSpecies = speciesMap[animal.species_id] || 'unknown species';
-    const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
-    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
-    const link = makeLink(ptText, animalURL);
-    ptCell.setRichTextValue(link);
 
     const reasonCell = range.offset(i, 2, 1, 1);
     let descriptionString = appointment.details.description;
@@ -405,6 +399,20 @@ function putDataOnSheet(dtAppts, range, dateStr) {
       descriptionString = lastItem.slice(1, -1); // remove parentheses
     }
     reasonCell.setValue(descriptionString);
+
+
+    const ptCell = range.offset(i, 1, 1, 1);
+    if (contact.id === '72038') { // if its an unmatched vetstoria record
+      handleUnmatchedRecord(appointment, ptCell);
+      continue;
+    }
+
+    // if we know the animal/contact stuff, continue normally
+    const ptSpecies = speciesMap[animal.species_id] || 'unknown species';
+    const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
+    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
+    const link = makeLink(ptText, animalURL);
+    ptCell.setRichTextValue(link);
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
     const animalHasBeenHere = consultIDs.length > 2;
@@ -443,4 +451,21 @@ function putDataOnSheet(dtAppts, range, dateStr) {
       : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
     hasSedCell.setValue(sedCellVal);
   }
+}
+
+function handleUnmatchedRecord(appointment, ptCell) {
+  const descriptionString = appointment.details.description;
+  const splitDescString = descriptionString.split(' - ');
+  const animalName = splitDescString.split(') ')[1];
+  const ownerName = splitDescString[2];
+  ptCell.setValue(`UNMATCHED PATIENT/CLIENT\n${animalName}\n${ownerName}`);
+  ptCell.setBackground(highPriorityColor);
+
+  let columnDistFromPtCell = 2;
+  while (columnDistFromPtCell <= 5) {
+    ptCell.offset(0, columnDistFromPtCell++)
+      .setValue('-');
+  }
+
+  return;
 }
