@@ -456,6 +456,7 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 function handleUnmatchedRecord(appointment, ptCell) {
   const descriptionString = appointment.details.description;
   const splitDescString = descriptionString.split(' - ');
+  console.log(typeof splitDescString,'-', splitDescString)
   const animalName = splitDescString.split(') ')[1];
   const ownerName = splitDescString[2];
   ptCell.setValue(`UNMATCHED PATIENT/CLIENT\n${animalName}\n${ownerName}`);
