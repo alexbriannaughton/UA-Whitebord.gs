@@ -287,7 +287,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     const url = mergedPDFDriveFile.getUrl();
     dtAppts[i].records = {
       link: url,
-      text: `there's a few records...`
+      text: `maybe`
     };
   };
 
@@ -455,10 +455,10 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 
 function handleUnmatchedRecord(appointment, ptCell) {
   const descriptionString = appointment.details.description;
-  const descriptionArrayFromString = descriptionString.split(' - ');
-  const animalName = descriptionArrayFromString[1].split(') ')[1];
-  const ownerName = descriptionArrayFromString[2];
-  ptCell.setValue(`UNMATCHED PATIENT/CLIENT\n${animalName}\n${ownerName}`);
+  [_, wonkyAnimalData, contactName, emailAndPhone] = descriptionString.split(' - ');
+  const [email, phone] = emailAndPhone.split(" ");
+  const animalName = wonkyAnimalData.split(') ')[1];
+  ptCell.setValue(`UNMATCHED PATIENT/CLIENT:\np: ${animalName}\no: ${contactName}\ne: ${email}\np: ${phone}`);
   ptCell.setBackground(highPriorityColor);
 
   let columnDistFromPtCell = 2;
