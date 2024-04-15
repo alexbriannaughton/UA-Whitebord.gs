@@ -442,12 +442,17 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
     // appointments created through vetstoria do not have an appointment, but we want to count it for this
-    const numberOfConsults = appointment.details.consult_id // check for existence of appointment's consult
+    const apptHasConsult = appointment.details.consult_id; // check for existence of appointment's consult
+    const numberOfConsults = apptHasConsult
       ? consults.length
       : consults.length + 1;
     const animalHasBeenHere = numberOfConsults > 1;
     if (animalHasBeenHere === true) {
-      const lastConsultDate = convertEpochToUserTimezoneDate(consults.at(-1).consult.date);
+      const lastConsultDate = convertEpochToUserTimezoneDate(
+        consults.at(
+          apptHasConsult ? -2 : -1
+        ).consult.date
+      );
       firstTimeHereCell.setValue(`${animal.name} was last here ${lastConsultDate}`);
     }
     // else this is the animal's first time here...
