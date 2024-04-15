@@ -119,8 +119,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   });
   allConsultsForAnimalResponses.forEach((response, i) => {
     const consults = JSON.parse(response.getContentText()).items;
-    const consultIDs = consults.map(({ consult }) => consult.id);
-    dtAppts[i].consultIDs = consultIDs;
+    dtAppts[i].consults = consults;
   });
   prescriptionResponses.forEach((response, i) => {
     const prescriptions = JSON.parse(response.getContentText()).items;
@@ -148,7 +147,8 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   const prescriptionItemRequests = [];
   const animalsOfContactRequests = [];
   for (const appt of dtAppts) {
-    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
+    const consultIDs = appt.consults.map(({ consult }) => consult.id);
+    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
     consultAttachmentRequests.push(
       bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${encodedConsultIDs}`)
     );
@@ -403,7 +403,7 @@ function putDataOnSheet(dtAppts, range, dateStr) {
       animal,
       prescriptions,
       prescriptionItems,
-      consultIDs,
+      consults,
       ownerHasBeenHereWithAnotherPatient,
       records
     } = dtAppts[i];
@@ -442,9 +442,10 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
     // appointments created through vetstoria do not have an appointment, but we want to count it for this
-    const numberOfConsults = appointment.details.consult_id // check if the appointment has a consult
-      ? consultIDs.length
-      : consultIDs.length + 1;
+    console.log(animal.name, 'consults; ', consults)
+    const numberOfConsults = appointment.details.consult_id // check for existence of appointment's consult
+      ? consults.length
+      : consults.length + 1;
     const animalHasBeenHere = numberOfConsults > 1;
     if (animalHasBeenHere === true) {
       firstTimeHereCell.setValue('no');
