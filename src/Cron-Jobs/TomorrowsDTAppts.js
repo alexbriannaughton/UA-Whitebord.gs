@@ -258,9 +258,9 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
       const response = attachmentDownloadResponses[j];
       const blob = response.getBlob();
-      console.log('blob:', blob);
-      const name = blob.getName();
-      console.log('name: ', name);
+      console.log(`${animalName}`,'blob:');
+      console.log('content type: ', blob.getContentType());
+      console.log('name: ', blob.getName());
       if (name.includes('.pdf')) {
         const d = new Uint8Array(blob.getBytes());
         const pdfData = await PDFLib.PDFDocument.load(d);
