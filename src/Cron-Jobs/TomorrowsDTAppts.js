@@ -256,9 +256,11 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     console.log(`building .pdf for ${animalName}`);
     const mergedPDF = await PDFLib.PDFDocument.create();
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
+      const fileNameInEzyVet = fileNameArray[j];
       const response = attachmentDownloadResponses[j];
+
       const blob = response.getBlob();
-      console.log(`${animalName}`, 'blob:');
+      console.log(`${fileNameInEzyVet}`, 'blob:');
       console.log('content type: ', blob.getContentType());
       const name = blob.getName();
       console.log('name: ', name);
@@ -283,11 +285,12 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       else if (name.endsWith('.json')) {
         const jsonData = JSON.parse(response.getContentText());
         console.log('JSON data:', jsonData);
-        const fileNameInEzyVet = fileNameArray[j];
         const page = mergedPDF.addPage();
+        const fontSize = 16;
+        page.setFontSize(fontSize);
         const textY = page.getHeight() - 50;
         page.drawText(
-          `Error downloading the file called ${fileNameInEzyVet}`,
+          `Error downloading the ezyvet file for ${animalName} called ${fileNameInEzyVet}`,
           { y: textY }
         );
       }
