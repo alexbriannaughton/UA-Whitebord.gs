@@ -36,7 +36,7 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
   });
 
   return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
-    // .slice(0, 3); // slicing for dev
+  // .slice(0, 3); // slicing for dev
 }
 
 // get the animal, contact and attachment data associated with the appointment
@@ -437,9 +437,10 @@ function putDataOnSheet(dtAppts, range, dateStr) {
     ptCell.setRichTextValue(link);
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
-    let numberOfConsults = consultIDs.length;
-    if (!appointment.details.consult_id) numberOfConsults++;
     // appointments created through vetstoria do not have an appointment, but we want to count it for this
+    const numberOfConsults = appointment.details.consult_id
+      ? consultIDs.length
+      : consultIDs.length + 1;
     const animalHasBeenHere = numberOfConsults > 1;
     if (animalHasBeenHere === true) {
       firstTimeHereCell.setValue('no');
