@@ -451,6 +451,7 @@ function putDataOnSheet(dtAppts, range, dateOfApptsStr) {
       // find the date that the animal was last here
       const mostRecentDate = -Infinity;
       let lastConsultDateStr;
+      if (animal.name === 'Salem') console.log('salems consults: ', consults)
       for (let j = 0; j < consults.length; j++) {
         const { consult } = consults[j];
         if (consult.date > mostRecentDate) {
