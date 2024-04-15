@@ -35,8 +35,8 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
       && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
   });
 
-  return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time)
-    .slice(0, 3); // slicing for dev
+  return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+    // .slice(0, 3); // slicing for dev
 }
 
 // get the animal, contact and attachment data associated with the appointment
@@ -290,7 +290,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
         page.setFontSize(fontSize);
         const textY = page.getHeight() - 50;
         page.drawText(
-          `Error downloading the ezyvet file for ${animalName} called ${fileNameInEzyVet}`,
+          `Error downloading the ezyvet file for ${animalName} called "${fileNameInEzyVet}"`,
           { y: textY }
         );
       }
@@ -480,12 +480,7 @@ function handleUnmatchedRecord(appointment, ptCell) {
   [_, wonkyAnimalData, contactName, emailAndPhone] = descriptionString.split(' - ');
   const [email, phone] = emailAndPhone.split(" ");
   const animalName = wonkyAnimalData.split(') ')[1];
-  ptCell.setValue(`
-  UNMATCHED PATIENT/CLIENT:\n
-  ${animalName}\n
-  ${contactName}\n${email}\n
-  ${phone}
-  `);
+  ptCell.setValue(`UNMATCHED PATIENT/CLIENT:\n${animalName}\n${contactName}\n${email}\n${phone}`);
   ptCell.setBackground(highPriorityColor);
 
   let columnDistFromPtCell = 2;
