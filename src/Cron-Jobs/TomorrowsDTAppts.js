@@ -430,7 +430,11 @@ function putDataOnSheet(dtAppts, range, dateStr) {
     }
 
     // if we know the animal/contact stuff, continue normally
-    const ptSpecies = speciesMap[animal.species_id] || 'unknown species';
+    const unknownSpeciesString = 'unknown species';
+    const ptSpecies = speciesMap[animal.species_id] || unknownSpeciesString;
+    if (ptSpecies === unknownSpeciesString) {
+      ptCell.setBackground(highPriorityColor);
+    }
     const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
     const link = makeLink(ptText, animalURL);
@@ -438,7 +442,7 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
     // appointments created through vetstoria do not have an appointment, but we want to count it for this
-    const numberOfConsults = appointment.details.consult_id
+    const numberOfConsults = appointment.details.consult_id // check if the appointment has a consult
       ? consultIDs.length
       : consultIDs.length + 1;
     const animalHasBeenHere = numberOfConsults > 1;
