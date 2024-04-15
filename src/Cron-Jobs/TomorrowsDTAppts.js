@@ -223,22 +223,22 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       continue;
     }
 
+
+    const fileNameArray = [];
     const attachmentDownloadRequests = [];
     animalAttachments.forEach(({ attachment }) => {
       attachmentDownloadRequests.push(
         bodyForEzyVetGet(`${attachment.file_download_url}`)
       );
+      fileNameArray.push(attachment.name);
     });
-    // dtAppts[i].animalAttachments = animalAttachments;
-
     consultAttachments.forEach(({ attachment }) => {
       attachmentDownloadRequests.push(
         bodyForEzyVetGet(`${attachment.file_download_url}`)
       );
+      fileNameArray.push(attachment.name);
     });
-    // dtAppts[i].consultAttachments = consultAttachments;
-
-
+  
     let attachmentDownloadResponses;
     try {
       console.log(`downloading attachments for ${animalName}`);
@@ -247,8 +247,8 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     catch (error) {
       console.log('error at attachment download fetches: ', error);
       console.log('attachment download bodies: ', attachmentDownloadRequests);
-      console.log(`error^^ after trying to dl attachments for ${animalName}`);
-      dtAppts[i].records = "error when trying to download these records. it might be from an incorrectly labeled file. e.g. there is a .jpg file that is labeled as a .pdf.";
+      console.log(`error^^ after trying to dl attachment for ${animalName}`);
+      dtAppts[i].records = "error when trying to download these records.";
       continue;
     }
 
@@ -263,7 +263,6 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       const name = blob.getName();
       console.log('name: ', name);
       const blobByes = new Uint8Array(blob.getBytes());
-
 
       if (name.includes('.pdf')) {
         const pdfData = await PDFLib.PDFDocument.load(blobByes);
@@ -282,19 +281,11 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       }
 
       else if (name.endsWith('.json')) {
-        const jsonString = blob.getDataAsString();
-        const jsonData = JSON.parse(jsonString);
-        // Log JSON data
+        const jsonData = JSON.parse(response.getContentText());
         console.log('JSON data:', jsonData);
-
-        // Create a new page for each key-value pair in the JSON data
-        // Object.entries(jsonData).forEach(([key, value]) => {
-        //   const page = mergedPDF.addPage();
-        //   page.drawText(`${key}: ${value}`, {
-        //     x: 50,
-        //     y: page.getHeight() - 50,
-        //   });
-        // });
+        const fileNameInEzyVet = fileNameArray[j];
+        const page = mergedPDF.addPage();
+        page.drawText(`💀Error downloading the file called ${fileNameInEzyVet}💀`);
       }
 
     }
@@ -350,7 +341,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
 
 function bodyForEzyVetGet(url) {
   return {
-    muteHttpExceptions: true,
+    // muteHttpExceptions: true,
     url,
     method: "GET",
     headers: { authorization: token }
