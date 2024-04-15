@@ -438,7 +438,8 @@ function putDataOnSheet(dtAppts, range, dateStr) {
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
     let numberOfConsults = consultIDs.length;
-    if (!appointment.consult_id) numberOfConsults++;
+    if (!appointment.details.consult_id) numberOfConsults++;
+    // appointments created through vetstoria do not have an appointment, but we want to count it for this
     const animalHasBeenHere = numberOfConsults > 1;
     if (animalHasBeenHere === true) {
       firstTimeHereCell.setValue('no');
