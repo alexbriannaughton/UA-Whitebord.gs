@@ -437,7 +437,9 @@ function putDataOnSheet(dtAppts, range, dateStr) {
     ptCell.setRichTextValue(link);
 
     const firstTimeHereCell = range.offset(i, 3, 1, 1);
-    const animalHasBeenHere = consultIDs.length > 1;
+    let numberOfConsults = consultIDs.length;
+    if (!appointment.consult_id) numberOfConsults++;
+    const animalHasBeenHere = numberOfConsults > 1;
     if (animalHasBeenHere === true) {
       firstTimeHereCell.setValue('no');
     }
