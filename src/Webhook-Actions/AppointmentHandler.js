@@ -5,7 +5,7 @@ function handleAppointment(webhookType, appointment) {
         handleEchoOrAUS(appointment, 'Echos');
     }
     if (ausApptTypeIDsSet.has(appointment.type_id)) {
-        handleEchoOrAUS(appointment, 'Echos');
+        handleEchoOrAUS(appointment, 'AUS');
     }
 
     // below here is for this script
