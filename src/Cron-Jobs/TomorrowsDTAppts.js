@@ -191,6 +191,8 @@ async function getAllEzyVetData(dtAppts, dateStr) {
   eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
 
   for (let i = 0; i < animalAttachmentResponses.length; i++) {
+    const animalName = `${dtAppts[i].animal.name} ${dtAppts[i].contact.last_name}`;
+    
     const prescriptionItemResponse = prescriptionItemResponses[i];
     const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
     dtAppts[i].prescriptionItems = prescriptionItems;
@@ -204,6 +206,8 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     const animalAttachments = JSON.parse(animalAttachmentResponse.getContentText()).items;
     const consultAttachmentsResponse = consultAttachmentResponses[i];
     const consultAttachments = JSON.parse(consultAttachmentsResponse.getContentText()).items;
+    console.log(`${animalName} consult attachments:`, consultAttachments);
+    console.log(`${animalName} animal attachments:`, animalAttachments);
     const numOfAttachments = animalAttachments.length + consultAttachments.length;
     if (numOfAttachments > 10) {
       dtAppts[i].records = {
@@ -234,7 +238,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     });
     // dtAppts[i].consultAttachments = consultAttachments;
 
-    const animalName = `${dtAppts[i].animal.name} ${dtAppts[i].contact.last_name}`;
+
     let attachmentDownloadResponses;
     try {
       console.log(`downloading attachments for ${animalName}`);
