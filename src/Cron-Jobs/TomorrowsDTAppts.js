@@ -448,14 +448,19 @@ function putDataOnSheet(dtAppts, range, dateOfApptsStr) {
       : consults.length + 1;
     const animalHasBeenHere = numberOfConsults > 1;
     if (animalHasBeenHere === true) {
-      for (let j = consults.length - 1; j >= 0; j--) {
+      // find the date that the animal was last here
+      const mostRecentDate = -Infinity;
+      let lastConsultDateStr;
+      for (let j = 0; j < consults.length; j++) {
         const { consult } = consults[j];
-        const possLastConsultDate = convertEpochToUserTimezoneDate(consult.date);
-        if (possLastConsultDate !== dateOfApptsStr) {
-          firstTimeHereCell.setValue(`${animal.name} was last here ${possLastConsultDate}`);
-          break;
+        if (consult.date > mostRecentDate) {
+          const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
+          if (dateOfApptsStr !== consultDateStr) {
+            lastConsultDateStr = consultDateStr;
+          }
         }
       }
+      firstTimeHereCell.setValue(`last visit: ${lastConsultDateStr}`);
     }
     // else this is the animal's first time here...
     else if (ownerHasBeenHereWithAnotherPatient === false) {
