@@ -238,7 +238,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       );
       fileNameArray.push(attachment.name);
     });
-  
+
     let attachmentDownloadResponses;
     try {
       console.log(`downloading attachments for ${animalName}`);
@@ -285,7 +285,11 @@ async function getAllEzyVetData(dtAppts, dateStr) {
         console.log('JSON data:', jsonData);
         const fileNameInEzyVet = fileNameArray[j];
         const page = mergedPDF.addPage();
-        page.drawText(`💀Error downloading the file called ${fileNameInEzyVet}💀`);
+        const textY = page.getHeight() - 50;
+        page.drawText(
+          `Error downloading the file called ${fileNameInEzyVet}`,
+          { y: textY }
+        );
       }
 
     }
@@ -341,7 +345,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
 
 function bodyForEzyVetGet(url) {
   return {
-    // muteHttpExceptions: true,
+    muteHttpExceptions: true,
     url,
     method: "GET",
     headers: { authorization: token }
