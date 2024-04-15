@@ -248,8 +248,8 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       console.log('error at attachment download fetches: ', error);
       console.log('attachment download bodies: ', attachmentDownloadRequests);
       console.log(`error^^ after trying to dl attachment for ${animalName}`);
-      dtAppts[i].records = "error when trying to download these records.";
-      continue;
+      // dtAppts[i].records = "error when trying to download these records.";
+      // continue;
     }
 
     // Utilities.sleep(12000); // to comply with ezyVet's rate limiting
