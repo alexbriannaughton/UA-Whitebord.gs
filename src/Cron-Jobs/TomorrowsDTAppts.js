@@ -454,7 +454,7 @@ function putDataOnSheet(dtAppts, range, dateOfApptsStr) {
       if (animal.name === 'Salem') console.log('salems consults: ', consults)
       for (let j = 0; j < consults.length; j++) {
         const { consult } = consults[j];
-        if (consult.date > mostRecentDate) {
+        if (Number(consult.date) > mostRecentDate) {
           const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
           if (dateOfApptsStr !== consultDateStr) {
             lastConsultDateStr = consultDateStr;
