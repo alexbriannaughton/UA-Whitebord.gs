@@ -3,12 +3,12 @@ const highPriorityColor = '#ffff00';
 async function getTomorrowsDTAppts() {
   console.log('running getTomrrowsDTAppts job...');
   const [tomorrowStart, tomorrowEnd] = epochRangeForTomorrow();
-  const dateStr = convertEpochToUserTimezoneDate(tomorrowStart);
+  const dateOfApptsStr = convertEpochToUserTimezoneDate(tomorrowStart);
   console.log('querying for tomorrows appointments...')
   const url = `${proxy}/v1/appointment?active=1&time_range_start=${tomorrowStart}&time_range_end=${tomorrowEnd}&limit=200`;
   const allOfTomorrowsAppts = fetchAndParse(url);
   const dtAppts = filterAndSortDTAppts(allOfTomorrowsAppts);
-  await getAllEzyVetData(dtAppts, dateStr);
+  await getAllEzyVetData(dtAppts, dateOfApptsStr);
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
   const range = sheet.getRange(`A4:H204`)
@@ -18,7 +18,7 @@ async function getTomorrowsDTAppts() {
     .setBackground("white")
     .setFontLine("none");
 
-  putDataOnSheet(dtAppts, range, dateStr);
+  putDataOnSheet(dtAppts, range, dateOfApptsStr);
 };
 
 function filterAndSortDTAppts(allOfTomorrowsAppts) {
@@ -40,7 +40,7 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
 }
 
 // get the animal, contact and attachment data associated with the appointment
-async function getAllEzyVetData(dtAppts, dateStr) {
+async function getAllEzyVetData(dtAppts, dateOfApptsStr) {
   const animalRequests = [];
   const contactRequests = [];
   const animalAttachmentRequests = [];
@@ -139,8 +139,8 @@ async function getAllEzyVetData(dtAppts, dateStr) {
       folder.setTrashed(true);
     }
   }
-  console.log(`creating new drive folder for ${dateStr}...`);
-  const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + dateStr);
+  console.log(`creating new drive folder for ${dateOfApptsStr}...`);
+  const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + dateOfApptsStr);
   ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
 
   const consultAttachmentRequests = [];
@@ -392,9 +392,9 @@ function getRxDate(prescriptions, prescriptionID) {
   return Number(rx.prescription.date_of_prescription);
 }
 
-function putDataOnSheet(dtAppts, range, dateStr) {
+function putDataOnSheet(dtAppts, range, dateOfApptsStr) {
   const dateCell = range.offset(-2, 0, 1, 1);
-  dateCell.setValue(dateStr);
+  dateCell.setValue(dateOfApptsStr);
 
   for (let i = 0; i < dtAppts.length; i++) {
     const {
@@ -448,12 +448,14 @@ function putDataOnSheet(dtAppts, range, dateStr) {
       : consults.length + 1;
     const animalHasBeenHere = numberOfConsults > 1;
     if (animalHasBeenHere === true) {
-      const lastConsultDate = convertEpochToUserTimezoneDate(
-        consults.at(
-          apptHasConsult ? -2 : -1
-        ).consult.date
-      );
-      firstTimeHereCell.setValue(`${animal.name} was last here ${lastConsultDate}`);
+      for (let j = consults.length - 1; j >= 0; j--) {
+        const { consult } = consults[j];
+        const possLastConsultDate = convertEpochToUserTimezoneDate(consult.date);
+        if (possLastConsultDate !== dateOfApptsStr) {
+          firstTimeHereCell.setValue(`${animal.name} was last here ${possLastConsultDate}`);
+          break;
+        }
+      }
     }
     // else this is the animal's first time here...
     else if (ownerHasBeenHereWithAnotherPatient === false) {
