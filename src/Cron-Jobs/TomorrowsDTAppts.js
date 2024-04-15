@@ -35,8 +35,8 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
       && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
   });
 
-  return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
-  // .slice(4, 5); // slicing for dev
+  return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time)
+    .slice(0, 3); // slicing for dev
 }
 
 // get the animal, contact and attachment data associated with the appointment
@@ -192,7 +192,7 @@ async function getAllEzyVetData(dtAppts, dateStr) {
 
   for (let i = 0; i < animalAttachmentResponses.length; i++) {
     const animalName = `${dtAppts[i].animal.name} ${dtAppts[i].contact.last_name}`;
-    
+
     const prescriptionItemResponse = prescriptionItemResponses[i];
     const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
     dtAppts[i].prescriptionItems = prescriptionItems;
@@ -257,27 +257,44 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     const mergedPDF = await PDFLib.PDFDocument.create();
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
       const response = attachmentDownloadResponses[j];
-      const blob = response.getBlob();
-      console.log(`${animalName}`,'blob:');
+      let blob = response.getBlob();
+      console.log(`${animalName}`, 'blob:');
       console.log('content type: ', blob.getContentType());
-      console.log('name: ', blob.getName());
-      if (name.includes('.pdf')) {
-        const d = new Uint8Array(blob.getBytes());
-        const pdfData = await PDFLib.PDFDocument.load(d);
-        const pages = await mergedPDF.copyPages(
-          pdfData,
-          [...Array(pdfData.getPageCount())].map((_, ind) => ind)
-        );
-        pages.forEach(page => mergedPDF.addPage(page));
+      const name = blob.getName();
+      console.log('name: ', name);
+      const d = new Uint8Array(blob.getBytes());
+      if (name.includes('.jpg') || name.includes('.jpeg') || name.includes('.json')) {
+        blob = blob.getAs(MimeType.PDF);
       }
+      const pdfData = await PDFLib.PDFDocument.load(d);
+      const pages = await mergedPDF.copyPages(
+        pdfData,
+        [...Array(pdfData.getPageCount())].map((_, ind) => ind)
+      );
+      pages.forEach(page => mergedPDF.addPage(page));
 
-      else if (name.includes('.jpg') || name.includes('.jpeg')) {
-        const d = new Uint8Array(blob.getBytes());
-        const image = await mergedPDF.embedJpg(d);
-        const imageSize = image.scale(1);
-        const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
-        page.drawImage(image);
-      }
+
+      // else if (name.includes('.jpg') || name.includes('.jpeg')) {
+      //   const image = await mergedPDF.embedJpg(d);
+      //   const imageSize = image.scale(1);
+      //   const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
+      //   page.drawImage(image);
+      // }
+
+      // else if (name.endsWith('.json')) {
+      //   const jsonString = blob.getDataAsString();
+      //   const jsonData = JSON.parse(jsonString);
+      //   const pdfBlob = blob.getAs(MimeType.PDF);
+
+      //   // Create a new page for each key-value pair in the JSON data
+      //   Object.entries(jsonData).forEach(([key, value]) => {
+      //     const page = mergedPDF.addPage();
+      //     page.drawText(`${key}: ${value}`, {
+      //       x: 50,
+      //       y: page.getHeight() - 50,
+      //     });
+      //   });
+      // }
 
     }
     console.log(`saving .pdf for ${animalName}`);
