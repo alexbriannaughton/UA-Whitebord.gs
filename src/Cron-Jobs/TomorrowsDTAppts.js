@@ -257,44 +257,45 @@ async function getAllEzyVetData(dtAppts, dateStr) {
     const mergedPDF = await PDFLib.PDFDocument.create();
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
       const response = attachmentDownloadResponses[j];
-      let blob = response.getBlob();
+      const blob = response.getBlob();
       console.log(`${animalName}`, 'blob:');
       console.log('content type: ', blob.getContentType());
       const name = blob.getName();
       console.log('name: ', name);
-      const d = new Uint8Array(blob.getBytes());
-      if (name.includes('.jpg') || name.includes('.jpeg') || name.includes('.json')) {
-        blob = blob.getAs(MimeType.PDF);
+      const blobByes = new Uint8Array(blob.getBytes());
+
+
+      if (name.includes('.pdf')) {
+        const pdfData = await PDFLib.PDFDocument.load(blobByes);
+        const pages = await mergedPDF.copyPages(
+          pdfData,
+          [...Array(pdfData.getPageCount())].map((_, ind) => ind)
+        );
+        pages.forEach(page => mergedPDF.addPage(page));
       }
-      const pdfData = await PDFLib.PDFDocument.load(d);
-      const pages = await mergedPDF.copyPages(
-        pdfData,
-        [...Array(pdfData.getPageCount())].map((_, ind) => ind)
-      );
-      pages.forEach(page => mergedPDF.addPage(page));
 
+      else if (name.includes('.jpg') || name.includes('.jpeg')) {
+        const image = await mergedPDF.embedJpg(blobByes);
+        const imageSize = image.scale(1);
+        const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
+        page.drawImage(image);
+      }
 
-      // else if (name.includes('.jpg') || name.includes('.jpeg')) {
-      //   const image = await mergedPDF.embedJpg(d);
-      //   const imageSize = image.scale(1);
-      //   const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
-      //   page.drawImage(image);
-      // }
+      else if (name.endsWith('.json')) {
+        const jsonString = blob.getDataAsString();
+        const jsonData = JSON.parse(jsonString);
+        // Log JSON data
+        console.log('JSON data:', jsonData);
 
-      // else if (name.endsWith('.json')) {
-      //   const jsonString = blob.getDataAsString();
-      //   const jsonData = JSON.parse(jsonString);
-      //   const pdfBlob = blob.getAs(MimeType.PDF);
-
-      //   // Create a new page for each key-value pair in the JSON data
-      //   Object.entries(jsonData).forEach(([key, value]) => {
-      //     const page = mergedPDF.addPage();
-      //     page.drawText(`${key}: ${value}`, {
-      //       x: 50,
-      //       y: page.getHeight() - 50,
-      //     });
-      //   });
-      // }
+        // Create a new page for each key-value pair in the JSON data
+        // Object.entries(jsonData).forEach(([key, value]) => {
+        //   const page = mergedPDF.addPage();
+        //   page.drawText(`${key}: ${value}`, {
+        //     x: 50,
+        //     y: page.getHeight() - 50,
+        //   });
+        // });
+      }
 
     }
     console.log(`saving .pdf for ${animalName}`);
