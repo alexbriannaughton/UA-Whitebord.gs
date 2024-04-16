@@ -202,6 +202,8 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
         const animalsOfContact = JSON.parse(animalsOfContactResponse.getContentText()).items;
         const animalIDsOfContact = animalsOfContact.map(({ animal }) => animal.id);
         dtAppts[i].animalIDsOfContact = animalIDsOfContact;
+        const otherAnimalNamesOfContact = animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id).map(({ animal }) => animal.name);
+        dtAppts[i].otherAnimalNamesOfContact = otherAnimalNamesOfContact;
 
         const animalAttachmentResponse = animalAttachmentResponses[i];
         const animalAttachments = JSON.parse(animalAttachmentResponse.getContentText()).items;
@@ -408,6 +410,7 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
             consults,
             encodedConsultIDs,
             ownerHasBeenHereWithAnotherPatient,
+            otherAnimalNamesOfContact,
             records
         } = dtAppts[i];
 
@@ -476,7 +479,8 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
                 // if we still havent found the date of a valid last consult,
                 // this actually is this animal's first time here
                 if (ownerHasBeenHereWithAnotherPatient) {
-                    firstTimeHereCell.setValue(`O has brought other pets--first time for ${animal.name}.`);
+                    const otherPetsString = otherAnimalNamesOfContact.join(', ');
+                    firstTimeHereCell.setValue(`O has brought other pets: ${otherPetsString}\nfirst time for ${animal.name}`);
                 }
                 else firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
             }
@@ -490,7 +494,8 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
             firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
         }
         else if (ownerHasBeenHereWithAnotherPatient === true) {
-            firstTimeHereCell.setValue(`O has brought other pets--first time for ${animal.name}.`);
+            const otherPetsString = otherAnimalNamesOfContact.join(', ');
+            firstTimeHereCell.setValue(`O has brought other pets: ${otherPetsString}\nfirst time for ${animal.name}`);
         }
 
         const recordsCell = range.offset(i, 4, 1, 1);
