@@ -1,6 +1,7 @@
 const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
-let token; // global variable
+let token;
+let props;
 
 function putTokenInCache(cache, token) {
     cache.put('ezyVet_token', token, 30600); // store for 8.5 hours
@@ -9,6 +10,9 @@ function putTokenInCache(cache, token) {
 const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
 const userTimezone = 'America/Los_Angeles';
+
+const echoApptTypeIDsSet = new Set([30]);
+const ausApptTypeIDsSet = new Set([29, 91]);
 
 // takes appointment.type_id and outputs a string for the procedure type
 const typeIDToCategoryMap = new Map([

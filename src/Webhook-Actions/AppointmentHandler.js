@@ -1,5 +1,14 @@
 // handle the details we care about
 function handleAppointment(webhookType, appointment) {
+    // handle for possible post to aus/echo tracker sheet/script
+    if (echoApptTypeIDsSet.has(appointment.type_id)) {
+        handleEchoOrAUS(appointment, 'Echos');
+    }
+    if (ausApptTypeIDsSet.has(appointment.type_id)) {
+        handleEchoOrAUS(appointment, 'AUS');
+    }
+
+    // below here is for this script
     if (!isTodayInUserTimezone(appointment.start_at) || !appointment.active) return;
 
     // if it has a room status (no matter the webhookType), move it to a room
@@ -17,6 +26,20 @@ function handleAppointment(webhookType, appointment) {
 
     return;
 
+}
+
+function handleEchoOrAUS(appointment, sheetName) {
+    props = PropertiesService.getScriptProperties();
+    const url = props.getProperty('echo_and_ultrasound_tracker_app_url');
+    const data = { appointment, sheetName };
+    const options = {
+        muteHttpExceptions: true,
+        method: 'POST',
+        contentType: 'application/json',
+        payload: JSON.stringify(data)
+    };
+    UrlFetchApp.fetch(url, options);
+    return;
 }
 
 function handleCreatedAppointment(appointment) {

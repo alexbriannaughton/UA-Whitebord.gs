@@ -1,5 +1,6 @@
 // receive appointment webhook events here
 function doPost(e) {
+  console.log('hey')
   try {
     const startTime = new Date(); // this is for logging executions that hang exessively 
     const params = JSON.parse(e.postData.contents);
@@ -12,7 +13,7 @@ function doPost(e) {
     const endTime = new Date();
     const executionTime = (endTime - startTime) / 1000;
     if (executionTime > 10) {
-      console.log('EXECUTION TOOK LONGER THAN 10 SECONDS');
+      console.log(`EXECUTION TOOK ${executionTime} SECONDS`);
       console.log('appt items --->', apptItems);
     }
 
@@ -54,7 +55,7 @@ function doGet(_e) {
       [3, '27'],//Room 4
       [4, '28'],//Room 5
       [5, '40'],// cat lobby (column 1)
-      [6, '40']//cat lobby (column 2)
+      [6, '40'],//cat lobby (column 2)
     ]);
 
     // this map works for both WC and DT, even though WC only has 5 rooms
@@ -65,7 +66,7 @@ function doGet(_e) {
       [3, '27'], //Room 4
       [4, '28'], //Room 5
       [5, '29'], //Room 6
-      [6, '30'] //Room 7
+      [6, '30'], //Room 7
     ]);
 
     const allRooms = {};
