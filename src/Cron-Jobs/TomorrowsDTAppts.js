@@ -208,9 +208,10 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
         const animalAttachments = JSON.parse(animalAttachmentResponse.getContentText()).items;
         const consultAttachmentsResponse = consultAttachmentResponses[i];
         const consultAttachments = JSON.parse(consultAttachmentsResponse.getContentText()).items;
-        // console.log(`${animalName} consult attachments:`, consultAttachments);
-        // console.log(`${animalName} animal attachments:`, animalAttachments);
+        console.log(`${animalName} animal attachments:`, animalAttachments);
+        console.log(`${animalName} consult attachments:`, consultAttachments);
         const numOfAttachments = animalAttachments.length + consultAttachments.length;
+        console.log(`${animalName} total num of attachments:`, numOfAttachments);
         if (numOfAttachments > 10) {
             dtAppts[i].records = {
                 text: 'yes',
@@ -452,15 +453,15 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
         if (animalHasOtherConsults === true) {
             consults.sort((a, b) => b.consult.date - a.consult.date);
             const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
-            console.log('appts----->', appts);
+            // console.log('appts----->', appts);
             let lastConsultDateStr;
             for (const { consult } of consults) {
-                console.log('consult---->', consult)
+                // console.log('consult---->', consult)
                 const apptForThisConsult = appts.find(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
-                console.log('appt for this consult: ',apptForThisConsult)
+                // console.log('appt for this consult: ',apptForThisConsult)
                 const consultDoesNotHaveAppointment = apptForThisConsult === undefined;
                 const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
-                console.log('consultDateStr: ', consultDateStr);
+                // console.log('consultDateStr: ', consultDateStr);
                 if (consultDoesNotHaveAppointment || consultDateStr === tomorrowsDateStr) {
                     // if consult does not exists as an appointment
                     // or if the consult that were checking has the same date as tomorrows consult
