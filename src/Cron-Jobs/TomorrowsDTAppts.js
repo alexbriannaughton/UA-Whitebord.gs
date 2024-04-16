@@ -121,7 +121,7 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
         const consults = JSON.parse(response.getContentText()).items;
         dtAppts[i].consults = consults;
         const consultIDs = consults.map(({ consult }) => consult.id);
-        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
+        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
         dtAppts[i].encodedConsultIDs = encodedConsultIDs;
     });
     prescriptionResponses.forEach((response, i) => {
@@ -477,7 +477,7 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
                 firstTimeHereCell.setValue(`last visit: ${lastConsultDateStr}`);
             }
         }
-        
+
         // else this is the only consult we have for this animal...
         else if (ownerHasBeenHereWithAnotherPatient === false) {
             firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
