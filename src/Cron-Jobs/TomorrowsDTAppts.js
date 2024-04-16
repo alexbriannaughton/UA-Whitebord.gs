@@ -150,9 +150,8 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
     const prescriptionItemRequests = [];
     const animalsOfContactRequests = [];
     for (const appt of dtAppts) {
-        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
         consultAttachmentRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${encodedConsultIDs}`)
+            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
         );
         const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
         prescriptionItemRequests.push(
