@@ -474,8 +474,11 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
 
             if (lastConsultDateStr === undefined) {
                 // if we still havent found the date of a valid last consult,
-                // this actually is the animal's first time here
-                firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
+                // this actually is this animal's first time here
+                if (ownerHasBeenHereWithAnotherPatient) {
+                    firstTimeHereCell.setValue(`O has brought other pets--first time for ${animal.name}.`);
+                }
+                else firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
             }
             else { // we have confrimed the last consult
                 firstTimeHereCell.setValue(`last visit: ${lastConsultDateStr}`);
