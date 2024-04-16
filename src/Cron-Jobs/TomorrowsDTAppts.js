@@ -35,8 +35,8 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
             && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
     });
 
-    return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time)
-        .slice(0, 3); // slicing for dev
+    return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+        // .slice(0, 3); // slicing for dev
 }
 
 // get the animal, contact and attachment data associated with the appointment
@@ -202,7 +202,9 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
         const animalsOfContact = JSON.parse(animalsOfContactResponse.getContentText()).items;
         const animalIDsOfContact = animalsOfContact.map(({ animal }) => animal.id);
         dtAppts[i].animalIDsOfContact = animalIDsOfContact;
-        const otherAnimalNamesOfContact = animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id).map(({ animal }) => animal.name);
+        const otherAnimalNamesOfContact =
+            animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id)
+                .map(({ animal }) => animal.name);
         dtAppts[i].otherAnimalNamesOfContact = otherAnimalNamesOfContact;
 
         const animalAttachmentResponse = animalAttachmentResponses[i];
@@ -480,7 +482,7 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
                 // this actually is this animal's first time here
                 if (ownerHasBeenHereWithAnotherPatient) {
                     const otherPetsString = otherAnimalNamesOfContact.join(', ');
-                    firstTimeHereCell.setValue(`O has brought other pets: ${otherPetsString}\nfirst time for ${animal.name}`);
+                    firstTimeHereCell.setValue(`O has been in with other pet(s): ${otherPetsString}\nfirst time for ${animal.name}`);
                 }
                 else firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
             }
