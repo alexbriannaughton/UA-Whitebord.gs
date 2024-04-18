@@ -70,8 +70,9 @@ function findEmptyRow(range, consultID, keyToConsultID) {
 
     for (const richText of allRichTextsInCell) {
       const link = richText.getLinkUrl();
+      const consultIDOnRow = link?.split('=').at(-1);
       // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
-      if (link?.includes(consultID)) return null;
+      if (consultIDOnRow === String(consultID)) return null;
     }
 
     // if we haven't already found the highest empty row AND
