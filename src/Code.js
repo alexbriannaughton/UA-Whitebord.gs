@@ -1,5 +1,6 @@
 // receive appointment webhook events here
 function doPost(e) {
+  console.log('new gcp project test');
   try {
     const startTime = new Date(); // this is for logging executions that hang exessively 
     const params = JSON.parse(e.postData.contents);
