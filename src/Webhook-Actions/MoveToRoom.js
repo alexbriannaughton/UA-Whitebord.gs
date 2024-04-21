@@ -86,10 +86,11 @@ function parseTheRoom(
   const ptCell = roomRange.offset(1, 0, 1, 1);
   const ptCellRuns = ptCell.getRichTextValue().getRuns();
   const curLink = getLinkFromRuns(ptCellRuns);
+  const curLinkID = curLink?.split('=').at(-1);
   // if this appointment is already in the room, don't worry about it
   // we check this by comparing the link that's currently in the cell with the incoming appt's consult id
-  if (curLink?.includes(appointment.consult_id)) {
-    // we return deleteFromWaitlist bc there's a chance that this execution is a retry
+  if (curLinkID === String(appointment.consult_id)) {
+    // deleteFromWaitlist bc there's a chance that this execution is a retry
     // this assumes the logic that if it's in a room, it doesnt need to be on the waitlist
     deleteFromWaitlist(location, appointment.consult_id);
     return;
@@ -129,15 +130,13 @@ function parseTheRoom(
     let curContactID;
 
     // then, check if the animal currently in the room has the same contact ID (owner) as the incoming animal
-    // first, grab the id at the end of the link
-    const curID = curLink.split('=')[2];
 
     // if this link contains a contact id, that means there are already multiple pets in this room
     if (curLink.includes('Contact')) {
-      curContactID = curID;
-      alreadyMultiplePets = true;
+      curContactID = curLinkID;
+      alreadyMultiplePets = true; // only multiple pet rooms will have contact link
     }
-    else curContactID = getContactIDFromConsultID(curID); // otherwise this is a consult id. use it to get the contact ID
+    else curContactID = getContactIDFromConsultID(curLinkID); // otherwise this is a consult id. use it to get the contact ID
 
     // if that contact id matches the contact id of the appointment we're trying to move to this room, handle a multiple pet room
     if (parseInt(curContactID) === appointment.contact_id) {
@@ -303,7 +302,8 @@ function deleteFromWaitlist(location, consultID) {
   for (let i = 0; i < patientNameRichText.length; i++) {
     const runs = patientNameRichText[i][0].getRuns();
     const link = getLinkFromRuns(runs);
-    if (link?.includes(consultID)) {
+    const curLinkID = link?.split('=').at(-1);
+    if (curLinkID === String(consultID)) {
       waitlistSheet.deleteRow(i + 7);
       return;
     }
