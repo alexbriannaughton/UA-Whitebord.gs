@@ -29,8 +29,7 @@ function handleAppointment(webhookType, appointment) {
 }
 
 function handleEchoOrAUS(appointment, sheetName) {
-    props = PropertiesService.getScriptProperties();
-    const url = props.getProperty('echo_and_ultrasound_tracker_app_url');
+    const url = PropertiesService.getScriptProperties().getProperty('echo_and_ultrasound_tracker_app_url');
     const data = { appointment, sheetName };
     const options = {
         muteHttpExceptions: true,

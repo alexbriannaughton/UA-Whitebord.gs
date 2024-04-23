@@ -1,39 +1,6 @@
-function updateToken(cache = CacheService.getScriptCache()) {
-    const url = `${proxy}/v2/oauth/access_token`;
-    props = props === undefined
-        ? PropertiesService.getScriptProperties()
-        : props;
-    const payload = {
-        partner_id: props.getProperty('partner_id'),
-        client_id: props.getProperty('client_id'),
-        client_secret: props.getProperty('client_secret'),
-        grant_type: props.getProperty('grant_type'),
-        scope: props.getProperty('scope')
-    };
-    const options = {
-        crossDomain: true,
-        method: "POST",
-        payload: payload
-    };
-    const response = UrlFetchApp.fetch(url, options);
-    const json = response.getContentText();
-    const dataObj = JSON.parse(json);
-    token = `${dataObj.token_type} ${dataObj.access_token}`; // globally reset the token variable for this script execution
-    props.setProperty('ezyVet_token', token);
-    putTokenInCache(cache, token);
-    console.log('updated ezyvet token');
-    return token;
-};
-
 // singular get request to ezyvet api that will grab a new token if we get a 401 reponse
 function fetchAndParse(url) {
-    const cache = CacheService.getScriptCache();
-    token = cache.get('ezyVet_token');
-    if (!token) {
-        token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
-        putTokenInCache(cache, token);
-        console.log('pulled token from props and added to cache');
-    }
+    token = getToken();
 
     const options = {
         muteHttpExceptions: true,
@@ -46,7 +13,7 @@ function fetchAndParse(url) {
     let response = UrlFetchApp.fetch(url, options);
 
     if (response.getResponseCode() === 401) {
-        options.headers.authorization = updateToken(cache);
+        options.headers.authorization = updateToken();
         response = UrlFetchApp.fetch(url, options);
     }
 
@@ -74,13 +41,7 @@ function getLastName(contactID) {
 
 // this is like a promise.all to get animal name and last name at the same time
 function getAnimalInfoAndLastName(animalID, contactID) {
-    const cache = CacheService.getScriptCache();
-    token = cache.get('ezyVet_token');
-    if (!token) {
-        token = PropertiesService.getScriptProperties().getProperty('ezyVet_token');
-        putTokenInCache(cache, token);
-        console.log('pulled token from props and added to cache');
-    }
+    token = getToken();
 
     const animalRequest = {
         muteHttpExceptions: true,
@@ -103,7 +64,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
     let [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
 
     if (animalResponse.getResponseCode() === 401 || contactResponse.getResponseCode() === 401) {
-        animalRequest.headers.authorization = updateToken(cache);
+        animalRequest.headers.authorization = updateToken();
         contactRequest.headers.authorization = token;
         [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
     }

@@ -1,11 +1,5 @@
 const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
-let token;
-let props;
-
-function putTokenInCache(cache, token) {
-    cache.put('ezyVet_token', token, 30600); // store for 8.5 hours
-}
 
 const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
