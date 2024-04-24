@@ -1,4 +1,3 @@
-// handle the details we care about
 function handleAppointment(webhookType, appointment) {
     // handle for possible post to aus/echo tracker sheet/script
     if (echoApptTypeIDsSet.has(appointment.type_id)) {
