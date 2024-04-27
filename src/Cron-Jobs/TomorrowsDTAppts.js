@@ -39,60 +39,11 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
     // .slice(0, 3); // slicing for dev
 }
 
-function firstRoundOfFetches(dtAppts) {
-    const animalRequests = [];
-    const contactRequests = [];
-    const animalAttachmentRequests = [];
-    const allConsultsForAnimalRequests = [];
-    const prescriptionRequests = [];
-
-    dtAppts.forEach(({ appointment }) => {
-        const animalID = appointment.details.animal_id;
-        animalRequests.push(bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`));
-        contactRequests.push(bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`));
-        animalAttachmentRequests.push(bodyForEzyVetGet(`${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
-        allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
-        prescriptionRequests.push(bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
-    });
-
-    const animalResponses = fetchAllResponses(animalRequests, "animal");
-    const contactResponses = fetchAllResponses(contactRequests, "contact");
-    const animalAttachmentResponses = fetchAllResponses(animalAttachmentRequests, "animalAttachment");
-    const allConsultsForAnimalResponses = fetchAllResponses(allConsultsForAnimalRequests, "consult");
-    const prescriptionResponses = fetchAllResponses(prescriptionRequests, "prescription");
-
-    animalResponses.forEach((response, i) => {
-        const { animal } = JSON.parse(response.getContentText()).items.at(-1);
-        dtAppts[i].animal = animal;
-    });
-    contactResponses.forEach((response, i) => {
-        const { contact } = JSON.parse(response.getContentText()).items.at(-1);
-        dtAppts[i].contact = contact;
-    });
-    allConsultsForAnimalResponses.forEach((response, i) => {
-        const consults = JSON.parse(response.getContentText()).items;
-        dtAppts[i].consults = consults;
-        const consultIDs = consults.map(({ consult }) => consult.id);
-        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
-        dtAppts[i].encodedConsultIDs = encodedConsultIDs;
-    });
-    prescriptionResponses.forEach((response, i) => {
-        const prescriptions = JSON.parse(response.getContentText()).items;
-        const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
-        dtAppts[i].prescriptions = prescriptions;
-        dtAppts[i].prescriptionIDs = prescriptionIDs;
-    });
-
-    return animalAttachmentResponses;
-}
-
-// get data from all endpoints that we care about that are associated with each appointment
-async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
-    const animalAttachmentResponses = firstRoundOfFetches(dtAppts);
-
+function driveFolderProcessing() {
     const folderNamePrefix = 'ezyVet-attachments-';
     console.log('getting drive folders...');
     const rootFolders = DriveApp.getFolders();
+
     console.log('trashing old ezyvet folders...');
     while (rootFolders.hasNext()) {
         const folder = rootFolders.next();
@@ -101,13 +52,19 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
             folder.setTrashed(true);
         }
     }
+
     console.log(`creating new drive folder for ${tomorrowsDateStr}...`);
     const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + tomorrowsDateStr);
     ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
 
+    return ezyVetFolder;
+}
+
+function secondRoundOfFetches(dtAppts) {
     const consultAttachmentRequests = [];
     const prescriptionItemRequests = [];
     const animalsOfContactRequests = [];
+
     for (const appt of dtAppts) {
         consultAttachmentRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
@@ -120,31 +77,19 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
             bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
         );
     }
-    let consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses;
-    try {
-        console.log(`getting consult attachments...`);
-        consultAttachmentResponses = UrlFetchApp.fetchAll(consultAttachmentRequests);
-    } catch (error) {
-        console.error("Error fetching consult attachment data:", error);
-        console.error("Consult Attachments Requests:", consultAttachmentRequests);
-    }
 
-    try {
-        console.log('getting prescription items...')
-        prescriptionItemResponses = UrlFetchApp.fetchAll(prescriptionItemRequests);
-    } catch (error) {
-        console.error("Error fetching prescription item data:", error);
-        console.error("Prescription Item Requests:", prescriptionItemRequests);
-    }
+    const consultAttachmentResponses = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
+    const prescriptionItemResponses = fetchAllResponses(prescriptionItemRequests, 'prescription item');
+    const animalsOfContactResponses = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
 
-    try {
-        console.log(`getting animals of contact...`);
-        animalsOfContactResponses = UrlFetchApp.fetchAll(animalsOfContactRequests);
-    } catch (error) {
-        console.error("Error fetching consult attachment data:", error);
-        console.error("Animals of contacts requests:", animalsOfContactRequests);
-    }
+    return { consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses };
+}
 
+// get data from all endpoints that we care about that are associated with each appointment
+async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
+    const animalAttachmentResponses = firstRoundOfFetches(dtAppts);
+    const ezyVetFolder = driveFolderProcessing();
+    const { consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses } = secondRoundOfFetches(dtAppts);
 
     const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
     console.log('loading PDFLib...');
@@ -309,6 +254,53 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
         }
         else dtAppts[i].ownerHasBeenHereWithAnotherPatient = false;
     }
+}
+
+function firstRoundOfFetches(dtAppts) {
+    const animalRequests = [];
+    const contactRequests = [];
+    const animalAttachmentRequests = [];
+    const allConsultsForAnimalRequests = [];
+    const prescriptionRequests = [];
+
+    dtAppts.forEach(({ appointment }) => {
+        const animalID = appointment.details.animal_id;
+        animalRequests.push(bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`));
+        contactRequests.push(bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`));
+        animalAttachmentRequests.push(bodyForEzyVetGet(`${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
+        allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
+        prescriptionRequests.push(bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
+    });
+
+    const animalResponses = fetchAllResponses(animalRequests, "animal");
+    const contactResponses = fetchAllResponses(contactRequests, "contact");
+    const animalAttachmentResponses = fetchAllResponses(animalAttachmentRequests, "animal attachment");
+    const allConsultsForAnimalResponses = fetchAllResponses(allConsultsForAnimalRequests, "consult");
+    const prescriptionResponses = fetchAllResponses(prescriptionRequests, "prescription");
+
+    animalResponses.forEach((response, i) => {
+        const { animal } = JSON.parse(response.getContentText()).items.at(-1);
+        dtAppts[i].animal = animal;
+    });
+    contactResponses.forEach((response, i) => {
+        const { contact } = JSON.parse(response.getContentText()).items.at(-1);
+        dtAppts[i].contact = contact;
+    });
+    allConsultsForAnimalResponses.forEach((response, i) => {
+        const consults = JSON.parse(response.getContentText()).items;
+        dtAppts[i].consults = consults;
+        const consultIDs = consults.map(({ consult }) => consult.id);
+        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
+        dtAppts[i].encodedConsultIDs = encodedConsultIDs;
+    });
+    prescriptionResponses.forEach((response, i) => {
+        const prescriptions = JSON.parse(response.getContentText()).items;
+        const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
+        dtAppts[i].prescriptions = prescriptions;
+        dtAppts[i].prescriptionIDs = prescriptionIDs;
+    });
+
+    return animalAttachmentResponses;
 }
 
 function bodyForEzyVetGet(url) {
