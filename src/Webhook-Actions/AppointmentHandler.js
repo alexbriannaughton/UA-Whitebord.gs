@@ -1,4 +1,3 @@
-// handle the details we care about
 function handleAppointment(webhookType, appointment) {
     // handle for possible post to aus/echo tracker sheet/script
     if (echoApptTypeIDsSet.has(appointment.type_id)) {
@@ -29,8 +28,7 @@ function handleAppointment(webhookType, appointment) {
 }
 
 function handleEchoOrAUS(appointment, sheetName) {
-    props = PropertiesService.getScriptProperties();
-    const url = props.getProperty('echo_and_ultrasound_tracker_app_url');
+    const url = PropertiesService.getScriptProperties().getProperty('echo_and_ultrasound_tracker_app_url');
     const data = { appointment, sheetName };
     const options = {
         muteHttpExceptions: true,
