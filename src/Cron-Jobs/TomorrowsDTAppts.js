@@ -36,78 +36,30 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
     });
 
     return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
-        // .slice(0, 3); // slicing for dev
+    // .slice(0, 3); // slicing for dev
 }
 
-// get the animal, contact and attachment data associated with the appointment
-async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
+function firstRoundOfFetches(dtAppts) {
     const animalRequests = [];
     const contactRequests = [];
     const animalAttachmentRequests = [];
     const allConsultsForAnimalRequests = [];
     const prescriptionRequests = [];
+
     dtAppts.forEach(({ appointment }) => {
         const animalID = appointment.details.animal_id;
-        animalRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`)
-        );
-        contactRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`)
-        );
-        animalAttachmentRequests.push(
-            bodyForEzyVetGet(
-                `${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`
-            )
-        );
-        allConsultsForAnimalRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`)
-        );
-        prescriptionRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`)
-        );
+        animalRequests.push(bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`));
+        contactRequests.push(bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`));
+        animalAttachmentRequests.push(bodyForEzyVetGet(`${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
+        allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
+        prescriptionRequests.push(bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
     });
 
-    let animalResponses, contactResponses, animalAttachmentResponses, allConsultsForAnimalResponses, prescriptionResponses;
-    try {
-        console.log('getting all animal data...');
-        animalResponses = UrlFetchApp.fetchAll(animalRequests);
-    } catch (error) {
-        console.error("Error fetching animal data:", error);
-        console.error("Animal Requests:", animalRequests);
-    }
-
-    try {
-        console.log('getting all contact data...');
-        contactResponses = UrlFetchApp.fetchAll(contactRequests);
-    } catch (error) {
-        console.error("Error fetching contact data:", error);
-        console.error("Contact Requests:", contactRequests);
-    }
-
-    try {
-        console.log('getting all animal attachments...');
-        animalAttachmentResponses = UrlFetchApp.fetchAll(animalAttachmentRequests);
-    } catch (error) {
-        console.error("Error fetching animal attachment data:", error);
-        console.error("Animal Attachment Requests:", animalAttachmentRequests);
-    }
-
-    try {
-        console.log('getting data for consults for each animal...');
-        allConsultsForAnimalResponses = UrlFetchApp.fetchAll(allConsultsForAnimalRequests);
-    } catch (error) {
-        console.error("Error fetching consult data:", error);
-        console.error("All Consults Requests:", allConsultsForAnimalRequests);
-    }
-
-    try {
-        console.log('getting all prescriptions data...')
-        prescriptionResponses = UrlFetchApp.fetchAll(prescriptionRequests);
-    } catch (error) {
-        console.error("Error fetching prescription data:", error);
-        console.error("Prescription Requests:", prescriptionRequests);
-    }
-
+    const animalResponses = fetchAllResponses(animalRequests, "animal");
+    const contactResponses = fetchAllResponses(contactRequests, "contact");
+    const animalAttachmentResponses = fetchAllResponses(animalAttachmentRequests, "animalAttachment");
+    const allConsultsForAnimalResponses = fetchAllResponses(allConsultsForAnimalRequests, "consult");
+    const prescriptionResponses = fetchAllResponses(prescriptionRequests, "prescription");
 
     animalResponses.forEach((response, i) => {
         const { animal } = JSON.parse(response.getContentText()).items.at(-1);
@@ -130,6 +82,13 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
         dtAppts[i].prescriptions = prescriptions;
         dtAppts[i].prescriptionIDs = prescriptionIDs;
     });
+
+    return animalAttachmentResponses;
+}
+
+// get data from all endpoints that we care about that are associated with each appointment
+async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
+    const animalAttachmentResponses = firstRoundOfFetches(dtAppts);
 
     const folderNamePrefix = 'ezyVet-attachments-';
     console.log('getting drive folders...');
@@ -336,7 +295,7 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
         console.log('getting consults for all contact animals...')
         consultsForAllContactAnimalResponses = UrlFetchApp.fetchAll(consultsForAllContactAnimalRequests);
     } catch (error) {
-        console.error("Error fetching prescription item data:", error);
+        console.error("Error fetching consults for contact's animals data:", error);
         console.error("Consults For All Contact Animal Requests", consultsForAllContactAnimalRequests);
     }
 
@@ -360,6 +319,19 @@ function bodyForEzyVetGet(url) {
         headers: { authorization: token }
     }
 };
+
+function fetchAllResponses(requests, resourceName) {
+    let responses;
+    try {
+        console.log(`getting all ${resourceName} data...`);
+        responses = UrlFetchApp.fetchAll(requests);
+    } catch (error) {
+        console.error(`Error fetching ${resourceName} data:`, error);
+        console.error(`${resourceName} Requests:`, requests);
+        responses = []; // Handle errors gracefully
+    }
+    return responses;
+}
 
 function processPrescriptionItems(prescriptions, prescriptionItems) {
     const gabaProductIDSet = new Set(['794', '1201', '1249', '5799', '1343']);
