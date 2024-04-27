@@ -39,7 +39,7 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
     // .slice(0, 3); // slicing for dev
 }
 
-function driveFolderProcessing() {
+function driveFolderProcessing(tomorrowsDateStr) {
     const folderNamePrefix = 'ezyVet-attachments-';
     console.log('getting drive folders...');
     const rootFolders = DriveApp.getFolders();
@@ -88,7 +88,7 @@ function secondRoundOfFetches(dtAppts) {
 // get data from all endpoints that we care about that are associated with each appointment
 async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
     const animalAttachmentResponses = firstRoundOfFetches(dtAppts);
-    const ezyVetFolder = driveFolderProcessing();
+    const ezyVetFolder = driveFolderProcessing(tomorrowsDateStr);
     const { consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses } = secondRoundOfFetches(dtAppts);
 
     const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
