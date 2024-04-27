@@ -39,52 +39,6 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
     // .slice(0, 3); // slicing for dev
 }
 
-function driveFolderProcessing(tomorrowsDateStr) {
-    const folderNamePrefix = 'ezyVet-attachments-';
-    console.log('getting drive folders...');
-    const rootFolders = DriveApp.getFolders();
-
-    console.log('trashing old ezyvet folders...');
-    while (rootFolders.hasNext()) {
-        const folder = rootFolders.next();
-        const folderName = folder.getName();
-        if (folderName.includes(folderNamePrefix)) {
-            folder.setTrashed(true);
-        }
-    }
-
-    console.log(`creating new drive folder for ${tomorrowsDateStr}...`);
-    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + tomorrowsDateStr);
-    ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
-
-    return ezyVetFolder;
-}
-
-function secondRoundOfFetches(dtAppts) {
-    const consultAttachmentRequests = [];
-    const prescriptionItemRequests = [];
-    const animalsOfContactRequests = [];
-
-    for (const appt of dtAppts) {
-        consultAttachmentRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
-        );
-        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
-        prescriptionItemRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
-        );
-        animalsOfContactRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
-        );
-    }
-
-    const consultAttachmentResponses = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
-    const prescriptionItemResponses = fetchAllResponses(prescriptionItemRequests, 'prescription item');
-    const animalsOfContactResponses = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
-
-    return { consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses };
-}
-
 // get data from all endpoints that we care about that are associated with each appointment
 async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
     const animalAttachmentResponses = firstRoundOfFetches(dtAppts);
@@ -323,6 +277,52 @@ function fetchAllResponses(requests, resourceName) {
         responses = []; // Handle errors gracefully
     }
     return responses;
+}
+
+function driveFolderProcessing(tomorrowsDateStr) {
+    const folderNamePrefix = 'ezyVet-attachments-';
+    console.log('getting drive folders...');
+    const rootFolders = DriveApp.getFolders();
+
+    console.log('trashing old ezyvet folders...');
+    while (rootFolders.hasNext()) {
+        const folder = rootFolders.next();
+        const folderName = folder.getName();
+        if (folderName.includes(folderNamePrefix)) {
+            folder.setTrashed(true);
+        }
+    }
+
+    console.log(`creating new drive folder for ${tomorrowsDateStr}...`);
+    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + tomorrowsDateStr);
+    ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
+
+    return ezyVetFolder;
+}
+
+function secondRoundOfFetches(dtAppts) {
+    const consultAttachmentRequests = [];
+    const prescriptionItemRequests = [];
+    const animalsOfContactRequests = [];
+
+    for (const appt of dtAppts) {
+        consultAttachmentRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
+        );
+        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
+        prescriptionItemRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
+        );
+        animalsOfContactRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
+        );
+    }
+
+    const consultAttachmentResponses = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
+    const prescriptionItemResponses = fetchAllResponses(prescriptionItemRequests, 'prescription item');
+    const animalsOfContactResponses = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
+
+    return { consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses };
 }
 
 function processPrescriptionItems(prescriptions, prescriptionItems) {
