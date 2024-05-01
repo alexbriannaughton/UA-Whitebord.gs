@@ -41,38 +41,176 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
 
 // get data from all endpoints that we care about that are associated with each appointment
 async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
-    const animalAttachmentResponses = firstRoundOfFetches(dtAppts);
+    const animalAttachmentData = firstRoundOfFetches(dtAppts); // animal, contact, consults for animal, prescriptions
     const ezyVetFolder = driveFolderProcessing(tomorrowsDateStr);
-    const { consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses } = secondRoundOfFetches(dtAppts);
+    const consultAttachmentData = secondRoundOfFetches(dtAppts); // prescription items, other animals of contact
+    await processRecords(animalAttachmentData, consultAttachmentData, dtAppts, ezyVetFolder)
+    fetchDataToCheckIfFirstTimeClient(dtAppts);
+}
 
+function fetchDataToCheckIfFirstTimeClient(dtAppts) {
+    const consultsForOtherContactAnimalsRequests = [];
+    const fetchedForOtherAnimalConsultsArray = [];
+    // first check if this patient has previous valid consults
+    // if so, were just going to put that last date of this patients visit
+    for (let i = 0; i < dtAppts.length; i++) {
+        const { appointment, consults, otherAnimalsOfContact, encodedConsultIDs } = dtAppts[i];
+        // appointments created through vetstoria do not have an appointment, but we want to count it for this
+        const apptHasConsult = appointment.details.consult_id; // check for existence of appointment's consult
+        const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
+
+        if (numberOfConsults > 1) { // if the animal appears to have been here before..
+            consults.sort((a, b) => b.consult.date - a.consult.date);
+            const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
+            for (const { consult } of consults) {
+                const apptForThisConsult = appts.find(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
+                const consultDoesNotHaveAppointment = apptForThisConsult === undefined;
+                const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
+                // console.log('consultDateStr: ', consultDateStr);
+                if (consultDoesNotHaveAppointment || consultDateStr === tomorrowsDateStr) {
+                    // if consult does not exists as an appointment
+                    // or if the consult that were checking has the same date as tomorrows consult
+                    // that means this is either the same consult, or the "consult" wasnt actually a visit, or its a double
+                    // if these are true, we dont want to count this visit as the previous visit
+                    continue;
+                }
+
+                // if we get here we have confirmed a valid last consult for this patient
+                dtAppts[i].patientsLastVisitDate = consultDateStr;
+                break;
+            }
+
+        }
+
+        // if we were unable to find a valid previous visit for this animal, and the owner has other pets,
+        // we're going to fetch for those animals' consults
+        if (dtAppts[i].patientsLastVisitDate === undefined && otherAnimalsOfContact.length) {
+            const otherAnimalIDsOfContact = otherAnimalsOfContact.map(({ animal }) => animal.id);
+            const encodedOtherAnimalIDs = encodeURIComponent(JSON.stringify({ "in": otherAnimalIDsOfContact }));
+            consultsForOtherContactAnimalsRequests.push(
+                bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animal_id=${encodedOtherAnimalIDs}`)
+            );
+            fetchedForOtherAnimalConsultsArray.push(true);
+
+        }
+        else fetchedForOtherAnimalConsultsArray.push(false);
+    }
+
+    const contactOtherAnimalsConsultData = fetchAllResponses(
+        consultsForOtherContactAnimalsRequests,
+        'consults for other animals of contacts where appointment animal has not already visited ua'
+    );
+
+    let contactOtherAnimalsConsultDataIndex = 0;
+    for (let i = 0; i < dtAppts.length; i++) {
+        const didAFetchForConsultsForOtherContactAnimals = fetchedForOtherAnimalConsultsArray[i];
+        if (didAFetchForConsultsForOtherContactAnimals) {
+            const otherAnimalConsults = contactOtherAnimalsConsultData[contactOtherAnimalsConsultDataIndex++];
+            dtAppts[i].otherAnimalConsults = otherAnimalConsults;
+        }
+    }
+
+    for (let i = 0; i < dtAppts.length; i++) {
+        const appt = dtAppts[i];
+        const { patientsLastVisitDate, otherAnimalConsults } = appt;
+        // both of the above variables will be undefined if the patient has never had an appt AND the owner doesnt have other pets in the system
+
+        if (patientsLastVisitDate) continue; // this means i already have the data i want for the 'first time?' cell
+        if (!otherAnimalConsults || !otherAnimalConsults.length) {
+            // this means its for sure their first time here
+            dtAppts[i].firstTime = true;
+            continue;
+        }
+        
+        // otherwise we need to parse through otherAnimalConsults to decide if theyve been here with another pet
+        dtAppts[i].itsPossibleTheyveBeenHereWithOtherPets = true;
+
+    }
+
+
+}
+
+function firstRoundOfFetches(dtAppts) {
+    const animalRequests = [];
+    const contactRequests = [];
+    const allConsultsForAnimalRequests = [];
+    const prescriptionRequests = [];
+    const animalAttachmentRequests = [];
+
+    dtAppts.forEach(({ appointment }) => {
+        const animalID = appointment.details.animal_id;
+        animalRequests.push(bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`));
+        contactRequests.push(bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`));
+        allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
+        prescriptionRequests.push(bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
+        animalAttachmentRequests.push(bodyForEzyVetGet(`${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
+    });
+
+    const animalData = fetchAllResponses(animalRequests, "animal");
+    const contactData = fetchAllResponses(contactRequests, "contact");
+    const allConsultsForAnimalData = fetchAllResponses(allConsultsForAnimalRequests, "consult");
+    const prescriptionData = fetchAllResponses(prescriptionRequests, "prescription");
+
+    for (let i = 0; i < dtAppts.length; i++) {
+        const consults = allConsultsForAnimalData[i];
+        const consultIDs = consults.map(({ consult }) => consult.id);
+        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
+
+        const prescriptions = prescriptionData[i];
+        const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
+
+        const newApptData = {
+            consults,
+            encodedConsultIDs,
+            prescriptions,
+            prescriptionIDs,
+            animal: animalData[i].at(-1),
+            contact: contactData[i].at(-1),
+
+        }
+        dtAppts[i] = { ...dtAppts[i], ...newApptData };
+    }
+
+    const animalAttachmentData = fetchAllResponses(animalAttachmentRequests, "animal attachment");
+    return animalAttachmentData;
+}
+
+function bodyForEzyVetGet(url) {
+    return {
+        muteHttpExceptions: true,
+        url,
+        method: "GET",
+        headers: { authorization: token }
+    }
+};
+
+function jsonParser(input) {
+    try {
+        const output = JSON.parse(input);
+        return output;
+    }
+    catch {
+        return false;
+    }
+}
+
+async function processRecords(animalAttachmentData, consultAttachmentData, dtAppts, ezyVetFolder) {
     const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
     console.log('loading PDFLib...');
     eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
+    console.log('loaded PDFLib.');
 
-    for (let i = 0; i < animalAttachmentResponses.length; i++) {
+    for (let i = 0; i < dtAppts.length; i++) {
         const animalName = `${dtAppts[i].animal.name} ${dtAppts[i].contact.last_name}`;
+        console.log(`processing records for ${animalName}...`);
 
-        const prescriptionItemResponse = prescriptionItemResponses[i];
-        const prescriptionItems = JSON.parse(prescriptionItemResponse.getContentText()).items;
-        dtAppts[i].prescriptionItems = prescriptionItems;
-
-        const animalsOfContactResponse = animalsOfContactResponses[i];
-        const animalsOfContact = JSON.parse(animalsOfContactResponse.getContentText()).items;
-        const animalIDsOfContact = animalsOfContact.map(({ animal }) => animal.id);
-        dtAppts[i].animalIDsOfContact = animalIDsOfContact;
-        const otherAnimalNamesOfContact =
-            animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id)
-                .map(({ animal }) => animal.name);
-        dtAppts[i].otherAnimalNamesOfContact = otherAnimalNamesOfContact;
-
-        const animalAttachmentResponse = animalAttachmentResponses[i];
-        const animalAttachments = JSON.parse(animalAttachmentResponse.getContentText()).items;
-        const consultAttachmentsResponse = consultAttachmentResponses[i];
-        const consultAttachments = JSON.parse(consultAttachmentsResponse.getContentText()).items;
+        const consultAttachments = consultAttachmentData[i];
+        const animalAttachments = animalAttachmentData[i];
         console.log(`${animalName} animal attachments:`, animalAttachments);
         console.log(`${animalName} consult attachments:`, consultAttachments);
         const numOfAttachments = animalAttachments.length + consultAttachments.length;
         console.log(`${animalName} total num of attachments:`, numOfAttachments);
+
         if (numOfAttachments > 10) {
             dtAppts[i].records = {
                 text: 'yes',
@@ -86,7 +224,6 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
             };
             continue;
         }
-
 
         const fileNameArray = [];
         const attachmentDownloadRequests = [];
@@ -109,174 +246,113 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
             attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
         }
         catch (error) {
-            console.log('error at attachment download fetches: ', error);
-            console.log('attachment download bodies: ', attachmentDownloadRequests);
-            console.log(`error^^ after trying to dl attachment for ${animalName}`);
-            // dtAppts[i].records = "error when trying to download these records.";
-            // continue;
+            console.error('error at attachment download fetches: ', error);
+            console.error('attachment download bodies: ', attachmentDownloadRequests);
+            console.error(`error^^ after trying to dl attachment for ${animalName}`);
         }
 
         // Utilities.sleep(12000); // to comply with ezyVet's rate limiting
-        console.log(`building .pdf for ${animalName}`);
+        console.log(`initializing .pdf for ${animalName}...`);
         const mergedPDF = await PDFLib.PDFDocument.create();
-        for (let j = 0; j < attachmentDownloadResponses.length; j++) {
-            const fileNameInEzyVet = fileNameArray[j];
-            const response = attachmentDownloadResponses[j];
+        const pdfBytes = await buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName);
 
-            const blob = response.getBlob();
-            console.log(`${fileNameInEzyVet}`, 'blob:');
-            console.log('content type: ', blob.getContentType());
-            const name = blob.getName();
-            console.log('name: ', name);
-            const blobByes = new Uint8Array(blob.getBytes());
-
-            if (name.includes('.pdf')) {
-                const pdfData = await PDFLib.PDFDocument.load(blobByes);
-                const pages = await mergedPDF.copyPages(
-                    pdfData,
-                    [...Array(pdfData.getPageCount())].map((_, ind) => ind)
-                );
-                pages.forEach(page => mergedPDF.addPage(page));
-            }
-
-            else if (name.includes('.jpg') || name.includes('.jpeg')) {
-                const image = await mergedPDF.embedJpg(blobByes);
-                const imageSize = image.scale(1);
-                const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
-                page.drawImage(image);
-            }
-
-            else if (name.endsWith('.json')) {
-                const jsonData = JSON.parse(response.getContentText());
-                console.log('JSON data:', jsonData);
-                const page = mergedPDF.addPage();
-                const fontSize = 16;
-                page.setFontSize(fontSize);
-                const textY = page.getHeight() - 50;
-                page.drawText(
-                    `Error downloading the ezyvet file for ${animalName} called "${fileNameInEzyVet}"`,
-                    { y: textY }
-                );
-            }
-
-        }
-        console.log(`saving .pdf for ${animalName}`);
-        const bytes = await mergedPDF.save();
         console.log(`creating file in drive for ${animalName}'s .pdf`);
         const mergedPDFDriveFile = ezyVetFolder.createFile(
             Utilities.newBlob(
-                [...new Int8Array(bytes)],
+                [...new Int8Array(pdfBytes)],
                 MimeType.PDF,
                 `${animalName}.pdf`
             )
         );
+
         const url = mergedPDFDriveFile.getUrl();
         dtAppts[i].records = {
             link: url,
             text: `${attachmentDownloadRequests.length} attachments`
         };
-    };
+    }
+}
 
-    const consultsForAllContactAnimalRequests = [];
-    const contactHasOtherAnimalsArray = [];
-    for (const appt of dtAppts) {
-        if (appt.animalIDsOfContact.length > 1) {
-            const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": appt.animalIDsOfContact }));
-            consultsForAllContactAnimalRequests.push(
-                bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animal_id=${encodedAnimalIDs}`)
+async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName) {
+    console.log(`building pdf for ${animalName}...`);
+
+    for (let j = 0; j < attachmentDownloadResponses.length; j++) {
+        const fileNameInEzyVet = fileNameArray[j];
+
+        const response = attachmentDownloadResponses[j];
+        const blob = response.getBlob();
+        const contentType = blob.getContentType();
+
+        console.log(`${fileNameInEzyVet} file type: ${contentType}`);
+
+        const blobByes = new Uint8Array(blob.getBytes());
+
+        if (contentType === 'application/pdf') {
+            const pdfData = await PDFLib.PDFDocument.load(blobByes);
+            const pages = await mergedPDF.copyPages(
+                pdfData,
+                Array(pdfData.getPageCount()).fill().map((_, ind) => ind)
             );
-            contactHasOtherAnimalsArray.push(true);
+            pages.forEach(page => mergedPDF.addPage(page));
         }
-        else contactHasOtherAnimalsArray.push(false);
-    }
-    let consultsForAllContactAnimalResponses;
-    try {
-        console.log('getting consults for all contact animals...')
-        consultsForAllContactAnimalResponses = UrlFetchApp.fetchAll(consultsForAllContactAnimalRequests);
-    } catch (error) {
-        console.error("Error fetching consults for contact's animals data:", error);
-        console.error("Consults For All Contact Animal Requests", consultsForAllContactAnimalRequests);
-    }
 
-    let hasOtherAnimalsArrayIndex = 0;
-    for (let i = 0; i < dtAppts.length; i++) {
-        const didAFetchForConsultsForAllContactAnimals = contactHasOtherAnimalsArray[i];
-        if (didAFetchForConsultsForAllContactAnimals) {
-            const consultsForAllContactAnimalResponse = consultsForAllContactAnimalResponses[hasOtherAnimalsArrayIndex++];
-            const consultsForAllContactAnimals = JSON.parse(consultsForAllContactAnimalResponse.getContentText()).items;
-            dtAppts[i].ownerHasBeenHereWithAnotherPatient = consultsForAllContactAnimals.length > 0;
+        else if (contentType === 'image/jpeg') {
+            const image = await mergedPDF.embedJpg(blobByes);
+            const imageSize = image.scale(1);
+            const page = mergedPDF.addPage([imageSize.width, imageSize.height]);
+            page.drawImage(image);
         }
-        else dtAppts[i].ownerHasBeenHereWithAnotherPatient = false;
+
+        else if (contentType === 'application/json') {
+            const jsonData = JSON.parse(response.getContentText());
+            console.log('JSON data:', jsonData);
+            const page = mergedPDF.addPage();
+            const fontSize = 16;
+            page.setFontSize(fontSize);
+            const textY = page.getHeight() - 50;
+            page.drawText(
+                `Error downloading the attachment called "${fileNameInEzyVet}"`,
+                { y: textY }
+            );
+        }
     }
+
+    console.log(`saving .pdf for ${animalName}...`);
+    const bytes = await mergedPDF.save();
+    console.log(`saved pdf for ${animalName}`)
+    return bytes;
 }
-
-function firstRoundOfFetches(dtAppts) {
-    const animalRequests = [];
-    const contactRequests = [];
-    const animalAttachmentRequests = [];
-    const allConsultsForAnimalRequests = [];
-    const prescriptionRequests = [];
-
-    dtAppts.forEach(({ appointment }) => {
-        const animalID = appointment.details.animal_id;
-        animalRequests.push(bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`));
-        contactRequests.push(bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`));
-        animalAttachmentRequests.push(bodyForEzyVetGet(`${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
-        allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
-        prescriptionRequests.push(bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
-    });
-
-    const animalResponses = fetchAllResponses(animalRequests, "animal");
-    const contactResponses = fetchAllResponses(contactRequests, "contact");
-    const animalAttachmentResponses = fetchAllResponses(animalAttachmentRequests, "animal attachment");
-    const allConsultsForAnimalResponses = fetchAllResponses(allConsultsForAnimalRequests, "consult");
-    const prescriptionResponses = fetchAllResponses(prescriptionRequests, "prescription");
-
-    animalResponses.forEach((response, i) => {
-        const { animal } = JSON.parse(response.getContentText()).items.at(-1);
-        dtAppts[i].animal = animal;
-    });
-    contactResponses.forEach((response, i) => {
-        const { contact } = JSON.parse(response.getContentText()).items.at(-1);
-        dtAppts[i].contact = contact;
-    });
-    allConsultsForAnimalResponses.forEach((response, i) => {
-        const consults = JSON.parse(response.getContentText()).items;
-        dtAppts[i].consults = consults;
-        const consultIDs = consults.map(({ consult }) => consult.id);
-        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
-        dtAppts[i].encodedConsultIDs = encodedConsultIDs;
-    });
-    prescriptionResponses.forEach((response, i) => {
-        const prescriptions = JSON.parse(response.getContentText()).items;
-        const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
-        dtAppts[i].prescriptions = prescriptions;
-        dtAppts[i].prescriptionIDs = prescriptionIDs;
-    });
-
-    return animalAttachmentResponses;
-}
-
-function bodyForEzyVetGet(url) {
-    return {
-        muteHttpExceptions: true,
-        url,
-        method: "GET",
-        headers: { authorization: token }
-    }
-};
 
 function fetchAllResponses(requests, resourceName) {
-    let responses;
+    let outputItems = [];
+
     try {
         console.log(`getting all ${resourceName} data...`);
-        responses = UrlFetchApp.fetchAll(requests);
-    } catch (error) {
+        const responses = UrlFetchApp.fetchAll(requests);
+
+        for (let i = 0; i < responses.length; i++) {
+            const response = responses[i];
+            const contentText = response.getContentText();
+            const data = jsonParser(contentText);
+
+            if (!data || response.getResponseCode() !== 200) {
+                console.error(`Content text for error at index ${i} fetching ${resourceName} data:`, contentText);
+                console.error(`All ${resourceName} Requests:`, requests);
+                outputItems = [];
+                break;
+            }
+
+            outputItems.push(data.items);
+        }
+    }
+
+    catch (error) {
         console.error(`Error fetching ${resourceName} data:`, error);
         console.error(`${resourceName} Requests:`, requests);
-        responses = []; // Handle errors gracefully
+        outputItems = [];
     }
-    return responses;
+
+    return outputItems;
 }
 
 function driveFolderProcessing(tomorrowsDateStr) {
@@ -318,12 +394,22 @@ function secondRoundOfFetches(dtAppts) {
         );
     }
 
-    const consultAttachmentResponses = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
-    const prescriptionItemResponses = fetchAllResponses(prescriptionItemRequests, 'prescription item');
-    const animalsOfContactResponses = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
+    const prescriptionItemData = fetchAllResponses(prescriptionItemRequests, 'prescription item');
+    const animalsOfContactData = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
 
-    return { consultAttachmentResponses, prescriptionItemResponses, animalsOfContactResponses };
-}
+    for (let i = 0; i < dtAppts.length; i++) {
+        const prescriptionItems = prescriptionItemData[i];
+        const animalsOfContact = animalsOfContactData[i];
+        const otherAnimalsOfContact = animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id);
+
+        const newApptData = { prescriptionItems, otherAnimalsOfContact };
+
+        dtAppts[i] = { ...dtAppts[i], ...newApptData };
+    }
+
+    const consultAttachmentData = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
+    return consultAttachmentData;
+};
 
 function processPrescriptionItems(prescriptions, prescriptionItems) {
     const gabaProductIDSet = new Set(['794', '1201', '1249', '5799', '1343']);
@@ -353,7 +439,7 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
     }
 
     return { sedativeName, sedativeDateLastFilled };
-}
+};
 
 function getRxDate(prescriptions, prescriptionID) {
     const rx = prescriptions.find(({ prescription }) => {
@@ -375,8 +461,10 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
             prescriptionItems,
             consults,
             encodedConsultIDs,
-            ownerHasBeenHereWithAnotherPatient,
-            otherAnimalNamesOfContact,
+            patientsLastVisitDate,
+            firstTime,
+            otherAnimalsOfContact,
+            itsPossibleTheyveBeenHereWithOtherPets,
             records
         } = dtAppts[i];
 
@@ -413,56 +501,16 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr) {
         ptCell.setRichTextValue(link);
 
         const firstTimeHereCell = range.offset(i, 3, 1, 1);
-        // appointments created through vetstoria do not have an appointment, but we want to count it for this
-        const apptHasConsult = appointment.details.consult_id; // check for existence of appointment's consult
-        const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
-        const animalHasOtherConsults = numberOfConsults > 1;
-
-        if (animalHasOtherConsults === true) {
-            consults.sort((a, b) => b.consult.date - a.consult.date);
-            const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
-            // console.log('appts----->', appts);
-            let lastConsultDateStr;
-            for (const { consult } of consults) {
-                // console.log('consult---->', consult)
-                const apptForThisConsult = appts.find(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
-                // console.log('appt for this consult: ',apptForThisConsult)
-                const consultDoesNotHaveAppointment = apptForThisConsult === undefined;
-                const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
-                // console.log('consultDateStr: ', consultDateStr);
-                if (consultDoesNotHaveAppointment || consultDateStr === tomorrowsDateStr) {
-                    // if consult does not exists as an appointment
-                    // or if the consult that were checking has the same date as tomorrows consult
-                    // that means this is either the same consult, or the "consult" wasnt actually a visit
-                    continue;
-                }
-                lastConsultDateStr = consultDateStr;
-                break;
-                // else if we found an appointment, and its not the same date as tomorrows consult, use this date
-            }
-
-            if (lastConsultDateStr === undefined) {
-                // if we still havent found the date of a valid last consult,
-                // this actually is this animal's first time here
-                if (ownerHasBeenHereWithAnotherPatient) {
-                    const otherPetsString = otherAnimalNamesOfContact.join(', ');
-                    firstTimeHereCell.setValue(`O has been in with other pet(s): ${otherPetsString}\nfirst time for ${animal.name}`);
-                }
-                else firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
-            }
-            else { // we have confrimed the last consult
-                firstTimeHereCell.setValue(`last visit: ${lastConsultDateStr}`);
-            }
-        }
-
-        // else this is the only consult we have for this animal...
-        else if (ownerHasBeenHereWithAnotherPatient === false) {
+        if (firstTime) {
             firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
         }
-        else if (ownerHasBeenHereWithAnotherPatient === true) {
-            const otherPetsString = otherAnimalNamesOfContact.join(', ');
-            firstTimeHereCell.setValue(`O has brought other pets: ${otherPetsString}\nfirst time for ${animal.name}`);
+        else if (patientsLastVisitDate) {
+            firstTimeHereCell.setValue(`pt's last visit: ${patientsLastVisitDate}`);
         }
+        else if (itsPossibleTheyveBeenHereWithOtherPets) {
+            firstTimeHereCell.setValue(`first time for ${animal.name} but possible theyve been in with other pets...`)
+        }
+        // we still need to parse through otherAnimalConsults in fetchDataToCheckIfFirstTime()
 
         const recordsCell = range.offset(i, 4, 1, 1);
         records.link
