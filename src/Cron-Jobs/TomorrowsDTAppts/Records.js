@@ -28,36 +28,23 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         }
 
         const fileNameArray = [];
-        // const attachmentDownloadRequests = [];
-        // animalAttachments.forEach(({ attachment }) => {
-        //     attachmentDownloadRequests.push(
-        //         bodyForEzyVetGet(`${attachment.file_download_url}`)
-        //     );
-        //     fileNameArray.push(attachment.name);
-        // });
-        // consultAttachments.forEach(({ attachment }) => {
-        //     attachmentDownloadRequests.push(
-        //         bodyForEzyVetGet(`${attachment.file_download_url}`)
-        //     );
-        //     fileNameArray.push(attachment.name);
-        // });
-
         let attachmentDownloadResponses = [];
-        // try {
-        //     console.log(`downloading attachments for ${animalName}`);
-        //     attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
-        // }
-        // catch (error) {
-        //     console.error('error at attachment download fetches: ', error);
-        //     console.error('attachment download bodies: ', attachmentDownloadRequests);
-        //     console.error(`error^^ after trying to dl attachment for ${animalName}`);
-        // }
-
+        const downloadIDSet = new Set();
         for (const { attachment } of [...animalAttachments, ...consultAttachments]) {
-            fileNameArray.push(attachment.name);
+            const { name, file_download_url } = attachment;
+
+            const downloadID = file_download_url.split('/').at(-1);
+            if (downloadIDSet.has(downloadID)) {
+                // sometimes certain attachments will show up as both an animal attachment and a consult attachment.
+                // we dont want to process them twice
+                continue;
+            }
+            downloadIDSet.add(downloadID);
+
+            fileNameArray.push(name);
             let dlResp;
             try {
-                dlResp = UrlFetchApp.fetch(attachment.file_download_url, {
+                dlResp = UrlFetchApp.fetch(file_download_url, {
                     muteHttpExceptions: true,
                     method: "GET",
                     headers: {
@@ -68,7 +55,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
             }
             catch (error) {
                 console.error('error at attachment download fetches: ', error);
-                console.error('attachment name: ', attachment.name);
+                console.error('attachment name: ', name);
                 console.error(`error^^ after trying to dl attachment for ${animalName}`);
                 dlResp = undefined;
             }
