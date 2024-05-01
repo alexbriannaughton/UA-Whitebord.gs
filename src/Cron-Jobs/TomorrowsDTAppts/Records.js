@@ -84,7 +84,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         const url = mergedPDFDriveFile.getUrl();
         dtAppts[i].records = {
             link: url,
-            text: `${attachmentDownloadRequests.length} attachments`
+            text: `${numOfAttachments} attachments`
         };
     }
 }
