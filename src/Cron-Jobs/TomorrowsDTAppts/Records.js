@@ -28,29 +28,43 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         }
 
         const fileNameArray = [];
-        const attachmentDownloadRequests = [];
-        animalAttachments.forEach(({ attachment }) => {
-            attachmentDownloadRequests.push(
-                bodyForEzyVetGet(`${attachment.file_download_url}`)
-            );
-            fileNameArray.push(attachment.name);
-        });
-        consultAttachments.forEach(({ attachment }) => {
-            attachmentDownloadRequests.push(
-                bodyForEzyVetGet(`${attachment.file_download_url}`)
-            );
-            fileNameArray.push(attachment.name);
-        });
+        // const attachmentDownloadRequests = [];
+        // animalAttachments.forEach(({ attachment }) => {
+        //     attachmentDownloadRequests.push(
+        //         bodyForEzyVetGet(`${attachment.file_download_url}`)
+        //     );
+        //     fileNameArray.push(attachment.name);
+        // });
+        // consultAttachments.forEach(({ attachment }) => {
+        //     attachmentDownloadRequests.push(
+        //         bodyForEzyVetGet(`${attachment.file_download_url}`)
+        //     );
+        //     fileNameArray.push(attachment.name);
+        // });
 
         let attachmentDownloadResponses = [];
-        try {
-            console.log(`downloading attachments for ${animalName}`);
-            attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
-        }
-        catch (error) {
-            console.error('error at attachment download fetches: ', error);
-            console.error('attachment download bodies: ', attachmentDownloadRequests);
-            console.error(`error^^ after trying to dl attachment for ${animalName}`);
+        // try {
+        //     console.log(`downloading attachments for ${animalName}`);
+        //     attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
+        // }
+        // catch (error) {
+        //     console.error('error at attachment download fetches: ', error);
+        //     console.error('attachment download bodies: ', attachmentDownloadRequests);
+        //     console.error(`error^^ after trying to dl attachment for ${animalName}`);
+        // }
+
+        for (const { attachment } of [...animalAttachments, ...consultAttachments]) {
+            const body = bodyForEzyVetGet(`${attachment.file_download_url}`)
+            try {
+                attachmentDownloadResponses.push(
+                    UrlFetchApp.fetch(body)
+                );
+            }
+            catch (error) {
+                console.error('error at attachment download fetches: ', error);
+                console.error('attachment download body: ', body);
+                console.error(`error^^ after trying to dl attachment for ${animalName}`);
+            }
         }
 
         // Utilities.sleep(12000); // to comply with ezyVet's rate limiting
