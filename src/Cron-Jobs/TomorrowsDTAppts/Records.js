@@ -54,17 +54,25 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         // }
 
         for (const { attachment } of [...animalAttachments, ...consultAttachments]) {
-            const body = bodyForEzyVetGet(`${attachment.file_download_url}`)
+            let dlResp;
             try {
-                attachmentDownloadResponses.push(
-                    UrlFetchApp.fetch(body)
-                );
+                dlResp = UrlFetchApp.fetch(attachment.file_download_url, {
+                    muteHttpExceptions: true,
+                    method: "GET",
+                    headers: {
+                        authorization: token
+                    }
+                });
+
             }
             catch (error) {
                 console.error('error at attachment download fetches: ', error);
                 console.error('attachment download body: ', body);
                 console.error(`error^^ after trying to dl attachment for ${animalName}`);
+                dlResp = undefined;
             }
+
+            attachmentDownloadResponses.push(dlResp);
         }
 
         // Utilities.sleep(12000); // to comply with ezyVet's rate limiting
