@@ -42,7 +42,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
             fileNameArray.push(attachment.name);
         });
 
-        let attachmentDownloadResponses;
+        let attachmentDownloadResponses = [];
         try {
             console.log(`downloading attachments for ${animalName}`);
             attachmentDownloadResponses = UrlFetchApp.fetchAll(attachmentDownloadRequests);
