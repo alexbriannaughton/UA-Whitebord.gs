@@ -105,6 +105,10 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         const fileNameInEzyVet = fileNameArray[j];
 
         const response = attachmentDownloadResponses[j];
+        if (!response) {
+            handleDownloadError(mergedPDF, fileNameInEzyVet);
+            continue;
+        }
         const blob = response.getBlob();
         const contentType = blob.getContentType();
 
@@ -131,14 +135,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         else if (contentType === 'application/json') {
             const jsonData = JSON.parse(response.getContentText());
             console.log('JSON data:', jsonData);
-            const page = mergedPDF.addPage();
-            const fontSize = 16;
-            page.setFontSize(fontSize);
-            const textY = page.getHeight() - 50;
-            page.drawText(
-                `Error downloading the attachment called "${fileNameInEzyVet}"`,
-                { y: textY }
-            );
+            handleDownloadError(mergedPDF, fileNameInEzyVet);
         }
     }
 
@@ -146,6 +143,17 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
     const bytes = await mergedPDF.save();
     console.log(`saved pdf for ${animalName}`)
     return bytes;
+}
+
+function handleDownloadError(mergedPDF, fileNameInEzyVet) {
+    const page = mergedPDF.addPage();
+    const fontSize = 16;
+    page.setFontSize(fontSize);
+    const textY = page.getHeight() - 50;
+    page.drawText(
+        `Error downloading the attachment called "${fileNameInEzyVet}"`,
+        { y: textY }
+    );
 }
 
 function driveFolderProcessing(tomorrowsDateStr) {
