@@ -54,6 +54,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         // }
 
         for (const { attachment } of [...animalAttachments, ...consultAttachments]) {
+            fileNameArray.push(attachment.name);
             let dlResp;
             try {
                 dlResp = UrlFetchApp.fetch(attachment.file_download_url, {
@@ -67,7 +68,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
             }
             catch (error) {
                 console.error('error at attachment download fetches: ', error);
-                console.error('attachment download body: ', body);
+                console.error('attachment name: ', attachment.name);
                 console.error(`error^^ after trying to dl attachment for ${animalName}`);
                 dlResp = undefined;
             }
