@@ -45,10 +45,10 @@ async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
     const ezyVetFolder = driveFolderProcessing(tomorrowsDateStr);
     const consultAttachmentData = secondRoundOfFetches(dtAppts); // prescription items, other animals of contact
     await processRecords(animalAttachmentData, consultAttachmentData, dtAppts, ezyVetFolder)
-    fetchDataToCheckIfFirstTimeClient(dtAppts);
+    fetchDataToCheckIfFirstTimeClient(dtAppts, tomorrowsDateStr);
 }
 
-function fetchDataToCheckIfFirstTimeClient(dtAppts) {
+function fetchDataToCheckIfFirstTimeClient(dtAppts, tomorrowsDateStr) {
     const consultsForOtherContactAnimalsRequests = [];
     const fetchedForOtherAnimalConsultsArray = [];
     // first check if this patient has previous valid consults
@@ -164,8 +164,8 @@ function firstRoundOfFetches(dtAppts) {
             encodedConsultIDs,
             prescriptions,
             prescriptionIDs,
-            animal: animalData[i].at(-1),
-            contact: contactData[i].at(-1),
+            animal: animalData[i].at(-1).animal,
+            contact: contactData[i].at(-1).contact,
 
         }
         dtAppts[i] = { ...dtAppts[i], ...newApptData };
@@ -206,8 +206,6 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
 
         const consultAttachments = consultAttachmentData[i];
         const animalAttachments = animalAttachmentData[i];
-        console.log(`${animalName} animal attachments:`, animalAttachments);
-        console.log(`${animalName} consult attachments:`, consultAttachments);
         const numOfAttachments = animalAttachments.length + consultAttachments.length;
         console.log(`${animalName} total num of attachments:`, numOfAttachments);
 
