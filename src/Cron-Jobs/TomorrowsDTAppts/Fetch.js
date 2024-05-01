@@ -1,3 +1,4 @@
+// Fetch.js
 function fetchDataToCheckIfFirstTimeClient(dtAppts, tomorrowsDateStr) {
     const consultsForOtherContactAnimalsRequests = [];
     const fetchedForOtherAnimalConsultsArray = [];
