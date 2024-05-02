@@ -91,13 +91,17 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
 
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
         const fileNameInEzyVet = fileNameArray[j];
-
+        console.log(`processing ${fileNameInEzyVet}...`);
         const response = attachmentDownloadResponses[j];
-        if (!response) {
+        let blob;
+        try {
+            blob = response.getBlob();
+        }
+        catch (error) {
+            console.error(`error getting blob for ${fileNameInEzyVet}:`, error);
             handleDownloadError(mergedPDF, fileNameInEzyVet);
             continue;
         }
-        const blob = response.getBlob();
         const contentType = blob.getContentType();
 
         console.log(`${fileNameInEzyVet} file type: ${contentType}`);
@@ -128,16 +132,20 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
             page.drawImage(image);
         }
 
+        // attachments should not be coming as json
         else if (contentType === 'application/json') {
             const jsonData = JSON.parse(response.getContentText());
-            console.log('JSON data:', jsonData);
+            console.error(`JSON data received for ${fileNameInEzyVet}:`, jsonData);
             handleDownloadError(mergedPDF, fileNameInEzyVet);
+            continue; // just so we can avoid hitting the next console log
         }
+
+        console.log(`successfully processed ${fileNameInEzyVet}!`);
     }
 
     console.log(`saving .pdf for ${animalName}...`);
     const bytes = await mergedPDF.save();
-    console.log(`saved pdf for ${animalName}`)
+    console.log(`saved pdf for ${animalName}!`)
     return bytes;
 }
 
@@ -168,7 +176,7 @@ function driveFolderProcessing(tomorrowsDateStr) {
 
     console.log(`creating new drive folder for ${tomorrowsDateStr}...`);
     const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + tomorrowsDateStr);
-    ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.EDIT);
+    ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
     return ezyVetFolder;
 }

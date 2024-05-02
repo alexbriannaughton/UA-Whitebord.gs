@@ -1,6 +1,6 @@
 // Index.js
 const highPriorityColor = '#ffff00';
-
+// getTomorrowsDTAppts is the main function for the job
 async function getTomorrowsDTAppts() {
     console.log('running getTomrrowsDTAppts job...');
     const [tomorrowStart, tomorrowEnd] = epochRangeForTomorrow();
