@@ -312,7 +312,7 @@ function deleteFromWaitlist(location, consultID) {
 }
 
 function roomIsOkToPopulateWithData(roomValues, location) {
-  // DT requests to be allowed to populate a room while there is something 'in the room' on whiteboard
+  // DT requests to be allowed to populate a room while there is data 'in the room' on whiteboard
   return location === 'DT'
     ? roomValues[1].every(cellIsEmpty)
     : roomValues.every(roomVal => roomVal.every(cellIsEmpty));

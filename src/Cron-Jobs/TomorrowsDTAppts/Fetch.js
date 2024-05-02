@@ -72,7 +72,7 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, tomorrowsDateStr) {
             dtAppts[i].firstTime = true;
             continue;
         }
-        
+
         // otherwise we need to parse through otherAnimalConsults to decide if theyve been here with another pet
         dtAppts[i].itsPossibleTheyveBeenHereWithOtherPets = true;
 
@@ -135,33 +135,48 @@ function bodyForEzyVetGet(url) {
     }
 };
 
+function handleRespsForFetchAll(responses, outputItems, resourceName, requests) {
+    for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
+        const contentText = response.getContentText();
+        const data = jsonParser(contentText);
+
+        if (!data || response.getResponseCode() !== 200) {
+            console.error(`Content text for error at index ${i} fetching ${resourceName} data:`, contentText);
+            console.error(`All ${resourceName} Requests:`, requests);
+            outputItems = [];
+            break;
+        }
+
+        outputItems.push(data.items);
+    }
+}
+
 function fetchAllResponses(requests, resourceName) {
     let outputItems = [];
 
     try {
         console.log(`getting all ${resourceName} data...`);
         const responses = UrlFetchApp.fetchAll(requests);
-
-        for (let i = 0; i < responses.length; i++) {
-            const response = responses[i];
-            const contentText = response.getContentText();
-            const data = jsonParser(contentText);
-
-            if (!data || response.getResponseCode() !== 200) {
-                console.error(`Content text for error at index ${i} fetching ${resourceName} data:`, contentText);
-                console.error(`All ${resourceName} Requests:`, requests);
-                outputItems = [];
-                break;
-            }
-
-            outputItems.push(data.items);
-        }
+        handleRespsForFetchAll(responses, outputItems, resourceName, requests);
     }
 
     catch (error) {
         console.error(`Error fetching ${resourceName} data:`, error);
-        console.error(`${resourceName} Requests:`, requests);
-        outputItems = [];
+        console.error(`${resourceName} Requests:`);
+        requests.forEach(req => console.error(req));
+
+        if (error.message?.toLowerCase().includes('url length')) {
+            try {
+                console.log(`second try getting ${resourceName} data after url length error...`)
+                const responses = UrlFetchApp.fetchAll(requests);
+                handleRespsForFetchAll(responses, outputItems, resourceName, requests);
+            }
+            catch (error) {
+                console.error('error at second try after url length error: ', error);
+                outputItems = [];
+            }
+        }
     }
 
     return outputItems;
