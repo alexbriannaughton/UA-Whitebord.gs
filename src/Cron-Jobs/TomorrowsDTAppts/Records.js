@@ -105,7 +105,15 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         const blobByes = new Uint8Array(blob.getBytes());
 
         if (contentType === 'application/pdf') {
-            const pdfData = await PDFLib.PDFDocument.load(blobByes);
+            let pdfData;
+            try {
+                pdfData = await PDFLib.PDFDocument.load(blobByes);
+            }
+            catch (error) {
+                console.error(`error loading ${fileNameInEzyVet} with PDFLib: `, error);
+                handleDownloadError(mergedPDF, fileNameInEzyVet);
+                continue;
+            }
             const pages = await mergedPDF.copyPages(
                 pdfData,
                 Array(pdfData.getPageCount()).fill().map((_, ind) => ind)
