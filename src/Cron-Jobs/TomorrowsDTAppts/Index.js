@@ -40,11 +40,15 @@ function filterAndSortDTAppts(allOfTomorrowsAppts) {
     // .slice(0, 3); // slicing for dev
 };
 
-// get data from all endpoints that we care about that are associated with each appointment
+// fetch data from all endpoints that we care about that are associated with each appointment
 async function getAllEzyVetData(dtAppts, tomorrowsDateStr) {
-    const animalAttachmentData = firstRoundOfFetches(dtAppts); // animal, contact, consults for animal, prescriptions
+    // for every dt appointment, get associated data from the following endpoints:
+    // animal, contact, consults for animal, prescriptions, attachments based on animal id
+    const animalAttachmentData = firstRoundOfFetches(dtAppts);
     const ezyVetFolder = driveFolderProcessing(tomorrowsDateStr);
-    const consultAttachmentData = secondRoundOfFetches(dtAppts); // prescription items, other animals of contact
+    // get more data for every appointment for the following endponts:
+    // prescription items, other animals of contact, attachments based on all of the animal's consults
+    const consultAttachmentData = secondRoundOfFetches(dtAppts);
     await processRecords(animalAttachmentData, consultAttachmentData, dtAppts, ezyVetFolder)
     fetchDataToCheckIfFirstTimeClient(dtAppts, tomorrowsDateStr);
 }
