@@ -101,8 +101,7 @@ function parseTheRoom(
 
   const roomValues = roomRange.getValues();
 
-  // if the room's cells are not fully blank,
-  if (!roomIsEmpty(roomValues)) {
+  if (!roomIsOkToPopulateWithData(roomValues, location)) {
     const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
 
     // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
@@ -312,6 +311,9 @@ function deleteFromWaitlist(location, consultID) {
   return;
 }
 
-function roomIsEmpty(roomValues) {
-  return roomValues.every(roomVal => roomVal.every(cellContents => !cellContents || /^\s*$/.test(cellContents)));
+function roomIsOkToPopulateWithData(roomValues, location) {
+  // DT requests to be allowed to populate a room while there is data 'in the room' on whiteboard
+  return location === 'DT'
+    ? roomValues[1].every(cellIsEmpty)
+    : roomValues.every(roomVal => roomVal.every(cellIsEmpty));
 }
