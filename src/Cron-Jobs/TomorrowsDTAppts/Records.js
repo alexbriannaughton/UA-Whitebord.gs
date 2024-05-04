@@ -166,16 +166,16 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) 
     );
     page.drawText(
         `"${fileNameInEzyVet}"`,
-        { y: pageHeight - 40 }
+        { y: pageHeight - 65 }
     );
     page.drawText(
         `investigate by going to ${animalName}'s attachments tab:`,
-        { y: pageHeight - 30 }
+        { y: pageHeight - 80 }
     );
     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
     page.drawText(
         animalURL,
-        { y: pageHeight - 20 }
+        { y: pageHeight - 95 }
     );
 
 
