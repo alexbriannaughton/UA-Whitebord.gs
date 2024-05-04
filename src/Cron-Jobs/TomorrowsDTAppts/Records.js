@@ -173,10 +173,10 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) 
         { y: pageHeight - 90 }
     );
     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
-    const color = '0000FF'; // blue link a link
+    const blueColor = { type: 'RGB', red: 0, green: 0, blue: 1 };
     page.drawText(
         animalURL,
-        { y: pageHeight - 110, color }
+        { y: pageHeight - 110, color: blueColor }
     );
 }
 
