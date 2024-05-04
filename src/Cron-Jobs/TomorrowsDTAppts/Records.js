@@ -23,7 +23,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         }
         if (numOfAttachments < 1) {
             dtAppts[i].records = {
-                text: 'no',
+                text: 'no attachments',
                 highPriority: true
             };
             continue;
@@ -65,10 +65,15 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
             attachmentDownloadResponses.push(dlResp);
         }
 
-        // Utilities.sleep(12000); // to comply with ezyVet's rate limiting
         console.log(`initializing .pdf for ${animalName}...`);
         const mergedPDF = await PDFLib.PDFDocument.create();
-        const pdfBytes = await buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName);
+        const pdfBytes = await buildPDF(
+            attachmentDownloadResponses,
+            fileNameArray,
+            mergedPDF,
+            animalName,
+            dtAppts[i].animal.id
+        );
 
         console.log(`creating file in drive for ${animalName}'s .pdf`);
         const mergedPDFDriveFile = ezyVetFolder.createFile(
@@ -87,7 +92,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
     }
 }
 
-async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName) {
+async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName, animalID) {
     console.log(`building pdf for ${animalName}...`);
 
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
@@ -100,7 +105,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         }
         catch (error) {
             console.error(`error getting blob for ${fileNameInEzyVet}:`, error);
-            handleDownloadError(mergedPDF, fileNameInEzyVet);
+            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID);
             continue;
         }
         const contentType = blob.getContentType();
@@ -116,7 +121,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
             }
             catch (error) {
                 console.error(`error loading ${fileNameInEzyVet} with PDFLib: `, error);
-                handleDownloadError(mergedPDF, fileNameInEzyVet);
+                handleDownloadError(mergedPDF, fileNameInEzyVet, animalID);
                 continue;
             }
             const pages = await mergedPDF.copyPages(
@@ -137,7 +142,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         else if (contentType === 'application/json') {
             const jsonData = JSON.parse(response.getContentText());
             console.error(`JSON data received for ${fileNameInEzyVet}:`, jsonData);
-            handleDownloadError(mergedPDF, fileNameInEzyVet);
+            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID);
             continue; // just so we can avoid hitting the next console log
         }
 
@@ -150,7 +155,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
     return bytes;
 }
 
-function handleDownloadError(mergedPDF, fileNameInEzyVet) {
+function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID) {
     const page = mergedPDF.addPage();
     const fontSize = 16;
     page.setFontSize(fontSize);
@@ -159,6 +164,33 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet) {
         `Error downloading the attachment called "${fileNameInEzyVet}"`,
         { y: textY }
     );
+
+    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
+    page.drawText('animal name here', { size: 50, x: 175, y: PAGE_HEIGHT - 100 });
+    const link = createPageLinkAnnotation(mergedPDF, animalURL);
+    page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([link]));
+}
+
+function makePdfLink(pdfDoc, url) {
+    pdfDoc.context.register(
+        pdfDoc.context.obj({
+            Type: 'Annot',
+            Subtype: 'Link',
+            /* Bounds of the link on the page */
+            Rect: [
+                145, // lower left x coord
+                PAGE_HEIGHT - 200 - 10, // lower left y coord
+                358, // upper right x coord
+                PAGE_HEIGHT - 200 + 25, // upper right y coord
+            ],
+            /* Give the link a 2-unit-wide border, with sharp corners */
+            Border: [0, 0, 2],
+            /* Make the border color blue: rgb(0, 0, 1) */
+            C: [0, 0, 1],
+            /* Page to be visited when the link is clicked */
+            Dest: [url, 'XYZ', null, null, null],
+        })
+    )
 }
 
 function driveFolderProcessing(targetDateStr) {

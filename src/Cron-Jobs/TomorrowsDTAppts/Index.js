@@ -1,6 +1,6 @@
 // Index.js
 // main is the main function for the job that grabs the next day of dt appointments
-async function main() {
+async function dtJobMain() {
     console.log('running getTomrrowsDTAppts job...');
     const  { dtAppts, targetDateStr, targetDayOfWeekString } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);

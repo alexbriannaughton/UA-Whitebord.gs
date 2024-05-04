@@ -58,7 +58,7 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr, dayOfWeekString) {
             firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
         }
         else if (patientsLastVisitDate) {
-            firstTimeHereCell.setValue(`pt's last visit: ${patientsLastVisitDate}`);
+            firstTimeHereCell.setValue(`${animal.name}'s last visit: ${patientsLastVisitDate}`);
         }
         else if (itsPossibleTheyveBeenHereWithOtherPets) {
             firstTimeHereCell.setValue(`first time for ${animal.name} but possible theyve been in with other pets...`)
