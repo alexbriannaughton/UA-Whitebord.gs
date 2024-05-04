@@ -29,13 +29,21 @@ function convertEpochToUserTimezoneDate(epoch) {
     );
 }
 
-function epochRangeForTomorrow() {
+function convertEpochToUserTimezoneDayOfWeek(epoch) {
+    return Utilities.formatDate(
+        new Date(epoch * 1000),
+        userTimezone,
+        'EEEE'
+    );
+}
+
+function epochRangeForFutureDay(numOfDaysFromToday) {
     const now = new Date().toLocaleString("en-US", { timeZone: userTimezone });
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1); // Move to tomorrow
-    const tomorrowStart = Math.floor(tomorrow.setHours(0, 0, 0, 0) / 1000);
-    const tomorrowEnd = Math.floor(tomorrow.setHours(23, 59, 59, 999) / 1000);
-    return [tomorrowStart, tomorrowEnd];
+    const targetDay = new Date(now);
+    targetDay.setDate(targetDay.getDate() + numOfDaysFromToday); // Move to targetDay
+    const targetDayStart = Math.floor(targetDay.setHours(0, 0, 0, 0) / 1000);
+    const targetDayEnd = Math.floor(targetDay.setHours(23, 59, 59, 999) / 1000);
+    return [targetDayStart, targetDayEnd];
 }
 
 function getTodayRange() {

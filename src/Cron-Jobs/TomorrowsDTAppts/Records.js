@@ -1,5 +1,6 @@
 // Records.js
 async function processRecords(animalAttachmentData, consultAttachmentData, dtAppts, ezyVetFolder) {
+    console.log('processing all records...')
     const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
     console.log('loading PDFLib...');
     eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
@@ -22,7 +23,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         }
         if (numOfAttachments < 1) {
             dtAppts[i].records = {
-                text: 'no',
+                text: 'no attachments',
                 highPriority: true
             };
             continue;
@@ -64,10 +65,15 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
             attachmentDownloadResponses.push(dlResp);
         }
 
-        // Utilities.sleep(12000); // to comply with ezyVet's rate limiting
         console.log(`initializing .pdf for ${animalName}...`);
         const mergedPDF = await PDFLib.PDFDocument.create();
-        const pdfBytes = await buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName);
+        const pdfBytes = await buildPDF(
+            attachmentDownloadResponses,
+            fileNameArray,
+            mergedPDF,
+            animalName,
+            dtAppts[i].animal.id
+        );
 
         console.log(`creating file in drive for ${animalName}'s .pdf`);
         const mergedPDFDriveFile = ezyVetFolder.createFile(
@@ -86,7 +92,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
     }
 }
 
-async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName) {
+async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName, animalID) {
     console.log(`building pdf for ${animalName}...`);
 
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
@@ -99,7 +105,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         }
         catch (error) {
             console.error(`error getting blob for ${fileNameInEzyVet}:`, error);
-            handleDownloadError(mergedPDF, fileNameInEzyVet);
+            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
             continue;
         }
         const contentType = blob.getContentType();
@@ -115,7 +121,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
             }
             catch (error) {
                 console.error(`error loading ${fileNameInEzyVet} with PDFLib: `, error);
-                handleDownloadError(mergedPDF, fileNameInEzyVet);
+                handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
                 continue;
             }
             const pages = await mergedPDF.copyPages(
@@ -136,7 +142,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         else if (contentType === 'application/json') {
             const jsonData = JSON.parse(response.getContentText());
             console.error(`JSON data received for ${fileNameInEzyVet}:`, jsonData);
-            handleDownloadError(mergedPDF, fileNameInEzyVet);
+            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
             continue; // just so we can avoid hitting the next console log
         }
 
@@ -149,18 +155,34 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
     return bytes;
 }
 
-function handleDownloadError(mergedPDF, fileNameInEzyVet) {
+function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) {
     const page = mergedPDF.addPage();
     const fontSize = 16;
     page.setFontSize(fontSize);
-    const textY = page.getHeight() - 50;
+    const pageHeight = page.getHeight();
+    // line 1:
     page.drawText(
-        `Error downloading the attachment called "${fileNameInEzyVet}"`,
-        { y: textY }
+        `Error downloading the attachment called`,
+        { y: pageHeight - 50 }
     );
+    // line 2:
+    page.drawText(
+        `"${fileNameInEzyVet}"`,
+        { y: pageHeight - 70 }
+    );
+    // line 3:
+    page.drawText(
+        `investigate by going to ${animalName}'s attachments tab:`,
+        { y: pageHeight - 90 }
+    );
+    // line 4:
+    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
+    const color = { type: 'RGB', red: 0, green: 0, blue: 1 }; // make the link blue
+    const linkTextOptions = { y: pageHeight - 110, color }
+    page.drawText(animalURL, linkTextOptions);
 }
 
-function driveFolderProcessing(tomorrowsDateStr) {
+function driveFolderProcessing(targetDateStr) {
     const folderNamePrefix = 'ezyVet-attachments-';
     console.log('getting drive folders...');
     const rootFolders = DriveApp.getFolders();
@@ -174,8 +196,8 @@ function driveFolderProcessing(tomorrowsDateStr) {
         }
     }
 
-    console.log(`creating new drive folder for ${tomorrowsDateStr}...`);
-    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + tomorrowsDateStr);
+    console.log(`creating new drive folder for ${targetDateStr}...`);
+    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + targetDateStr);
     ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
     return ezyVetFolder;

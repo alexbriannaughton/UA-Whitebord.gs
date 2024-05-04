@@ -10,6 +10,8 @@ function handleAppointment(webhookType, appointment) {
     // below here is for this script
     if (!isTodayInUserTimezone(appointment.start_at) || !appointment.active) return;
 
+    appointment.description = removeVetstoriaDescriptionText(appointment.description);
+
     // if it has a room status (no matter the webhookType), move it to a room
     if (isRoomStatus(appointment.status_id)) {
         return moveToRoom(appointment);
