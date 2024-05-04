@@ -105,7 +105,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         }
         catch (error) {
             console.error(`error getting blob for ${fileNameInEzyVet}:`, error);
-            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID);
+            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
             continue;
         }
         const contentType = blob.getContentType();
@@ -121,7 +121,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
             }
             catch (error) {
                 console.error(`error loading ${fileNameInEzyVet} with PDFLib: `, error);
-                handleDownloadError(mergedPDF, fileNameInEzyVet, animalID);
+                handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
                 continue;
             }
             const pages = await mergedPDF.copyPages(
@@ -142,7 +142,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         else if (contentType === 'application/json') {
             const jsonData = JSON.parse(response.getContentText());
             console.error(`JSON data received for ${fileNameInEzyVet}:`, jsonData);
-            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID);
+            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
             continue; // just so we can avoid hitting the next console log
         }
 
@@ -155,43 +155,30 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
     return bytes;
 }
 
-function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID) {
+function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) {
     const page = mergedPDF.addPage();
     const fontSize = 16;
     page.setFontSize(fontSize);
     const pageHeight = page.getHeight();
-    const textY = pageHeight - 50;
     page.drawText(
-        `Error downloading the attachment called "${fileNameInEzyVet}"`,
-        { y: textY }
+        `Error downloading the attachment called`,
+        { y: pageHeight - 50 }
+    );
+    page.drawText(
+        `"${fileNameInEzyVet}"`,
+        { y: pageHeight - 40 }
+    );
+    page.drawText(
+        `investigate by going to ${animalName}'s attachments tab:`,
+        { y: pageHeight - 30 }
+    );
+    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
+    page.drawText(
+        animalURL,
+        { y: pageHeight - 20 }
     );
 
-    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
-    page.drawText('animal name here', { size: 50, x: 175, y: pageHeight - 100 });
-    const link = makePdfLink(mergedPDF, animalURL, pageHeight);
-    page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([link]));
-}
 
-function makePdfLink(pdfDoc, url, pageHeight) {
-    pdfDoc.context.register(
-        pdfDoc.context.obj({
-            Type: 'Annot',
-            Subtype: 'Link',
-            /* Bounds of the link on the page */
-            Rect: [
-                145, // lower left x coord
-                pageHeight - 200 - 10, // lower left y coord
-                358, // upper right x coord
-                pageHeight - 200 + 25, // upper right y coord
-            ],
-            /* Give the link a 2-unit-wide border, with sharp corners */
-            Border: [0, 0, 2],
-            /* Make the border color blue: rgb(0, 0, 1) */
-            C: [0, 0, 1],
-            /* Page to be visited when the link is clicked */
-            Dest: [url, 'XYZ', null, null, null],
-        })
-    )
 }
 
 function driveFolderProcessing(targetDateStr) {
