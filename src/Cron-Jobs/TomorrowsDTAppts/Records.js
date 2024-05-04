@@ -173,7 +173,7 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) 
         { y: pageHeight - 90 }
     );
     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
-    const color = [0, 0, 1]; // blue link a link
+    const color = '0000FF'; // blue link a link
     page.drawText(
         animalURL,
         { y: pageHeight - 110, color }
