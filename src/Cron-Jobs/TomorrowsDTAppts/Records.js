@@ -160,20 +160,24 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) 
     const fontSize = 16;
     page.setFontSize(fontSize);
     const pageHeight = page.getHeight();
+    // line 1:
     page.drawText(
         `Error downloading the attachment called`,
         { y: pageHeight - 50 }
     );
+    // line 2:
     page.drawText(
         `"${fileNameInEzyVet}"`,
         { y: pageHeight - 70 }
     );
+    // line 3:
     page.drawText(
         `investigate by going to ${animalName}'s attachments tab:`,
         { y: pageHeight - 90 }
     );
+    // line 4:
     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
-    const color = { type: 'RGB', red: 0, green: 0, blue: 1 }; // blue
+    const color = { type: 'RGB', red: 0, green: 0, blue: 1 }; // make the link blue
     const linkTextOptions = { y: pageHeight - 110, color }
     page.drawText(animalURL, linkTextOptions);
 }

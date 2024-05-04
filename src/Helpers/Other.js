@@ -97,3 +97,12 @@ function getLinkFromRuns(runs) {
 function cellIsEmpty(cellContents) {
   return !cellContents || /^\s*$/.test(cellContents)
 }
+
+function removeVetstoriaDescriptionText(descriptionString) {
+  if (descriptionString.startsWith('VETSTORIA')) {
+    const itemsInParentheses = descriptionString.match(/\((.*?)\)/g);
+    const lastItem = itemsInParentheses.at(-1);
+    descriptionString = lastItem.slice(1, -1); // remove parentheses
+  }
+  return descriptionString
+}

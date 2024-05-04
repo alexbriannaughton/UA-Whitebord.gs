@@ -27,12 +27,7 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr, dayOfWeekString) {
         timeCell.setValue(time);
 
         const reasonCell = range.offset(i, 2, 1, 1);
-        let descriptionString = appointment.details.description;
-        if (descriptionString.startsWith('VETSTORIA')) {
-            const itemsInParentheses = descriptionString.match(/\((.*?)\)/g);
-            const lastItem = itemsInParentheses.at(-1);
-            descriptionString = lastItem.slice(1, -1); // remove parentheses
-        }
+        const descriptionString = removeVetstoriaDescriptionText(appointment.details.description)
         reasonCell.setValue(descriptionString);
 
 
