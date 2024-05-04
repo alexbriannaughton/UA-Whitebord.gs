@@ -100,9 +100,10 @@ function cellIsEmpty(cellContents) {
 
 function removeVetstoriaDescriptionText(descriptionString) {
   if (descriptionString.startsWith('VETSTORIA')) {
-    const itemsInParentheses = descriptionString.match(/\((.*?)\)/g);
-    const lastItem = itemsInParentheses.at(-1);
-    descriptionString = lastItem.slice(1, -1); // remove parentheses
+    descriptionString = descriptionString
+      .match(/\((.*?)\)/g) // array of all the text enclosed in parentheses
+      .at(-1) // last item
+      .slice(1, -1); // remove parentheses
   }
-  return descriptionString
+  return descriptionString;
 }
