@@ -2,8 +2,8 @@
 const highPriorityColor = '#ffff00'; // for highlighting certain items in yellow
 
 function putDataOnSheet(dtAppts, range, tomorrowsDateStr, dayOfWeekString) {
-    const dateCell = range.offset(-2, 0, 1, 1);
-    dateCell.setValue(`${dayOfWeekString} ${tomorrowsDateStr}`);
+    range.offset(-2, 0, 1, 1).setValue(dayOfWeekString);
+    range.offset(-2, 1, 1, 1).setValue(tomorrowsDateStr);
 
     for (let i = 0; i < dtAppts.length; i++) {
         const {
