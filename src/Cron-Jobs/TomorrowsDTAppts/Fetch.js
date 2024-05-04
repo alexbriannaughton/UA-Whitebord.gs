@@ -1,5 +1,5 @@
 // Fetch.js
-function fetchDataToCheckIfFirstTimeClient(dtAppts, tomorrowsDateStr) {
+function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
     const consultsForOtherContactAnimalsRequests = [];
     const fetchedForOtherAnimalConsultsMap = [];
     // ^^ this map is an array of booleans where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
@@ -16,15 +16,15 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, tomorrowsDateStr) {
             consults.sort((a, b) => b.consult.date - a.consult.date);
             const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
             for (const { consult } of consults) {
-                const apptForThisConsult = appts.find(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
                 // if the consult does not have an appointment, it is probably not an actual visit
                 // e.g. a fecal drop off will sometimes have a consult and not a visit, and we dont want to count that as a visit.
-                const consultDoesNotHaveAppointment = apptForThisConsult === undefined;
+                const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
+
                 const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
-                if (consultDoesNotHaveAppointment || consultDateStr === tomorrowsDateStr) {
-                    // if consult does not exists as an appointment
+                if (!consultHasAppointment || consultDateStr === targetDateStr) {
+                    // if consult does not have an appointment
                     // or if the consult that were checking has the same date as tomorrows consult
-                    // that means this is either the same consult, or the "consult" wasnt actually a visit, or its a double
+                    // that means this is either the same consult, or the "consult" wasnt actually a visit
                     // if these are true, we dont want to count this visit as the previous visit, so move on to the next consult
                     continue;
                 }

@@ -1,5 +1,6 @@
 // Records.js
 async function processRecords(animalAttachmentData, consultAttachmentData, dtAppts, ezyVetFolder) {
+    console.log('processing all records...')
     const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
     console.log('loading PDFLib...');
     eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
@@ -160,7 +161,7 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet) {
     );
 }
 
-function driveFolderProcessing(tomorrowsDateStr) {
+function driveFolderProcessing(targetDateStr) {
     const folderNamePrefix = 'ezyVet-attachments-';
     console.log('getting drive folders...');
     const rootFolders = DriveApp.getFolders();
@@ -174,8 +175,8 @@ function driveFolderProcessing(tomorrowsDateStr) {
         }
     }
 
-    console.log(`creating new drive folder for ${tomorrowsDateStr}...`);
-    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + tomorrowsDateStr);
+    console.log(`creating new drive folder for ${targetDateStr}...`);
+    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + targetDateStr);
     ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
     return ezyVetFolder;
