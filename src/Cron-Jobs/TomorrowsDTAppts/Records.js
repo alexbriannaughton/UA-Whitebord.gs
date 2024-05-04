@@ -159,19 +159,20 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID) {
     const page = mergedPDF.addPage();
     const fontSize = 16;
     page.setFontSize(fontSize);
-    const textY = page.getHeight() - 50;
+    const pageHeight = page.getHeight();
+    const textY = pageHeight - 50;
     page.drawText(
         `Error downloading the attachment called "${fileNameInEzyVet}"`,
         { y: textY }
     );
 
     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
-    page.drawText('animal name here', { size: 50, x: 175, y: PAGE_HEIGHT - 100 });
-    const link = createPageLinkAnnotation(mergedPDF, animalURL);
+    page.drawText('animal name here', { size: 50, x: 175, y: pageHeight - 100 });
+    const link = makePdfLink(mergedPDF, animalURL, pageHeight);
     page.node.set(PDFName.of('Annots'), pdfDoc.context.obj([link]));
 }
 
-function makePdfLink(pdfDoc, url) {
+function makePdfLink(pdfDoc, url, pageHeight) {
     pdfDoc.context.register(
         pdfDoc.context.obj({
             Type: 'Annot',
@@ -179,9 +180,9 @@ function makePdfLink(pdfDoc, url) {
             /* Bounds of the link on the page */
             Rect: [
                 145, // lower left x coord
-                PAGE_HEIGHT - 200 - 10, // lower left y coord
+                pageHeight - 200 - 10, // lower left y coord
                 358, // upper right x coord
-                PAGE_HEIGHT - 200 + 25, // upper right y coord
+                pageHeight - 200 + 25, // upper right y coord
             ],
             /* Give the link a 2-unit-wide border, with sharp corners */
             Border: [0, 0, 2],
