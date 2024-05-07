@@ -4,7 +4,7 @@ const highPriorityColor = '#ffff00'; // for highlighting certain items in yellow
 function putDataOnSheet(dtAppts, range, targetDateStr) {
     const dateCell = range.offset(-2, 0, 1, 1);
     dateCell.setValue(
-        `Next day appointments for${targetDateStr}`
+        `Next day appointments for ${targetDateStr}`
     );
 
     for (let i = 0; i < dtAppts.length; i++) {
@@ -57,7 +57,9 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             firstTimeHereCell.setValue(`${animal.name}'s last visit: ${patientsLastVisitDate}`);
         }
         else if (otherAnimalsWhoHaveBeenHere) {
-            firstTimeHereCell.setValue(`first time for ${animal.name} but owner has been in with ${otherAnimalsWhoHaveBeenHere}`);
+            firstTimeHereCell
+                .setValue(`first time for ${animal.name} but owner has been in with ${otherAnimalsWhoHaveBeenHere}`)
+                .setBackground(highPriorityColor);
         }
         else console.error(`first time here cell data not found for ${animal.name} ${contact.last_name}`);
 
