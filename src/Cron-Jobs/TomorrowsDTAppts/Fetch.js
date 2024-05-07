@@ -1,52 +1,10 @@
 // Fetch.js
 function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
-    const consultsForOtherContactAnimalsRequests = [];
-    const fetchedForOtherAnimalConsultsMap = [];
-    // ^^ this map is an array of booleans where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
     const targetDate = new Date(targetDateStr.split(' ')[1]);
-
-    // first check if this patient has previous valid consults
-    // if so, were just going to put that last date of this patients visit, and we're not going to check if they have other animals who have had consults
-    for (let i = 0; i < dtAppts.length; i++) {
-        const { appointment, consults, otherAnimalsOfContact, encodedConsultIDs } = dtAppts[i];
-        // note: appointments created through vetstoria do not have an consult, but we want to count it for this
-        const apptHasConsult = appointment.details.consult_id; // check for existence of appointment's consult
-        const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
-        if (numberOfConsults > 1) { // if the animal has potentially been here before..
-            consults.sort((a, b) => b.consult.date - a.consult.date);
-            const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
-            for (const { consult } of consults) {
-                // if the consult does not have an appointment, it is probably not an actual visit
-                // e.g. a fecal drop off will sometimes have a consult and not a visit, and we dont want to count that as a visit.
-                const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
-                const consultDate = getDateAtMidnight(consult.date);
-                if (consultHasAppointment && consultDate < targetDate) {
-                    // then we have confirmed a valid last consult for this patient
-                    const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
-                    dtAppts[i].patientsLastVisitDate = consultDateStr;
-                    break;
-                }
-                // if consult does not have an appointment
-                // or if this consult has the same date or is further in the future than the original appt we are comparing to
-                // that means we dont want to count this visit as the previous visit, so move on to the next consult
-            }
-        }
-
-        const isAnimalsFirstTime = dtAppts[i].patientsLastVisitDate === undefined;
-
-        // if we were unable to find a valid previous visit for this animal, and the owner has other pets,
-        // we're going to fetch for those animals' consults
-        if (isAnimalsFirstTime && otherAnimalsOfContact.length) {
-            const otherAnimalIDsOfContact = otherAnimalsOfContact.map(({ animal }) => animal.id);
-            const encodedOtherAnimalIDs = encodeURIComponent(JSON.stringify({ "in": otherAnimalIDsOfContact }));
-            consultsForOtherContactAnimalsRequests.push(
-                bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animal_id=${encodedOtherAnimalIDs}`)
-            );
-            fetchedForOtherAnimalConsultsMap.push(true);
-
-        }
-        else fetchedForOtherAnimalConsultsMap.push(false);
-    }
+    const {
+        consultsForOtherContactAnimalsRequests,
+        fetchedForOtherAnimalConsultsMap
+    } = firstIterationToCheckIfFirstTime(dtAppts, targetDate);
 
     // send the fetch all for the other animals's consults
     const contactOtherAnimalsConsultData = fetchAllResponses(
@@ -95,6 +53,62 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
             dtAppts[i].firstTime = true;
         }
     }
+}
+
+// goal of this first iteration is to:
+// 1. if we find a valid previous appointment for this patient, give dtAppts[i] (the appointment) a property of patientsLastVisitDate
+// 2. if we do not find a valid previous appointment for this patient, and the owner has other pets on file,
+// then we're going to write a request for the consults of the owners other pets
+// firstIterationToCheckIfFirstTime() will return and object where
+// consultsForOtherContactAnimalsRequests = an array of those written requests for the other animal's consults
+// fetchedForOtherAnimalConsultsMap = is a map array where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
+function firstIterationToCheckIfFirstTime(dtAppts, targetDate) {
+    const consultsForOtherContactAnimalsRequests = [];
+    const fetchedForOtherAnimalConsultsMap = [];
+    // first check if this patient has previous valid consults
+    // if so, were just going to put that last date of this patients visit, and we're not going to check if they have other animals who have had consults
+    for (let i = 0; i < dtAppts.length; i++) {
+        const { appointment, consults, otherAnimalsOfContact, encodedConsultIDs } = dtAppts[i];
+        // note: appointments created through vetstoria do not have an consult, but we want to count it for this
+        const apptHasConsult = appointment.details.consult_id; // check for existence of appointment's consult
+        const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
+        if (numberOfConsults > 1) { // if the animal has potentially been here before..
+            consults.sort((a, b) => b.consult.date - a.consult.date);
+            const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
+            for (const { consult } of consults) {
+                // if the consult does not have an appointment, it is probably not an actual visit
+                // e.g. a fecal drop off will sometimes have a consult and not a visit, and we dont want to count that as a visit.
+                const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
+                const consultDate = getDateAtMidnight(consult.date);
+                if (consultHasAppointment && consultDate < targetDate) {
+                    // then we have confirmed a valid last consult for this patient
+                    const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
+                    dtAppts[i].patientsLastVisitDate = consultDateStr;
+                    break;
+                }
+                // if consult does not have an appointment
+                // or if this consult has the same date or is further in the future than the original appt we are comparing to
+                // that means we dont want to count this visit as the previous visit, so move on to the next consult
+            }
+        }
+
+        const isAnimalsFirstTime = dtAppts[i].patientsLastVisitDate === undefined;
+
+        // if we were unable to find a valid previous visit for this animal, and the owner has other pets,
+        // we're going to fetch for those animals' consults
+        if (isAnimalsFirstTime && otherAnimalsOfContact.length) {
+            const otherAnimalIDsOfContact = otherAnimalsOfContact.map(({ animal }) => animal.id);
+            const encodedOtherAnimalIDs = encodeURIComponent(JSON.stringify({ "in": otherAnimalIDsOfContact }));
+            consultsForOtherContactAnimalsRequests.push(
+                bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animal_id=${encodedOtherAnimalIDs}`)
+            );
+            fetchedForOtherAnimalConsultsMap.push(true);
+
+        }
+        else fetchedForOtherAnimalConsultsMap.push(false);
+    }
+
+    return { consultsForOtherContactAnimalsRequests, fetchedForOtherAnimalConsultsMap }
 }
 
 function parseOtherAnimalConsults(otherAnimalConsults, otherAnimalsOfContact, animalName, targetDate) {
