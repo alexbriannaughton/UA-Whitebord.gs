@@ -95,7 +95,7 @@ function getLinkFromRuns(runs) {
 }
 
 function cellIsEmpty(cellContents) {
-  return !cellContents || /^\s*$/.test(cellContents)
+  return !cellContents || /^\s*$/.test(cellContents);
 }
 
 function removeVetstoriaDescriptionText(descriptionString) {

@@ -1,13 +1,11 @@
 // PutDataOnSheet.js
 const highPriorityColor = '#ffff00'; // for highlighting certain items in yellow
 
-function putDataOnSheet(dtAppts, range, tomorrowsDateStr, dayOfWeekString) {
-    // const dateCell = range.offset(-2, 0, 1, 1);
-    // dateCell.setValue(
-    //     `Next day appointments for ${dayOfWeekString} ${tomorrowsDateStr}`
-    // );
-    range.offset(-2, 0, 1, 1).setValue(dayOfWeekString);
-    range.offset(-2, 1, 1, 1).setValue(tomorrowsDateStr);
+function putDataOnSheet(dtAppts, range, targetDateStr) {
+    const dateCell = range.offset(-2, 0, 1, 1);
+    dateCell.setValue(
+        `Next day appointments for${targetDateStr}`
+    );
 
     for (let i = 0; i < dtAppts.length; i++) {
         const {
@@ -21,7 +19,7 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr, dayOfWeekString) {
             patientsLastVisitDate,
             firstTime,
             otherAnimalsOfContact,
-            itsPossibleTheyveBeenHereWithOtherPets,
+            otherAnimalsWhoHaveBeenHere,
             records
         } = dtAppts[i];
 
@@ -33,7 +31,6 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr, dayOfWeekString) {
         const reasonCell = range.offset(i, 2, 1, 1);
         const descriptionString = removeVetstoriaDescriptionText(appointment.details.description)
         reasonCell.setValue(descriptionString);
-
 
         const ptCell = range.offset(i, 1, 1, 1);
         if (contact.id === '72038') { // if its an unmatched vetstoria record
@@ -59,10 +56,11 @@ function putDataOnSheet(dtAppts, range, tomorrowsDateStr, dayOfWeekString) {
         else if (patientsLastVisitDate) {
             firstTimeHereCell.setValue(`${animal.name}'s last visit: ${patientsLastVisitDate}`);
         }
-        else if (itsPossibleTheyveBeenHereWithOtherPets) {
-            firstTimeHereCell.setValue(`first time for ${animal.name} but possible theyve been in with other pets...`)
+        else if (otherAnimalsWhoHaveBeenHere) {
+            firstTimeHereCell.setValue(`first time for ${animal.name} but owner has been in with ${otherAnimalsWhoHaveBeenHere}`);
         }
-        // we still need to parse through otherAnimalConsults in fetchDataToCheckIfFirstTime()
+        else console.error(`first time here cell data not found for ${animal.name} ${contact.last_name}`);
+
 
         const recordsCell = range.offset(i, 4, 1, 1);
         records.link
@@ -129,9 +127,10 @@ function getRxDate(prescriptions, prescriptionID) {
 
 function handleUnmatchedRecord(appointment, ptCell) {
     const descriptionString = appointment.details.description;
-    [_, wonkyAnimalData, contactName, emailAndPhone] = descriptionString.split(' - ');
+    const [_, wonkyAnimalData, contactName, emailAndPhone] = descriptionString.split(' - ');
     const [email, phone] = emailAndPhone.split(" ");
-    const animalName = wonkyAnimalData.split(') ')[1];
+    const animalName = wonkyAnimalData.replace(/^\s*\(New client\) ?/, '').trim();
+    // remove empty whitespace and (New client) at the front of this string^^^
     ptCell.setValue(`UNMATCHED PATIENT/CLIENT:\n${animalName}\n${contactName}\n${email}\n${phone}`);
     ptCell.setBackground(highPriorityColor);
 
