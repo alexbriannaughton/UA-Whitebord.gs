@@ -9,9 +9,10 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
     // send the fetch all for the other animals's consults
     const contactOtherAnimalsConsultData = fetchAllResponses(
         consultsForOtherContactAnimalsRequests,
-        'other animal consults if needed'
+        `contact's other animals' consults where needed`
     );
 
+    // attach the other animal consults to the appropriate appointment
     let contactOtherAnimalsConsultDataIndex = 0;
     for (let i = 0; i < dtAppts.length; i++) {
         const didTheFetch = fetchedForOtherAnimalConsultsMap[i];

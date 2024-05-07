@@ -61,7 +61,10 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
                 .setValue(`first time for ${animal.name} but owner has been in with ${otherAnimalsWhoHaveBeenHere}`)
                 .setBackground(highPriorityColor);
         }
-        else console.error(`first time here cell data not found for ${animal.name} ${contact.last_name}`);
+        else {
+            firstTimeHereCell.setValue('ERROR').setBackground(highPriorityColor);
+            console.error(`first time here cell data not found for ${animal.name} ${contact.last_name}`);
+        }
 
 
         const recordsCell = range.offset(i, 4, 1, 1);
