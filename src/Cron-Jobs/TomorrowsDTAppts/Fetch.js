@@ -83,8 +83,8 @@ function firstIterationToCheckIfFirstTime(dtAppts, targetDate) {
                 const consultDate = getDateAtMidnight(consult.date);
                 if (consultHasAppointment && consultDate < targetDate) {
                     // then we have confirmed a valid last consult for this patient
-                    const consultDateStr = convertEpochToUserTimezoneDate(consult.date);
-                    dtAppts[i].patientsLastVisitDate = consultDateStr;
+                    const [_, consultDayMonthYear] = convertEpochToUserTimezoneDate(consult.date).split(' ');
+                    dtAppts[i].patientsLastVisitDate = consultDayMonthYear;
                     break;
                 }
                 // if consult does not have an appointment
