@@ -1,26 +1,7 @@
 // Fetch.js
 function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
     const targetDate = new Date(targetDateStr.split(' ')[1]);
-    const {
-        consultsForOtherContactAnimalsRequests,
-        fetchedForOtherAnimalConsultsMap
-    } = firstIterationToCheckIfFirstTime(dtAppts, targetDate);
-
-    // send the fetch all for the other animals's consults
-    const contactOtherAnimalsConsultData = fetchAllResponses(
-        consultsForOtherContactAnimalsRequests,
-        `contact's other animals' consults where needed`
-    );
-
-    // attach the other animal consults to the appropriate appointment
-    let contactOtherAnimalsConsultDataIndex = 0;
-    for (let i = 0; i < dtAppts.length; i++) {
-        const didTheFetch = fetchedForOtherAnimalConsultsMap[i];
-        if (didTheFetch) {
-            const otherAnimalConsults = contactOtherAnimalsConsultData[contactOtherAnimalsConsultDataIndex++];
-            dtAppts[i].otherAnimalConsults = otherAnimalConsults;
-        }
-    }
+    findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate);
 
     for (let i = 0; i < dtAppts.length; i++) {
         const {
@@ -56,16 +37,14 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
     }
 }
 
-// goal of this first iteration is to:
-// 1. if we find a valid previous appointment for this patient, give dtAppts[i] (the appointment) a property of patientsLastVisitDate
+// findLastVisitAndGetOtherAnimalConsults will iterate through dtAppts and:
+// 1. look for a valid previous appointment. if found it will attach the date to dtAppt[i].patientsLastVisitDate
 // 2. if we do not find a valid previous appointment for this patient, and the owner has other pets on file,
-// then we're going to write a request for the consults of the owners other pets
-// firstIterationToCheckIfFirstTime() will return and object where
-// consultsForOtherContactAnimalsRequests = an array of those written requests for the other animal's consults
-// fetchedForOtherAnimalConsultsMap = is a map array where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
-function firstIterationToCheckIfFirstTime(dtAppts, targetDate) {
+// then we're going to send a request to ezyvet for the consults of those other pets and well attach those consults to dtAppts[i].otherAnimalConsuts
+function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
     const consultsForOtherContactAnimalsRequests = [];
     const fetchedForOtherAnimalConsultsMap = [];
+    // fetchedForOtherAnimalConsultsMap = is a map array where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
     // first check if this patient has previous valid consults
     // if so, were just going to put that last date of this patients visit, and we're not going to check if they have other animals who have had consults
     for (let i = 0; i < dtAppts.length; i++) {
@@ -83,7 +62,7 @@ function firstIterationToCheckIfFirstTime(dtAppts, targetDate) {
                 const consultDate = getDateAtMidnight(consult.date);
                 if (consultHasAppointment && consultDate < targetDate) {
                     // then we have confirmed a valid last consult for this patient
-                    const [_, consultDayMonthYear] = convertEpochToUserTimezoneDate(consult.date).split(' ');
+                    const [_consultDayOfWeek, consultDayMonthYear] = convertEpochToUserTimezoneDate(consult.date).split(' ');
                     dtAppts[i].patientsLastVisitDate = consultDayMonthYear;
                     break;
                 }
@@ -109,13 +88,29 @@ function firstIterationToCheckIfFirstTime(dtAppts, targetDate) {
         else fetchedForOtherAnimalConsultsMap.push(false);
     }
 
-    return { consultsForOtherContactAnimalsRequests, fetchedForOtherAnimalConsultsMap }
+    // send the fetch all for the other animals's consults
+    const contactOtherAnimalsConsultData = fetchAllResponses(
+        consultsForOtherContactAnimalsRequests,
+        `contact's other animals' consults where needed`
+    );
+
+    // attach the other animal consults to the appropriate appointment
+    let contactOtherAnimalsConsultDataIndex = 0;
+    for (let i = 0; i < dtAppts.length; i++) {
+        const didTheFetch = fetchedForOtherAnimalConsultsMap[i];
+        if (didTheFetch) {
+            const otherAnimalConsults = contactOtherAnimalsConsultData[contactOtherAnimalsConsultDataIndex++];
+            dtAppts[i].otherAnimalConsults = otherAnimalConsults;
+        }
+    }
 }
 
-function parseOtherAnimalConsults(otherAnimalConsults, otherAnimalsOfContact, animalName, targetDate) {
-    // iterate through other animal consults
-    // check if it has an appointment to confirm that its an actual visit
-    // check that its date is not in the future
+function parseOtherAnimalConsults(
+    otherAnimalConsults,
+    otherAnimalsOfContact,
+    animalName,
+    targetDate
+) {
     const animalIDToNameMap = new Map();
     for (const { animal } of otherAnimalsOfContact) {
         animalIDToNameMap.set(animal.id, animal.name);
