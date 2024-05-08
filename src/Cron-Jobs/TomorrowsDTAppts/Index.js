@@ -2,7 +2,7 @@
 // main is the main function for the job that grabs the next day of dt appointments
 async function dtJobMain() {
     console.log('running getTomrrowsDTAppts job...');
-    const  { dtAppts, targetDateStr, targetDayOfWeekString } = getNextDayDtAppts();
+    const  { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
     const range = sheet.getRange(`A4:H204`)
@@ -11,23 +11,22 @@ async function dtJobMain() {
         .setFontColor("black")
         .setBackground("white")
         .setFontLine("none");
-    putDataOnSheet(dtAppts, range, targetDateStr, targetDayOfWeekString);
+    putDataOnSheet(dtAppts, range, targetDateStr);
 };
 
 function getNextDayDtAppts() {
     let dtAppts = [];
     let daysAhead = 0;
-    let targetDateStr, targetDayOfWeekString;
+    let targetDateStr;
     while (!dtAppts.length && daysAhead < 10) {
         const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(++daysAhead);
         targetDateStr = convertEpochToUserTimezoneDate(targetDayStart);
-        targetDayOfWeekString = convertEpochToUserTimezoneDayOfWeek(targetDayStart);
-        console.log(`querying for appointments on ${targetDayOfWeekString} ${targetDateStr}...`);
+        console.log(`querying for appointments on ${targetDateStr}...`);
         const url = `${proxy}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
         const allTargetDayAppts = fetchAndParse(url);
         dtAppts = filterAndSortDTAppts(allTargetDayAppts);
     }
-    return { dtAppts, targetDateStr, targetDayOfWeekString };
+    return { dtAppts, targetDateStr};
 }
 
 function filterAndSortDTAppts(allTargetDayAppts) {

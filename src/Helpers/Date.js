@@ -25,16 +25,14 @@ function convertEpochToUserTimezoneDate(epoch) {
     return Utilities.formatDate(
         new Date(epoch * 1000),
         userTimezone,
-        'MM/dd/yyyy'
+        'EEEE MM/dd/yyyy'
     );
 }
 
-function convertEpochToUserTimezoneDayOfWeek(epoch) {
-    return Utilities.formatDate(
-        new Date(epoch * 1000),
-        userTimezone,
-        'EEEE'
-    );
+function getDateAtMidnight(epochInSecs) {
+    const date = new Date(epochInSecs * 1000);
+    date.setHours(0, 0, 0, 0);
+    return date;
 }
 
 function epochRangeForFutureDay(numOfDaysFromToday) {
