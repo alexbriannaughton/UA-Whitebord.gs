@@ -46,35 +46,10 @@ function doPost(e) {
 
 // supabase cloud function that will trigger this, and should return the current state of patients in rooms
 function doGet(e) {
-  console.log('e . params:', e.parameters);
-  console.log('path info: ', e.pathInfo);
-
   try {
-    const chRowFourIndexToStatusIDMap = new Map([
-      [0, '18'],//Room 1
-      [1, '25'],//Room 2
-      [2, '26'],//Room 3
-      [3, '27'],//Room 4
-      [4, '28'],//Room 5
-      [5, '40'],// cat lobby (column 1)
-      [6, '40'],//cat lobby (column 2)
-    ]);
-
-    // this map works for both WC and DT, even though WC only has 5 rooms
-    const rowFourIndexToStatusIDMap = new Map([
-      [0, '18'], //Room 1
-      [1, '25'], //Room 2
-      [2, '26'], //Room 3
-      [3, '27'], //Room 4
-      [4, '28'], //Room 5
-      [5, '29'], //Room 6
-      [6, '30'], //Room 7
-    ]);
-
-    const allRooms = {};
-    extractRooms('CH', 'C4:I14', chRowFourIndexToStatusIDMap, allRooms);
-    extractRooms('DT', 'C4:I4', rowFourIndexToStatusIDMap, allRooms);
-    extractRooms('WC', 'C4:G4', rowFourIndexToStatusIDMap, allRooms);
+    if (e.parameter.request === 'extract_rooms') {
+      extractWhoIsInAllLocationRooms();
+    }
 
     return ContentService.createTextOutput(
       JSON.stringify(allRooms)
