@@ -47,7 +47,7 @@ function doPost(e) {
 // supabase cloud function that will trigger this, and should return the current state of patients in rooms
 function doGet(_e) {
   try {
-    const waitData = getWaitData;
+    const waitData = getWaitData();
     sendWaitData(waitData);
     const allRooms = extractWhoIsInAllLocationRooms();
     return ContentService.createTextOutput(
