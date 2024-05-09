@@ -1,4 +1,4 @@
-function extractWhoIsInAllLocationRooms() {
+function extractWhoIsInAllLocationRooms(allRooms) {
     const chRowFourIndexToStatusIDMap = new Map([
         [0, '18'],//Room 1
         [1, '25'],//Room 2
@@ -20,7 +20,6 @@ function extractWhoIsInAllLocationRooms() {
         [6, '30'], //Room 7
     ]);
 
-    const allRooms = {};
     extractRooms('CH', 'C4:I14', chRowFourIndexToStatusIDMap, allRooms);
     extractRooms('DT', 'C4:I4', rowFourIndexToStatusIDMap, allRooms);
     extractRooms('WC', 'C4:G4', rowFourIndexToStatusIDMap, allRooms);
