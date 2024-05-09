@@ -48,16 +48,16 @@ function doPost(e) {
 function doGet(e) {
   try {
     const request = e.parameter.request;
-    const allRooms = {};
+    let output;
     if (request === 'extract_rooms') {
-      extractWhoIsInAllLocationRooms(allRooms);
+      output = extractWhoIsInAllLocationRooms();
     }
     else if (request === 'wait_data') {
-      getWaitData();
+      output = getWaitData();
     }
 
     return ContentService.createTextOutput(
-      JSON.stringify(allRooms)
+      JSON.stringify(output)
     ).setMimeType(ContentService.MimeType.JSON);
   }
 
