@@ -46,8 +46,8 @@ function doPost(e) {
 
 // supabase cloud function that will trigger this, and should return the current state of patients in rooms
 function doGet(e) {
-  console.log('e . params:'. e.parameters);
-  
+  console.log('e . params:', e.parameters);
+
   try {
     const chRowFourIndexToStatusIDMap = new Map([
       [0, '18'],//Room 1
