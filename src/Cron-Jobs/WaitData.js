@@ -1,14 +1,16 @@
 function getWaitData() {
     const ssApp = SpreadsheetApp.getActiveSpreadsheet();
     const chWaitlistSheet = ssApp.getSheetByName('CH Wait List');
-    const chRange = chWaitlistSheet.getRange('C2:C4');
+    const chRange = chWaitlistSheet.getRange('C2:D4');
     const chVals = chRange.getValues();
-    const chData = {
+    const waitData = {}
+    waitData.ch = {
         ptsOnWaitlist: chVals[0][0],
         dvmsOnFloor: chVals[1][0],
-        estWait: chVals[2][0]
+        estWait: chVals[2][0],
+        capText: chVals[0][1]
     };
-    return chData;
+    return waitData;
 }
 
 function sendWaitData(waitData) {
