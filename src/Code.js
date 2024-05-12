@@ -55,6 +55,7 @@ function doGet(e) {
     else if (request === 'wait_data') {
       output = getWaitData();
     }
+    console.log('output at do get:', output)
     return ContentService.createTextOutput(
       JSON.stringify(output)
     ).setMimeType(ContentService.MimeType.JSON);
