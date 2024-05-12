@@ -1,4 +1,4 @@
-function extractWhoIsInAllLocationRooms(allRooms) {
+function extractWhoIsInAllLocationRooms() {
     const chRowFourIndexToStatusIDMap = new Map([
         [0, '18'],//Room 1
         [1, '25'],//Room 2
@@ -20,9 +20,11 @@ function extractWhoIsInAllLocationRooms(allRooms) {
         [6, '30'], //Room 7
     ]);
 
+    const allRooms = {};
     extractRooms('CH', 'C4:I14', chRowFourIndexToStatusIDMap, allRooms);
     extractRooms('DT', 'C4:I4', rowFourIndexToStatusIDMap, allRooms);
     extractRooms('WC', 'C4:G4', rowFourIndexToStatusIDMap, allRooms);
+    return allRooms;
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 15 minutes during open hours
