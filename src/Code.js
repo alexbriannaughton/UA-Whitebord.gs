@@ -44,7 +44,6 @@ function doPost(e) {
 
 };
 
-// supabase cloud function that will trigger this, and should return the current state of patients in rooms
 function doGet(e) {
   try {
     const request = e.parameter.request;
@@ -55,7 +54,6 @@ function doGet(e) {
     else if (request === 'wait_data') {
       output = getWaitData();
     }
-    console.log('output at do get:', output)
     return ContentService.createTextOutput(
       JSON.stringify(output)
     ).setMimeType(ContentService.MimeType.JSON);
