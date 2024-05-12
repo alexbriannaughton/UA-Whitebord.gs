@@ -1,19 +1,20 @@
 function getWaitData() {
     const ssApp = SpreadsheetApp.getActiveSpreadsheet();
-    const waitData = {
-        ch: getWaitValsForLocation(ssApp, 'CH Wait List'),
-        wc: getWaitValsForLocation(ssApp, 'WC Wait List')
-    };
+    const waitData = [
+        getWaitValsForLocation(ssApp, 'CH'),
+        getWaitValsForLocation(ssApp, 'WC')
+    ];
     return waitData;
 }
 
-function getWaitValsForLocation(ssApp, sheetName) {
-    const waitlistSheet = ssApp.getSheetByName(sheetName);
+function getWaitValsForLocation(ssApp, location) {
+    const waitlistSheet = ssApp.getSheetByName(`${location} Wait List`);
     const vals = waitlistSheet.getRange('C2:D4').getValues();
     return {
-        ptsOnWaitlist: vals[0][0],
-        dvmsOnFloor: vals[1][0],
-        estWait: vals[2][0],
+        location,
+        num_of_dvms_on_floor: vals[1][0],
+        wb_wait_time: vals[2][0],
+        num_of_pts_waiting: vals[0][0],
         capText: vals[0][1]
     };
 }
