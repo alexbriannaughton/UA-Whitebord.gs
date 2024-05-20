@@ -27,7 +27,7 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
             animalName,
             targetDate
         );
-        console.log('animals of contact who have been here:', animalsOfContactWhoHaveBeenHere);
+        console.log('animals of contact who have been here-->', animalsOfContactWhoHaveBeenHere);
         if (animalsOfContactWhoHaveBeenHere.size) {
             const namesOfAnimalsString = Array.from(animalsOfContactWhoHaveBeenHere).join(', ');
             dtAppts[i].otherAnimalsWhoHaveBeenHere = namesOfAnimalsString;
