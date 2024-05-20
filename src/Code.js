@@ -46,9 +46,10 @@ function doPost(e) {
 
 function doGet(e) {
   try {
+    const ssApp = SpreadsheetApp.getActiveSpreadsheet()
     const output = {
-      rooms: extractWhoIsInAllLocationRooms(),
-      wait: getWaitData()
+      rooms: extractWhoIsInAllLocationRooms(ssApp),
+      wait: getWaitData(ssApp)
     }
     return ContentService.createTextOutput(
       JSON.stringify(output)

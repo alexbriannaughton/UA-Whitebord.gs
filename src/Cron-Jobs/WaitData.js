@@ -1,5 +1,4 @@
-function getWaitData() {
-    const ssApp = SpreadsheetApp.getActiveSpreadsheet();
+function getWaitData(ssApp) {
     const waitData = [
         getWaitValsForLocation(ssApp, 'CH'),
         getWaitValsForLocation(ssApp, 'WC')
