@@ -46,13 +46,9 @@ function doPost(e) {
 
 function doGet(e) {
   try {
-    const request = e.parameter.request;
-    let output;
-    if (request === 'extract_rooms') {
-      output = extractWhoIsInAllLocationRooms();
-    }
-    else if (request === 'wait_data') {
-      output = getWaitData();
+    const output = {
+      rooms: extractWhoIsInAllLocationRooms(),
+      wait: getWaitData()
     }
     return ContentService.createTextOutput(
       JSON.stringify(output)
