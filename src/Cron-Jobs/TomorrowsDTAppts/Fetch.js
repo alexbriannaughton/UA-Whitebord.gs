@@ -184,7 +184,13 @@ function bodyForEzyVetGet(url) {
     }
 };
 
-function handleRespsForFetchAll(responses, outputItems, resourceName, requests) {
+function handleRespsForFetchAll(
+    responses,
+    outputItems,
+    resourceName,
+    requests,
+    retry = false
+) {
     for (let i = 0; i < responses.length; i++) {
         const response = responses[i];
         const contentText = response.getContentText();
@@ -192,6 +198,19 @@ function handleRespsForFetchAll(responses, outputItems, resourceName, requests) 
 
         if (!data || response.getResponseCode() !== 200) {
             console.error(`Content text for error at index ${i} fetching ${resourceName} data:`, contentText);
+
+            if (retry === false && contentText.includes('too many requests recently')) {
+                console.log('Rate limit error detected. Retrying after 1 minute.');
+                Utilities.sleep(60000);
+                return handleRespsForFetchAll(
+                    responses,
+                    outputItems,
+                    resourceName,
+                    requests,
+                    true
+                );
+            }
+
             console.error(`All ${resourceName} Requests:`, requests);
             outputItems = [];
             break;
