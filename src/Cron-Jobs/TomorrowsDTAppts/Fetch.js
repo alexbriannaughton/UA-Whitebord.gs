@@ -197,7 +197,8 @@ function handleRespsForFetchAll(
         const data = jsonParser(contentText);
 
         if (!data || response.getResponseCode() !== 200) {
-            console.error(`Content text for error at index ${i} fetching ${resourceName} data:`, contentText);
+            console.error(`Error at index ${i} fetching ${resourceName} data.`);
+            console.error('Error from ezyVet: ', contentText);
 
             if (retry === false && contentText.includes('too many requests recently')) {
                 console.log('Rate limit error detected. Retrying after 1 minute.');
@@ -207,7 +208,7 @@ function handleRespsForFetchAll(
                     outputItems,
                     resourceName,
                     requests,
-                    true
+                    true // is a retry
                 );
             }
 
@@ -291,6 +292,6 @@ function jsonParser(input) {
         return output;
     }
     catch {
-        return false;
+        return null;
     }
 }
