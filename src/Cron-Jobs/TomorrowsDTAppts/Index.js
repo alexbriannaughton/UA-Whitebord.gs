@@ -1,5 +1,5 @@
 // Index.js
-// main is the main function for the job that grabs the next day of dt appointments
+// dtJobMain is the main function for the job that grabs the next day of dt appointments
 async function dtJobMain() {
     console.log('running getTomrrowsDTAppts job...');
     const  { dtAppts, targetDateStr } = getNextDayDtAppts();

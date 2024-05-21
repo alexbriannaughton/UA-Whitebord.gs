@@ -15,7 +15,7 @@ function getWaitValsForLocation(ssApp, location) {
         location,
         soft_cap,
         hard_cap,
-        num_of_dvms_on_floor: vals[1][0],
+        num_of_dvms_on_floor: vals[1][0] || 0,
         wb_wait_time: vals[2][0],
         num_of_pts_waiting: vals[0][0]
     };

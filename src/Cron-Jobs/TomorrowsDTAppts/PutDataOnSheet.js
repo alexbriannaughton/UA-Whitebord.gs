@@ -1,6 +1,6 @@
 // PutDataOnSheet.js
 const highPriorityColor = '#ffff00'; // for highlighting certain items in yellow
-
+const unmatchedVetstoriaContactID = '72038';
 function putDataOnSheet(dtAppts, range, targetDateStr) {
     const dateCell = range.offset(-2, 0, 1, 1);
     dateCell.setValue(
@@ -24,16 +24,16 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         } = dtAppts[i];
 
         // time and reason cell are handled the same whether or not the appointment has an unmatched contact/animal record
-        const time = convertEpochToUserTimezone(appointment.start_time);
+        const timeCellVal = getTimeCellValue(i, appointment.start_time, contact.id, dtAppts);
         const timeCell = range.offset(i, 0, 1, 1);
-        timeCell.setValue(time);
+        timeCell.setValue(timeCellVal);
 
         const reasonCell = range.offset(i, 2, 1, 1);
         const descriptionString = removeVetstoriaDescriptionText(appointment.details.description)
         reasonCell.setValue(descriptionString);
 
         const ptCell = range.offset(i, 1, 1, 1);
-        if (contact.id === '72038') { // if its an unmatched vetstoria record
+        if (contact.id === unmatchedVetstoriaContactID) {
             handleUnmatchedRecord(appointment, ptCell);
             continue;
         }
@@ -91,6 +91,15 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
         hasSedCell.setValue(sedCellVal);
     }
+}
+
+function getTimeCellValue(i, startTime, contactID, dtAppts) {
+    const isSameFam = i > 0 && contactID === dtAppts[i-1].contact.id;
+    if (isSameFam && contactID !== unmatchedVetstoriaContactID) {
+        return '^same fam^';
+    }
+    const time = convertEpochToUserTimezone(startTime);
+    return time;
 }
 
 function processPrescriptionItems(prescriptions, prescriptionItems) {

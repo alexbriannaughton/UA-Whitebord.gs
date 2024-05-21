@@ -27,6 +27,7 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
             animalName,
             targetDate
         );
+        console.log('animals of contact who have been here-->', animalsOfContactWhoHaveBeenHere);
         if (animalsOfContactWhoHaveBeenHere.size) {
             const namesOfAnimalsString = Array.from(animalsOfContactWhoHaveBeenHere).join(', ');
             dtAppts[i].otherAnimalsWhoHaveBeenHere = namesOfAnimalsString;
@@ -40,7 +41,7 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
 // findLastVisitAndGetOtherAnimalConsults will iterate through dtAppts and:
 // 1. look for a valid previous appointment. if found it will attach the date to dtAppt[i].patientsLastVisitDate
 // 2. if we do not find a valid previous appointment for this patient, and the owner has other pets on file,
-// then we're going to send a request to ezyvet for the consults of those other pets and well attach those consults to dtAppts[i].otherAnimalConsuts
+// then we're going to send a request to ezyvet for the consults of those other pets and we'll attach those consults to dtAppts[i].otherAnimalConsuts
 function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
     const consultsForOtherContactAnimalsRequests = [];
     const fetchedForOtherAnimalConsultsMap = [];
@@ -183,14 +184,34 @@ function bodyForEzyVetGet(url) {
     }
 };
 
-function handleRespsForFetchAll(responses, outputItems, resourceName, requests) {
+function handleRespsForFetchAll(
+    responses,
+    outputItems,
+    resourceName,
+    requests,
+    retry = false
+) {
     for (let i = 0; i < responses.length; i++) {
         const response = responses[i];
         const contentText = response.getContentText();
         const data = jsonParser(contentText);
 
         if (!data || response.getResponseCode() !== 200) {
-            console.error(`Content text for error at index ${i} fetching ${resourceName} data:`, contentText);
+            console.error(`Error at index ${i} fetching ${resourceName} data.`);
+            console.error('Error from ezyVet: ', contentText);
+
+            if (retry === false && contentText.includes('too many requests recently')) {
+                console.log('Rate limit error detected. Retrying after 1 minute.');
+                Utilities.sleep(60000);
+                return handleRespsForFetchAll(
+                    responses,
+                    outputItems,
+                    resourceName,
+                    requests,
+                    true // is a retry
+                );
+            }
+
             console.error(`All ${resourceName} Requests:`, requests);
             outputItems = [];
             break;
@@ -271,6 +292,6 @@ function jsonParser(input) {
         return output;
     }
     catch {
-        return false;
+        return null;
     }
 }

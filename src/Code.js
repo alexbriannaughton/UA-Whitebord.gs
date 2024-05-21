@@ -44,13 +44,13 @@ function doPost(e) {
 
 };
 
-function doGet(e) {
+function doGet(_e) {
   try {
-    const ssApp = SpreadsheetApp.getActiveSpreadsheet()
+    const ssApp = SpreadsheetApp.getActiveSpreadsheet();
     const output = {
       rooms: extractWhoIsInAllLocationRooms(ssApp),
       wait: getWaitData(ssApp)
-    }
+    };
     return ContentService.createTextOutput(
       JSON.stringify(output)
     ).setMimeType(ContentService.MimeType.JSON);
