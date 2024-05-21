@@ -1,14 +1,8 @@
 let token; // global
 
 function getToken() {
-    token = token
-        ? token
-        : CacheService.getScriptCache().get('ezyVet_token');
-
-    if (!token) {
-        token = updateToken();
-    }
-
+    token = token || CacheService.getScriptCache().get('ezyVet_token');
+    if (!token) token = updateToken();
     return token;
 }
 
