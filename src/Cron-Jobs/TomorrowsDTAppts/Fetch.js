@@ -116,6 +116,10 @@ function parseOtherAnimalConsults(
     for (const { animal } of otherAnimalsOfContact) {
         animalIDToNameMap.set(animal.id, animal.name);
     }
+    console.log('target date: ', targetDate)
+    console.log('other animal consults: ', otherAnimalConsults)
+    console.log('other animals of contact: ', otherAnimalsOfContact)
+    console.log('animalIDToNameMap: ', animalIDToNameMap);
     const animalsWhoHaveBeenHere = new Set();
     const encodedConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
     console.log(`getting consults for siblings of ${animalName}...`);
@@ -123,6 +127,7 @@ function parseOtherAnimalConsults(
     for (const { consult } of otherAnimalConsults) {
         const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
         const consultDate = getDateAtMidnight(consult.date);
+        console.log(`consult ${consult.id} has appointment: ${consultHasAppointment}, date: ${consultDate}`);
         if (consultHasAppointment && consultDate < targetDate) {
             animalsWhoHaveBeenHere.add(animalIDToNameMap.get(consult.animal_id));
         }
