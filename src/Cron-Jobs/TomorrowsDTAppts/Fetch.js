@@ -27,7 +27,7 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
             animalName,
             targetDate
         );
-        console.log('animals of contact who have been here-->', animalsOfContactWhoHaveBeenHere);
+
         if (animalsOfContactWhoHaveBeenHere.size) {
             const namesOfAnimalsString = Array.from(animalsOfContactWhoHaveBeenHere).join(', ');
             dtAppts[i].otherAnimalsWhoHaveBeenHere = namesOfAnimalsString;
@@ -114,7 +114,10 @@ function parseOtherAnimalConsults(
 ) {
     const animalIDToNameMap = new Map();
     for (const { animal } of otherAnimalsOfContact) {
-        animalIDToNameMap.set(animal.id, animal.name);
+        const name = animal.is_dead ?
+            `${animal.name}(deceased)`
+            : animal.name;
+        animalIDToNameMap.set(animal.id, name);
     }
     const animalsWhoHaveBeenHere = new Set();
     const allOtherAnimalConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
