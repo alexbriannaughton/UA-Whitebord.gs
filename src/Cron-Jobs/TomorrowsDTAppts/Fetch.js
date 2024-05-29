@@ -112,9 +112,9 @@ function parseOtherAnimalConsults(
     animalName,
     targetDate
 ) {
-    const animalIDToNameMap = new Map();
+    const animalIDToNameMap = {};
     for (const { animal } of otherAnimalsOfContact) {
-        animalIDToNameMap.set(animal.id, animal.name);
+        animalIDToNameMap[animal.id] = animal.name;
     }
     console.log('target date: ', targetDate)
     console.log('other animal consults: ', otherAnimalConsults)
@@ -129,7 +129,7 @@ function parseOtherAnimalConsults(
         const consultDate = getDateAtMidnight(consult.date);
         console.log(`consult ${consult.id} has appointment: ${consultHasAppointment}, date: ${consultDate}`);
         if (consultHasAppointment && consultDate < targetDate) {
-            animalsWhoHaveBeenHere.add(animalIDToNameMap.get(consult.animal_id));
+            animalsWhoHaveBeenHere.add(animalIDToNameMap[consult.animal_id]);
         }
     }
     return animalsWhoHaveBeenHere;
