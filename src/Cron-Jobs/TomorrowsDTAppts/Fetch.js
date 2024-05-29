@@ -28,8 +28,8 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
             targetDate
         );
         console.log('animals of contact who have been here-->', animalsOfContactWhoHaveBeenHere);
-        if (animalsOfContactWhoHaveBeenHere.size) {
-            const namesOfAnimalsString = Array.from(animalsOfContactWhoHaveBeenHere).join(', ');
+        if (animalsOfContactWhoHaveBeenHere.length) {
+            const namesOfAnimalsString = animalsOfContactWhoHaveBeenHere.join(', ');
             dtAppts[i].otherAnimalsWhoHaveBeenHere = namesOfAnimalsString;
         }
         else {
@@ -120,7 +120,7 @@ function parseOtherAnimalConsults(
     console.log('other animal consults: ', otherAnimalConsults)
     console.log('other animals of contact: ', otherAnimalsOfContact)
     console.log('animalIDToNameMap: ', animalIDToNameMap);
-    const animalsWhoHaveBeenHere = new Set();
+    const animalsWhoHaveBeenHere = [];
     const encodedConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
     console.log(`getting consults for siblings of ${animalName}...`);
     const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
@@ -129,7 +129,10 @@ function parseOtherAnimalConsults(
         const consultDate = getDateAtMidnight(consult.date);
         console.log(`consult ${consult.id} has appointment: ${consultHasAppointment}, date: ${consultDate}`);
         if (consultHasAppointment && consultDate < targetDate) {
-            animalsWhoHaveBeenHere.add(animalIDToNameMap[consult.animal_id]);
+            const animalNameForConsult = animalIDToNameMap[consult.animal_id];
+            if (!animalsWhoHaveBeenHere.includes(animalNameForConsult)) {
+                animalsWhoHaveBeenHere.push(animalNameForConsult);
+            }
         }
     }
     return animalsWhoHaveBeenHere;
