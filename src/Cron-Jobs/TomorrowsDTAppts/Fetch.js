@@ -28,8 +28,8 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
             targetDate
         );
         console.log('animals of contact who have been here-->', animalsOfContactWhoHaveBeenHere);
-        if (animalsOfContactWhoHaveBeenHere.length) {
-            const namesOfAnimalsString = animalsOfContactWhoHaveBeenHere.join(', ');
+        if (animalsOfContactWhoHaveBeenHere.size) {
+            const namesOfAnimalsString = Array.from(animalsOfContactWhoHaveBeenHere).join(', ');
             dtAppts[i].otherAnimalsWhoHaveBeenHere = namesOfAnimalsString;
         }
         else {
@@ -112,27 +112,20 @@ function parseOtherAnimalConsults(
     animalName,
     targetDate
 ) {
-    const animalIDToNameMap = {};
+    const animalIDToNameMap = new Map();
     for (const { animal } of otherAnimalsOfContact) {
-        animalIDToNameMap[animal.id] = animal.name;
+        animalIDToNameMap.set(animal.id, animal.name);
     }
-    console.log('target date: ', targetDate)
-    console.log('other animal consults: ', otherAnimalConsults)
-    console.log('other animals of contact: ', otherAnimalsOfContact)
-    console.log('animalIDToNameMap: ', animalIDToNameMap);
-    const animalsWhoHaveBeenHere = [];
-    const encodedConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
+    const animalsWhoHaveBeenHere = new Set();
+    const allOtherAnimalConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
+    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs }));
     console.log(`getting consults for siblings of ${animalName}...`);
     const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
     for (const { consult } of otherAnimalConsults) {
         const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
         const consultDate = getDateAtMidnight(consult.date);
-        console.log(`consult ${consult.id} has appointment: ${consultHasAppointment}, date: ${consultDate}`);
         if (consultHasAppointment && consultDate < targetDate) {
-            const animalNameForConsult = animalIDToNameMap[consult.animal_id];
-            if (!animalsWhoHaveBeenHere.includes(animalNameForConsult)) {
-                animalsWhoHaveBeenHere.push(animalNameForConsult);
-            }
+            animalsWhoHaveBeenHere.add(animalIDToNameMap.get(consult.animal_id));
         }
     }
     return animalsWhoHaveBeenHere;
