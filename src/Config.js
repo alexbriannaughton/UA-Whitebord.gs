@@ -1,14 +1,8 @@
 let token; // global
 
 function getToken() {
-    token = token
-        ? token
-        : CacheService.getScriptCache().get('ezyVet_token');
-
-    if (!token) {
-        token = updateToken();
-    }
-
+    token = token || CacheService.getScriptCache().get('ezyVet_token');
+    if (!token) token = updateToken();
     return token;
 }
 
@@ -34,7 +28,7 @@ function updateToken() {
 
 function getEvCreds() {
     const props = PropertiesService.getScriptProperties();
-    const api = `https://secretmanager.googleapis.com/v1/projects/${props.getProperty('gcp_id')}/secrets/${props.getProperty('secret_name')}/versions/1:access`;
+    const api = `https://secretmanager.googleapis.com/v1/projects/${props.getProperty('gcp_id')}/secrets/${props.getProperty('secret_name')}/versions/2:access`;
     const response = UrlFetchApp.fetch(api, {
         method: 'GET',
         headers: {

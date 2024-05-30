@@ -27,7 +27,7 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
             animalName,
             targetDate
         );
-        console.log('animals of contact who have been here-->', animalsOfContactWhoHaveBeenHere);
+
         if (animalsOfContactWhoHaveBeenHere.size) {
             const namesOfAnimalsString = Array.from(animalsOfContactWhoHaveBeenHere).join(', ');
             dtAppts[i].otherAnimalsWhoHaveBeenHere = namesOfAnimalsString;
@@ -114,10 +114,13 @@ function parseOtherAnimalConsults(
 ) {
     const animalIDToNameMap = new Map();
     for (const { animal } of otherAnimalsOfContact) {
-        animalIDToNameMap.set(animal.id, animal.name);
+        let name = animal.name;
+        if (animal.is_dead) name += '(💀)';
+        animalIDToNameMap.set(animal.id, name);
     }
     const animalsWhoHaveBeenHere = new Set();
-    const encodedConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
+    const allOtherAnimalConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
+    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs }));
     console.log(`getting consults for siblings of ${animalName}...`);
     const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
     for (const { consult } of otherAnimalConsults) {
