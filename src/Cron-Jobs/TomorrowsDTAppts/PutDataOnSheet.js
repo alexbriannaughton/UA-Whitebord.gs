@@ -84,17 +84,29 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             : hxFractiousCell.setValue('no');
 
 
-        const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
+        const { sedativeName, sedativeDateLastFilled, rxErrorItem } = processPrescriptionItems(prescriptions, prescriptionItems);
+        if (rxErrorItem) {
+            console.error(`error processing rxs for ${ptText}`);
+            console.error(`${ptText} prescriptions: `, prescriptions);
+            console.error('rxErrorItem: ', rxErrorItem);
+        }
         const hasSedCell = range.offset(i, 6, 1, 1);
-        const sedCellVal = sedativeName === undefined
-            ? 'no'
-            : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
+        let sedCellVal;
+        if (rxErrorItem) {
+            sedCellVal = 'ERROR';
+        }
+        else if (sedativeName === undefined) {
+            sedCellVal = 'no'
+        }
+        else {
+            sedCellVal = `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
+        }
         hasSedCell.setValue(sedCellVal);
     }
 }
 
 function getTimeCellValue(i, startTime, contactID, dtAppts) {
-    const isSameFam = i > 0 && contactID === dtAppts[i-1].contact.id;
+    const isSameFam = i > 0 && contactID === dtAppts[i - 1].contact.id;
     if (isSameFam && contactID !== unmatchedVetstoriaContactID) {
         return '^same fam^';
     }
@@ -114,6 +126,9 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
 
         if (gabaProductIDSet.has(productID)) {
             const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
+            if (!rxDate) {
+                return { rxErrorItem: prescriptionitem }
+            }
             if (rxDate > sedativeDateLastFilled) {
                 sedativeName = 'gabapentin';
                 sedativeDateLastFilled = rxDate;
@@ -122,6 +137,9 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
         }
         else if (trazProductIDSet.has(productID)) {
             const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
+            if (!rxDate) {
+                return { rxErrorItem: prescriptionitem }
+            }
             if (rxDate > sedativeDateLastFilled) {
                 sedativeName = 'trazadone';
                 sedativeDateLastFilled = rxDate;
@@ -136,6 +154,9 @@ function getRxDate(prescriptions, prescriptionID) {
     const rx = prescriptions.find(({ prescription }) => {
         return prescription.id === prescriptionID;
     });
+    if (!rx) {
+        return undefined;
+    }
     return Number(rx.prescription.date_of_prescription);
 }
 
