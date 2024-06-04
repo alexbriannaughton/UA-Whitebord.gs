@@ -28,7 +28,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         const timeCell = range.offset(i, 0, 1, 1);
         timeCell.setValue(timeCellVal);
 
-        const reasonCell = range.offset(i, 2, 1, 1);
+        const reasonCell = range.offset(i, 3, 1, 1);
         const descriptionString = removeVetstoriaDescriptionText(appointment.details.description)
         reasonCell.setValue(descriptionString);
 
@@ -36,6 +36,15 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         if (contact.id === unmatchedVetstoriaContactID) {
             handleUnmatchedRecord(appointment, ptCell);
             continue;
+        }
+
+        const depositPaidCell = range.offset(i, 2, 1, 1);
+        const hasDepositPaidStatus = appointment.details.appointment_status_id === '37';
+        if (hasDepositPaidStatus) {
+            depositPaidCell.setValue('yes');
+        }
+        else {
+            depositPaidCell.setValue('no').setBackground(highPriorityColor)
         }
 
         // if we know the animal/contact stuff, continue normally
@@ -49,7 +58,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         const link = makeLink(ptText, animalURL);
         ptCell.setRichTextValue(link);
 
-        const firstTimeHereCell = range.offset(i, 3, 1, 1);
+        const firstTimeHereCell = range.offset(i, 4, 1, 1);
         if (firstTime) {
             firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
         }
@@ -67,7 +76,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         }
 
 
-        const recordsCell = range.offset(i, 4, 1, 1);
+        const recordsCell = range.offset(i, 5, 1, 1);
         records.link
             ? recordsCell.setRichTextValue(
                 makeLink(records.text, records.link)
@@ -78,7 +87,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         }
 
 
-        const hxFractiousCell = range.offset(i, 5, 1, 1);
+        const hxFractiousCell = range.offset(i, 6, 1, 1);
         animal.is_hostile === '1'
             ? hxFractiousCell.setValue('yes').setBackground(highPriorityColor)
             : hxFractiousCell.setValue('no');
@@ -90,7 +99,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             console.error(`${ptText} prescriptions: `, prescriptions);
             console.error('rxErrorItem: ', rxErrorItem);
         }
-        const hasSedCell = range.offset(i, 6, 1, 1);
+        const hasSedCell = range.offset(i, 7, 1, 1);
         let sedCellVal;
         if (rxErrorItem) {
             sedCellVal = 'ERROR';
