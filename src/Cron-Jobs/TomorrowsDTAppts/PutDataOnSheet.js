@@ -28,7 +28,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         const timeCell = range.offset(i, 0, 1, 1);
         timeCell.setValue(timeCellVal);
 
-        const reasonCell = range.offset(i, 2, 1, 1);
+        const reasonCell = range.offset(i, 3, 1, 1);
         const descriptionString = removeVetstoriaDescriptionText(appointment.details.description)
         reasonCell.setValue(descriptionString);
 
@@ -36,6 +36,15 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         if (contact.id === unmatchedVetstoriaContactID) {
             handleUnmatchedRecord(appointment, ptCell);
             continue;
+        }
+
+        const depositPaidCell = range.offset(i, 2, 1, 1);
+        const hasDepositPaidStatus = appointment.details.appointment_status_id === '37';
+        if (hasDepositPaidStatus) {
+            depositPaidCell.setValue('yes');
+        }
+        else {
+            depositPaidCell.setValue('no').setBackground(highPriorityColor)
         }
 
         // if we know the animal/contact stuff, continue normally
@@ -49,7 +58,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         const link = makeLink(ptText, animalURL);
         ptCell.setRichTextValue(link);
 
-        const firstTimeHereCell = range.offset(i, 3, 1, 1);
+        const firstTimeHereCell = range.offset(i, 4, 1, 1);
         if (firstTime) {
             firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
         }
@@ -67,7 +76,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         }
 
 
-        const recordsCell = range.offset(i, 4, 1, 1);
+        const recordsCell = range.offset(i, 5, 1, 1);
         records.link
             ? recordsCell.setRichTextValue(
                 makeLink(records.text, records.link)
@@ -78,23 +87,35 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         }
 
 
-        const hxFractiousCell = range.offset(i, 5, 1, 1);
+        const hxFractiousCell = range.offset(i, 6, 1, 1);
         animal.is_hostile === '1'
             ? hxFractiousCell.setValue('yes').setBackground(highPriorityColor)
             : hxFractiousCell.setValue('no');
 
 
-        const { sedativeName, sedativeDateLastFilled } = processPrescriptionItems(prescriptions, prescriptionItems);
-        const hasSedCell = range.offset(i, 6, 1, 1);
-        const sedCellVal = sedativeName === undefined
-            ? 'no'
-            : `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
+        const { sedativeName, sedativeDateLastFilled, rxErrorItem } = processPrescriptionItems(prescriptions, prescriptionItems);
+        if (rxErrorItem) {
+            console.error(`error processing rxs for ${ptText}`);
+            console.error(`${ptText} prescriptions: `, prescriptions);
+            console.error('rxErrorItem: ', rxErrorItem);
+        }
+        const hasSedCell = range.offset(i, 7, 1, 1);
+        let sedCellVal;
+        if (rxErrorItem) {
+            sedCellVal = 'ERROR';
+        }
+        else if (sedativeName === undefined) {
+            sedCellVal = 'no'
+        }
+        else {
+            sedCellVal = `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
+        }
         hasSedCell.setValue(sedCellVal);
     }
 }
 
 function getTimeCellValue(i, startTime, contactID, dtAppts) {
-    const isSameFam = i > 0 && contactID === dtAppts[i-1].contact.id;
+    const isSameFam = i > 0 && contactID === dtAppts[i - 1].contact.id;
     if (isSameFam && contactID !== unmatchedVetstoriaContactID) {
         return '^same fam^';
     }
@@ -114,6 +135,9 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
 
         if (gabaProductIDSet.has(productID)) {
             const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
+            if (!rxDate) {
+                return { rxErrorItem: prescriptionitem }
+            }
             if (rxDate > sedativeDateLastFilled) {
                 sedativeName = 'gabapentin';
                 sedativeDateLastFilled = rxDate;
@@ -122,6 +146,9 @@ function processPrescriptionItems(prescriptions, prescriptionItems) {
         }
         else if (trazProductIDSet.has(productID)) {
             const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
+            if (!rxDate) {
+                return { rxErrorItem: prescriptionitem }
+            }
             if (rxDate > sedativeDateLastFilled) {
                 sedativeName = 'trazadone';
                 sedativeDateLastFilled = rxDate;
@@ -136,6 +163,9 @@ function getRxDate(prescriptions, prescriptionID) {
     const rx = prescriptions.find(({ prescription }) => {
         return prescription.id === prescriptionID;
     });
+    if (!rx) {
+        return undefined;
+    }
     return Number(rx.prescription.date_of_prescription);
 }
 

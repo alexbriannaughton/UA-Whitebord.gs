@@ -41,6 +41,38 @@ const inpatientDefaultColorMap = new Map([
     ['WC', '#ead1dc']  // magenta for white center
 ]);
 
+// const statusIDToNameMap = new Map([
+//     [1, 'no status'],
+//     [2, 'confirmed'],
+//     [13, 'complete'],
+//     [15, 'unconfirmed'],
+//     [16, 'triaged/bumped'],
+//     [18, 'room 1'],
+//     [17, 'on wait list'],
+//     [19, 'ok to check out'],
+//     [20, 'texted'],
+//     [21, 'in lobby'],
+//     [22, 'ready'],
+//     [23, 'add to tech column'],
+//     [24, 'checked out'],
+//     [25, 'room 2'],
+//     [26, 'room 3'],
+//     [27, 'room 4'],
+//     [28, 'room 5'],
+//     [29, 'room 6'],
+//     [30, 'room 7'],
+//     [31, 'room 8'],
+//     [32, 'room 9'],
+//     [33, 'room 10'],
+//     [34, 'inpatient'],
+//     [35, 'chart complete'],
+//     [36, 'room 11'],
+//     [37, 'deposit paid'],
+//     [38, 'deposit requested'],
+//     [39, 'dog lob'],
+//     [40, 'cat lobby'],
+// ])
+
 // returns the cell coordinates for the location's inpatient box
 function inpatientBoxCoords(location) {
     return location === 'CH'
