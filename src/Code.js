@@ -46,20 +46,31 @@ function doPost(e) {
 
 function doGet(_e) {
   try {
-    const ssApp = SpreadsheetApp.getActiveSpreadsheet();
-    const output = {
-      rooms: extractWhoIsInAllLocationRooms(ssApp),
-      wait: getWaitData(ssApp)
-    };
-    return ContentService.createTextOutput(
-      JSON.stringify(output)
-    ).setMimeType(ContentService.MimeType.JSON);
+    return attemptGet();
   }
-
+  
   catch (error) {
-    console.error(error.message);
-    return ContentService.createTextOutput(
-      JSON.stringify({ error: error.message })
-    ).setMimeType(ContentService.MimeType.JSON).setStatusCode(500);
+    console.error('First doGet attempt failed: ' + error.message);
+    Utilities.sleep(3000);
+    try {
+      return attemptGet();
+    }
+    catch (error) {
+      console.error('Second doGet attempt failed: ' + error.message);
+      return ContentService.createTextOutput(
+        JSON.stringify({ error: error.message })
+      ).setMimeType(ContentService.MimeType.JSON);
+    }
   }
+}
+
+function attemptGet() {
+  const ssApp = SpreadsheetApp.getActiveSpreadsheet();
+  const output = {
+    rooms: extractWhoIsInAllLocationRooms(ssApp),
+    wait: getWaitData(ssApp)
+  };
+  return ContentService.createTextOutput(
+    JSON.stringify(output)
+  ).setMimeType(ContentService.MimeType.JSON);
 }
