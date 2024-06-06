@@ -172,7 +172,7 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) 
     );
     // line 3:
     page.drawText(
-        `investigate by going to ${animalName}'s attachments tab:`,
+        `Open it by going to ${animalName}'s attachments tab:`,
         { y: pageHeight - 90 }
     );
     // line 4:
