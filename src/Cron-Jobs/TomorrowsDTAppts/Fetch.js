@@ -115,7 +115,7 @@ function parseOtherAnimalConsults(
     const animalIDToNameMap = new Map();
     for (const { animal } of otherAnimalsOfContact) {
         let name = animal.name;
-        if (animal.is_dead) name += '(💀)';
+        if (animal.is_dead === '1') name += '(💀)';
         animalIDToNameMap.set(animal.id, name);
     }
     const animalsWhoHaveBeenHere = new Set();
