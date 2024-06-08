@@ -48,7 +48,7 @@ function doGet(_e) {
   try {
     return attemptGet();
   }
-  
+
   catch (error) {
     console.error('First doGet attempt failed: ' + error.message);
     Utilities.sleep(3000);
@@ -66,10 +66,9 @@ function doGet(_e) {
 
 function attemptGet() {
   const ssApp = SpreadsheetApp.getActiveSpreadsheet();
-  const output = {
-    rooms: extractWhoIsInAllLocationRooms(ssApp),
-    wait: getWaitData(ssApp)
-  };
+  const { allRooms: rooms, numOfRoomsInUse } = extractWhoIsInAllLocationRooms(ssApp)
+  const wait = getWaitData(ssApp, numOfRoomsInUse);
+  const output = { rooms, wait };
   return ContentService.createTextOutput(
     JSON.stringify(output)
   ).setMimeType(ContentService.MimeType.JSON);

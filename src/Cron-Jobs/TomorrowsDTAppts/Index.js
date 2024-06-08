@@ -12,6 +12,7 @@ async function dtJobMain() {
         .setBackground("white")
         .setFontLine("none");
     putDataOnSheet(dtAppts, range, targetDateStr);
+    console.log('finished getTomorrowsDtAppts job!');
 };
 
 function getNextDayDtAppts() {

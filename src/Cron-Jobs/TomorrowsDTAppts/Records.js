@@ -15,6 +15,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         const numOfAttachments = animalAttachments.length + consultAttachments.length;
         console.log(`${animalName} total num of attachments:`, numOfAttachments);
 
+        // if there's a ton of records, or if there's zero attachments,
         if (numOfAttachments > 10) {
             dtAppts[i].records = {
                 text: 'yes',
@@ -29,21 +30,22 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
             continue;
         }
 
+        // otherwise start downloading and parsing the attachments
         const fileNameArray = [];
         let attachmentDownloadResponses = [];
         const downloadIDSet = new Set();
         for (const { attachment } of [...animalAttachments, ...consultAttachments]) {
-            const { name, file_download_url } = attachment;
+            const { name: fileName, file_download_url } = attachment;
 
             const downloadID = file_download_url.split('/').at(-1);
             if (downloadIDSet.has(downloadID)) {
-                // sometimes certain attachments will show up as both an animal attachment and a consult attachment.
+                // sometimes the same attachment will be returned from ezyvet as both an animal attachment and a consult attachment.
                 // we dont want to process them twice
                 continue;
             }
             downloadIDSet.add(downloadID);
 
-            fileNameArray.push(name);
+            fileNameArray.push(fileName);
             let dlResp;
             try {
                 dlResp = UrlFetchApp.fetch(file_download_url, {
@@ -56,9 +58,8 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
 
             }
             catch (error) {
-                console.error('error at attachment download fetches: ', error);
-                console.error('attachment name: ', name);
-                console.error(`error^^ after trying to dl attachment for ${animalName}`);
+                console.error(`error downloading ${fileName} for ${animalName}:`);
+                console.error(error);
                 dlResp = undefined;
             }
 
@@ -97,38 +98,33 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
 
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
         const fileNameInEzyVet = fileNameArray[j];
-        console.log(`processing ${fileNameInEzyVet}...`);
+        console.log(`processing ${fileNameInEzyVet} for ${animalName}...`);
         const response = attachmentDownloadResponses[j];
-        let blob;
-        try {
-            blob = response.getBlob();
-        }
-        catch (error) {
-            console.error(`error getting blob for ${fileNameInEzyVet}:`, error);
+        if (!response) {
+            console.error(`response for ${fileNameInEzyVet} is undefined.`);
             handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
             continue;
         }
+
+        const blob = response.getBlob();
         const contentType = blob.getContentType();
-
         console.log(`${fileNameInEzyVet} file type: ${contentType}`);
-
         const blobByes = new Uint8Array(blob.getBytes());
 
         if (contentType === 'application/pdf') {
-            let pdfData;
             try {
-                pdfData = await PDFLib.PDFDocument.load(blobByes);
+                const pdfData = await PDFLib.PDFDocument.load(blobByes);
+                const pages = await mergedPDF.copyPages(
+                    pdfData,
+                    Array(pdfData.getPageCount()).fill().map((_, ind) => ind)
+                );
+                pages.forEach(page => mergedPDF.addPage(page));
             }
             catch (error) {
-                console.error(`error loading ${fileNameInEzyVet} with PDFLib: `, error);
+                console.error(`error using PDFLib for ${fileNameInEzyVet}: `, error);
                 handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
                 continue;
             }
-            const pages = await mergedPDF.copyPages(
-                pdfData,
-                Array(pdfData.getPageCount()).fill().map((_, ind) => ind)
-            );
-            pages.forEach(page => mergedPDF.addPage(page));
         }
 
         else if (contentType === 'image/jpeg') {
@@ -172,7 +168,7 @@ function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) 
     );
     // line 3:
     page.drawText(
-        `investigate by going to ${animalName}'s attachments tab:`,
+        `Open it by going to ${animalName}'s attachments tab:`,
         { y: pageHeight - 90 }
     );
     // line 4:
