@@ -50,6 +50,8 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssAp
         parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, allRooms, sheetName);
     }
 
+    if (sheetName === 'DT') return;
+    
     const vals = range.getValues();
     const roomsInUse = sheetName === 'CH'
         ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(-3), true)
