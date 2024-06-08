@@ -1,4 +1,4 @@
-function getWaitData(ssApp) {
+function getWaitData(ssApp, rooms) {
     const waitData = [
         getWaitValsForLocation(ssApp, 'CH'),
         getWaitValsForLocation(ssApp, 'WC')

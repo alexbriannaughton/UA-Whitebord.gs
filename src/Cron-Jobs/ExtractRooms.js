@@ -21,9 +21,9 @@ function extractWhoIsInAllLocationRooms(ssApp) {
     ]);
 
     const allRooms = {};
-    extractRooms('CH', 'C4:I14', chRowFourIndexToStatusIDMap, allRooms, ssApp);
-    extractRooms('DT', 'C4:I4', rowFourIndexToStatusIDMap, allRooms, ssApp);
-    extractRooms('WC', 'C4:G4', rowFourIndexToStatusIDMap, allRooms, ssApp);
+    extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, allRooms, ssApp);
+    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, allRooms, ssApp);
+    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, allRooms, ssApp);
     return allRooms;
 }
 
@@ -32,10 +32,10 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssAp
     const sheet = ssApp.getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
     const rtVals = range.getRichTextValues();
-    const rowFourRTVals = rtVals[0];
+    const rowFourRTVals = rtVals[1];
     parseOneRow(rowFourRTVals, indexToStatusIDMap, allRooms, sheetName);
     if (sheetName === 'CH') { // cap hill has 2 lobbies, so we have this extra step
-        const rowFourteenRTVals = rtVals.at(-1);
+        const rowFourteenRTVals = rtVals.at(-2);
         const chRowFourteenIndexToSatusIDMap = new Map([
             [0, '29'], // room 6
             [1, '30'], //Room 7
