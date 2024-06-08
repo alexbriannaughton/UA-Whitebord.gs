@@ -66,8 +66,8 @@ function doGet(_e) {
 
 function attemptGet() {
   const ssApp = SpreadsheetApp.getActiveSpreadsheet();
-  const rooms = extractWhoIsInAllLocationRooms(ssApp)
-  const wait = getWaitData(ssApp, rooms);
+  const { allRooms: rooms, numOfRoomsInUse } = extractWhoIsInAllLocationRooms(ssApp)
+  const wait = getWaitData(ssApp, numOfRoomsInUse);
   const output = { rooms, wait };
   return ContentService.createTextOutput(
     JSON.stringify(output)

@@ -21,21 +21,21 @@ function extractWhoIsInAllLocationRooms(ssApp) {
     ]);
 
     const allRooms = {};
-    extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, allRooms, ssApp);
-    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, allRooms, ssApp);
-    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, allRooms, ssApp);
-    return allRooms;
+    const numOfRoomsInUse = {};
+    extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, allRooms, ssApp, numOfRoomsInUse);
+    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, allRooms, ssApp, numOfRoomsInUse);
+    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, allRooms, ssApp, numOfRoomsInUse);
+    return { allRooms, numOfRoomsInUse };
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 15 minutes during open hours
-function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssApp) {
+function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssApp, numOfRoomsInUse) {
     const sheet = ssApp.getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
+
     const rtVals = range.getRichTextValues();
     const rowFourRTVals = rtVals[1];
     parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, allRooms, sheetName);
-    const vals = range.getValues();
-    countRoomsInUse(vals);
     if (sheetName === 'CH') { // cap hill has 2 lobbies, so we have this extra step
         const rowFourteenRTVals = rtVals.at(-2);
         const chRowFourteenIndexToSatusIDMap = new Map([
@@ -45,11 +45,17 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssAp
             [3, '32'], //Room 9
             [4, '33'], //Room 10
             [5, '36'], //Room 11
-            [6, '39'] //Dog Lobby
+            [6, '39'], //Dog Lobby
         ]);
         parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, allRooms, sheetName);
     }
-    return allRooms;
+
+    const vals = range.getValues();
+    const roomsInUse = sheetName === 'CH'
+        ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(-3))
+        : countRoomsInUse(vals);
+        
+    numOfRoomsInUse[sheetName] = roomsInUse;
 }
 
 function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, allRooms, sheetName) {
@@ -75,5 +81,12 @@ function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, allRooms, sheetName)
 }
 
 function countRoomsInUse(vals) {
-    console.log(vals)
+    let roomsInUse = 0;
+    const [timeRow, nameRow, reasonRow] = vals;
+    for (let i = 0; i < timeRow.length; i++) {
+        if (!cellIsEmpty(timeRow[i]) && !cellIsEmpty(nameRow[i]) && !cellIsEmpty(reasonRow[i])) {
+            roomsInUse++
+        }
+    }
+    return roomsInUse;
 }

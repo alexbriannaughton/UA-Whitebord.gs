@@ -1,12 +1,12 @@
-function getWaitData(ssApp, rooms) {
+function getWaitData(ssApp, numOfRoomsInUse) {
     const waitData = [
-        getWaitValsForLocation(ssApp, 'CH'),
-        getWaitValsForLocation(ssApp, 'WC')
+        getWaitValsForLocation(ssApp, 'CH', numOfRoomsInUse),
+        getWaitValsForLocation(ssApp, 'WC', numOfRoomsInUse)
     ];
     return waitData;
 }
 
-function getWaitValsForLocation(ssApp, location) {
+function getWaitValsForLocation(ssApp, location, numOfRoomsInUse) {
     const waitlistSheet = ssApp.getSheetByName(`${location} Wait List`);
     const vals = waitlistSheet.getRange('C2:D4').getValues();
     const capText = vals[0][1];
@@ -17,7 +17,8 @@ function getWaitValsForLocation(ssApp, location) {
         hard_cap,
         num_of_dvms_on_floor: vals[1][0] || 0,
         wb_wait_time: vals[2][0],
-        num_of_pts_waiting: vals[0][0]
+        num_of_pts_waiting: vals[0][0],
+        rooms_in_use: numOfRoomsInUse[location]
     };
 }
 
