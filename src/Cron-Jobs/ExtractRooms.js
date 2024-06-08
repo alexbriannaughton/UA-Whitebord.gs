@@ -33,7 +33,9 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssAp
     const range = sheet.getRange(rangeCoords);
     const rtVals = range.getRichTextValues();
     const rowFourRTVals = rtVals[1];
-    parseOneRow(rowFourRTVals, indexToStatusIDMap, allRooms, sheetName);
+    parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, allRooms, sheetName);
+    const vals = range.getValues();
+    countRoomsInUse(vals);
     if (sheetName === 'CH') { // cap hill has 2 lobbies, so we have this extra step
         const rowFourteenRTVals = rtVals.at(-2);
         const chRowFourteenIndexToSatusIDMap = new Map([
@@ -45,12 +47,12 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssAp
             [5, '36'], //Room 11
             [6, '39'] //Dog Lobby
         ]);
-        parseOneRow(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, allRooms, sheetName);
+        parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, allRooms, sheetName);
     }
     return allRooms;
 }
 
-function parseOneRow(rowRTVals, indexToStatusIDMap, allRooms, sheetName) {
+function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, allRooms, sheetName) {
     for (let i = 0; i < rowRTVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
         const roomLocationKey = sheetName + statusID;
@@ -70,4 +72,8 @@ function parseOneRow(rowRTVals, indexToStatusIDMap, allRooms, sheetName) {
             }
         }
     }
+}
+
+function countRoomsInUse(vals) {
+    console.log(vals)
 }
