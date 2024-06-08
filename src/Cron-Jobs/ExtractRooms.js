@@ -20,22 +20,22 @@ function extractWhoIsInAllLocationRooms(ssApp) {
         [6, '30'], //Room 7
     ]);
 
-    const allRooms = {};
+    const roomsWithLinks = {};
     const numOfRoomsInUse = {};
-    extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, allRooms, ssApp, numOfRoomsInUse);
-    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, allRooms, ssApp, numOfRoomsInUse);
-    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, allRooms, ssApp, numOfRoomsInUse);
-    return { allRooms, numOfRoomsInUse };
+    extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse);
+    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse);
+    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse);
+    return { roomsWithLinks, numOfRoomsInUse };
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 15 minutes during open hours
-function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssApp, numOfRoomsInUse) {
+function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse) {
     const sheet = ssApp.getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
 
     const rtVals = range.getRichTextValues();
     const rowFourRTVals = rtVals[1];
-    parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, allRooms, sheetName);
+    parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, roomsWithLinks, sheetName);
     if (sheetName === 'CH') { // cap hill has 2 lobbies, so we have this extra step
         const rowFourteenRTVals = rtVals.at(-2);
         const chRowFourteenIndexToSatusIDMap = new Map([
@@ -47,11 +47,11 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssAp
             [5, '36'], //Room 11
             [6, '39'], //Dog Lobby
         ]);
-        parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, allRooms, sheetName);
+        parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, roomsWithLinks, sheetName);
     }
 
     if (sheetName === 'DT') return;
-    
+
     const vals = range.getValues();
     const roomsInUse = sheetName === 'CH'
         ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(-3), true)
@@ -60,7 +60,7 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssAp
     numOfRoomsInUse[sheetName] = roomsInUse;
 }
 
-function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, allRooms, sheetName) {
+function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, sheetName) {
     for (let i = 0; i < rowRTVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
         const roomLocationKey = sheetName + statusID;
@@ -70,12 +70,12 @@ function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, allRooms, sheetName)
             if (!link) continue;
             if (link.includes('Consult')) {
                 const whiteboardConsultID = link.split('=')[2];
-                allRooms[roomLocationKey] = { whiteboardConsultID };
+                roomsWithLinks[roomLocationKey] = { whiteboardConsultID };
                 break;
             }
             else if (link.includes('Contact')) {
                 const whiteboardContactID = link.split('=')[2];
-                allRooms[roomLocationKey] = { whiteboardContactID };
+                roomsWithLinks[roomLocationKey] = { whiteboardContactID };
                 break;
             }
         }
