@@ -52,7 +52,7 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, allRooms, ssAp
 
     const vals = range.getValues();
     const roomsInUse = sheetName === 'CH'
-        ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(-3))
+        ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(-3), true)
         : countRoomsInUse(vals);
         
     numOfRoomsInUse[sheetName] = roomsInUse;
@@ -80,10 +80,11 @@ function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, allRooms, sheetName)
     }
 }
 
-function countRoomsInUse(vals) {
+function countRoomsInUse(vals, checkForRoom11 = false) {
     let roomsInUse = 0;
     const [timeRow, nameRow, reasonRow] = vals;
-    for (let i = 0; i < timeRow.length; i++) {
+    const n = checkForRoom11 ? 6 : 5;
+    for (let i = 0; i < n; i++) {
         if (!cellIsEmpty(timeRow[i]) && !cellIsEmpty(nameRow[i]) && !cellIsEmpty(reasonRow[i])) {
             roomsInUse++
         }
