@@ -4,7 +4,7 @@ const unmatchedVetstoriaContactID = '72038';
 function putDataOnSheet(dtAppts, range, targetDateStr) {
     const dateCell = range.offset(-2, 0, 1, 1);
     dateCell.setValue(
-        `DT DVM visits for ${targetDateStr}`
+        `DVM appointments for ${targetDateStr}`
     );
 
     for (let i = 0; i < dtAppts.length; i++) {
@@ -93,19 +93,21 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             : hxFractiousCell.setValue('no');
 
 
-        const { sedativeName, sedativeDateLastFilled, rxErrorItem } = processPrescriptionItems(prescriptions, prescriptionItems);
+        const {
+            sedativeName,
+            sedativeDateLastFilled,
+            rxErrorItem
+        } = processPrescriptionItems(prescriptions, prescriptionItems);
+        const hasSedCell = range.offset(i, 7, 1, 1);
+        let sedCellVal;
         if (rxErrorItem) {
             console.error(`error processing rxs for ${ptText}`);
             console.error(`${ptText} prescriptions: `, prescriptions);
             console.error('rxErrorItem: ', rxErrorItem);
-        }
-        const hasSedCell = range.offset(i, 7, 1, 1);
-        let sedCellVal;
-        if (rxErrorItem) {
             sedCellVal = 'ERROR';
         }
         else if (sedativeName === undefined) {
-            sedCellVal = 'no'
+            sedCellVal = 'no';
         }
         else {
             sedCellVal = `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
@@ -124,34 +126,28 @@ function getTimeCellValue(i, startTime, contactID, dtAppts) {
 }
 
 function processPrescriptionItems(prescriptions, prescriptionItems) {
-    const gabaProductIDSet = new Set(['794', '1201', '1249', '5799', '1343']);
-    const trazProductIDSet = new Set(['1244', '950']);
+    const productIDMap = {
+        'gabapentin': new Set(['794', '1201', '1249', '5799', '1343']),
+        'trazadone': new Set(['1244', '950']),
+        'acepromazine': new Set(['11', '13']),
+    };
 
     let sedativeName;
     let sedativeDateLastFilled = -Infinity;
 
     for (const { prescriptionitem } of prescriptionItems) {
         const productID = prescriptionitem.product_id;
-
-        if (gabaProductIDSet.has(productID)) {
-            const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
-            if (!rxDate) {
-                return { rxErrorItem: prescriptionitem }
-            }
-            if (rxDate > sedativeDateLastFilled) {
-                sedativeName = 'gabapentin';
-                sedativeDateLastFilled = rxDate;
-            }
-
-        }
-        else if (trazProductIDSet.has(productID)) {
-            const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
-            if (!rxDate) {
-                return { rxErrorItem: prescriptionitem }
-            }
-            if (rxDate > sedativeDateLastFilled) {
-                sedativeName = 'trazadone';
-                sedativeDateLastFilled = rxDate;
+        for (const [drugName, idSet] of Object.entries(productIDMap)) {
+            if (idSet.has(productID)) {
+                const rxDate = getRxDate(prescriptions, prescriptionitem.prescription_id);
+                if (!rxDate) {
+                    return { rxErrorItem: prescriptionitem }
+                }
+                if (rxDate > sedativeDateLastFilled) {
+                    sedativeName = drugName;
+                    sedativeDateLastFilled = rxDate;
+                }
+                break;
             }
         }
     }

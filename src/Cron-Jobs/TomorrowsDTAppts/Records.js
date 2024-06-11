@@ -18,7 +18,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         // if there's a ton of records, or if there's zero attachments,
         if (numOfAttachments > 10) {
             dtAppts[i].records = {
-                text: 'yes',
+                text: 'more than 10 attachments',
             };
             continue;
         }
