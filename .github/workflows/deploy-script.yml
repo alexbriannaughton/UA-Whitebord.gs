@@ -6,8 +6,8 @@ on:
     branches: [main, develop]
   release:
     types: [published]
-  schedule:
-    - cron: "0 0 * * SUN"
+  # schedule:
+  #   - cron: "0 0 * * SUN"
 
 jobs:
   deploy:
