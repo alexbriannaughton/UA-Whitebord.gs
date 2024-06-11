@@ -1,5 +1,5 @@
 // PutDataOnSheet.js
-const highPriorityColor = '#ffff00'; // for highlighting certain items in yellow
+const highPriorityColor = '#f9cb9c'; // for highlighting certain items in light orange 2
 const unmatchedVetstoriaContactID = '72038';
 function putDataOnSheet(dtAppts, range, targetDateStr) {
     const dateCell = range.offset(-2, 0, 1, 1);
