@@ -10,7 +10,8 @@ async function dtJobMain() {
         .setWrap(true)
         .setFontColor("black")
         .setBackground("white")
-        .setFontLine("none");
+        .setFontLine("none")
+        .setBorder(false, false, false, false, false, false);
     putDataOnSheet(dtAppts, range, targetDateStr);
     const reasonColumn = range.offset(0, 3, range.getNumRows(), 1);
     reasonColumn.setWrap(false);

@@ -23,6 +23,8 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             records
         } = dtAppts[i];
 
+        range.offset(i, 0, 1).setBorder(true, true, true, true, true, true);
+
         // time and reason cell are handled the same whether or not the appointment has an unmatched contact/animal record
         const timeCellVal = getTimeCellValue(i, appointment.start_time, contact.id, dtAppts);
         const timeCell = range.offset(i, 0, 1, 1);
@@ -173,9 +175,10 @@ function handleUnmatchedRecord(appointment, ptCell) {
     // remove empty whitespace and (New client) at the front of this string^^^
     ptCell.setValue(`UNMATCHED PATIENT/CLIENT:\n${animalName}\n${contactName}\n${email}\n${phone}`);
     ptCell.setBackground(highPriorityColor);
-
-    let columnDistFromPtCell = 2;
-    while (columnDistFromPtCell <= 5) {
+    // set every cell, except for the reason cell with a value of "-"
+    ptCell.offset(0, 1).setValue('-');
+    let columnDistFromPtCell = 3;
+    while (columnDistFromPtCell <= 6) {
         ptCell.offset(0, columnDistFromPtCell++)
             .setValue('-');
     }
