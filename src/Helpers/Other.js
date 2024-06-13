@@ -106,7 +106,7 @@ function removeVetstoriaDescriptionText(descriptionString) {
     //   ?.match(/\((.*?)\)/g)
     //   ?.at(-1)
     //   ?.slice(1, -1);
-    const matches = descriptionString?.match(/\((.*?)\)/g); // Step 1: Extract matched groups
+    const matches = descriptionString?.match(/\(([\s\S]*?)\)/g); // Step 1: Extract matched groups
     console.log('matches: ')
     console.log(matches)
     const lastMatch = matches?.at(-1); // Step 2: Get the last match
