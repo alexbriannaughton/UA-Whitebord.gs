@@ -6,15 +6,8 @@ async function dtJobMain() {
     await getAllEzyVetData(dtAppts, targetDateStr);
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
     const range = sheet.getRange(`K15:R60`)
-    range.clearContent()
-        .setWrap(true)
-        .setFontColor("black")
-        .setBackground("white")
-        .setFontLine("none")
-        .setBorder(false, false, false, false, false, false);
+    formatNextDayApptsCells(sheet, range, dtAppts.length);
     putDataOnSheet(dtAppts, range, targetDateStr);
-    const reasonColumn = range.offset(0, 3, range.getNumRows(), 1);
-    reasonColumn.setWrap(false);
     console.log('finished getTomorrowsDtAppts job!');
 };
 
