@@ -18,7 +18,7 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
     depositPaidColumn.insertCheckboxes();
 
     const depositCheckboxRule = SpreadsheetApp.newConditionalFormatRule()
-        .whenCellEmpty()
+        .whenTextEqualTo('FALSE')
         .setBackground(highPriorityColor)
         .setRanges([depositPaidColumn])
         .build();
