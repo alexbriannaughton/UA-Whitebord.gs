@@ -205,7 +205,7 @@ function getAttDLErrorDetails(fileNameInEzyVet) {
         return 'Unable to download .HEIC files through the ezyvet API. -lex';
     }
     if (fileNameInEzyVet.includes('/')) {
-        return 'Unable to download files whose names have slashes in them through the ezyVet API. -lex'
+        return 'Unable to download files whose names have slashes(/) in them. -lex'
     }
 }
 
