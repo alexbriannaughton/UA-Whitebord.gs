@@ -100,9 +100,14 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
         const fileNameInEzyVet = fileNameArray[j];
         console.log(`processing ${fileNameInEzyVet} for ${animalName}...`);
         const response = attachmentDownloadResponses[j];
-        if (!response) {
+        if (response === undefined) {
             console.error(`response for ${fileNameInEzyVet} is undefined.`);
-            handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
+            handleDownloadError(
+                mergedPDF,
+                fileNameInEzyVet,
+                animalID,
+                animalName,
+            );
             continue;
         }
 
@@ -151,31 +156,57 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
     return bytes;
 }
 
-function handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName) {
+function handleDownloadError(
+    mergedPDF,
+    fileNameInEzyVet,
+    animalID,
+    animalName
+) {
     const page = mergedPDF.addPage();
-    const fontSize = 16;
-    page.setFontSize(fontSize);
+    page.setFontSize(16);
     const pageHeight = page.getHeight();
+    const errorDetailsString = getAttDLErrorDetails(fileNameInEzyVet);
+    let yDistanceFromTop = 50;
     // line 1:
     page.drawText(
         `Error downloading the attachment called`,
-        { y: pageHeight - 50 }
+        { y: pageHeight - yDistanceFromTop }
     );
+    yDistanceFromTop += 20;
     // line 2:
     page.drawText(
         `"${fileNameInEzyVet}"`,
-        { y: pageHeight - 70 }
+        { y: pageHeight - yDistanceFromTop }
     );
-    // line 3:
-    page.drawText(
-        `Open it by going to ${animalName}'s attachments tab:`,
-        { y: pageHeight - 90 }
-    );
+    yDistanceFromTop += 20;
+    // optional line 3: error details
+    if (errorDetailsString) {
+        page.drawText(
+            errorDetailsString,
+            { y: pageHeight - 90 }
+        )
+        yDistanceFromTop += 20;
+    }
     // line 4:
+    page.drawText(
+        `You should still be able to open it in ${animalName}'s attachments tab:`,
+        { y: pageHeight - yDistanceFromTop }
+    );
+    // line 5:
     const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
     const color = { type: 'RGB', red: 0, green: 0, blue: 1 }; // make the link blue
-    const linkTextOptions = { y: pageHeight - 110, color }
+    const linkTextOptions = { y: pageHeight - yDistanceFromTop, color }
     page.drawText(animalURL, linkTextOptions);
+}
+
+function getAttDLErrorDetails(fileNameInEzyVet) {
+    const fileExt = fileNameInEzyVet.split('.').at(-1).toLowerCase();
+    if (fileExt === 'heic') {
+        return 'Unable to download .HEIC files through the ezyvet API. -lex';
+    }
+    if (fileNameInEzyVet.includes('/')) {
+        return 'Unable to download files whose names have slashes in them through the ezyVet API. -lex'
+    }
 }
 
 function driveFolderProcessing(targetDateStr) {
