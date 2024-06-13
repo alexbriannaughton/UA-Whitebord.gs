@@ -33,17 +33,17 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         // otherwise start downloading and parsing the attachments
         const fileNameArray = [];
         let attachmentDownloadResponses = [];
-        const downloadIDSet = new Set();
+        // const downloadIDSet = new Set();
         for (const { attachment } of [...animalAttachments, ...consultAttachments]) {
             const { name: fileName, file_download_url } = attachment;
 
             const downloadID = file_download_url.split('/').at(-1);
-            if (downloadIDSet.has(downloadID)) {
-                // sometimes the same attachment will be returned from ezyvet as both an animal attachment and a consult attachment.
-                // we dont want to process them twice
-                continue;
-            }
-            downloadIDSet.add(downloadID);
+            // if (downloadIDSet.has(downloadID)) {
+            //     // sometimes the same attachment will be returned from ezyvet as both an animal attachment and a consult attachment.
+            //     // we dont want to process them twice
+            //     continue;
+            // }
+            // downloadIDSet.add(downloadID);
 
             fileNameArray.push(fileName);
             let dlResp;
@@ -88,7 +88,8 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         const url = mergedPDFDriveFile.getUrl();
         dtAppts[i].records = {
             link: url,
-            text: `${downloadIDSet.size} attachments`
+            // text: `${downloadIDSet.size} attachments`
+            text: `${attachmentDownloadResponses.length} attachments`
         };
     }
 }
