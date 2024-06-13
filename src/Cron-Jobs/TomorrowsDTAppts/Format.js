@@ -1,3 +1,4 @@
+// Format.js
 function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
     console.log('formatting next day range cells...');
 
@@ -22,5 +23,5 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
         .setRanges([depositPaidColumn])
         .build();
 
-    sheet.setConditionalFormatRules(depositCheckboxRule);
+    sheet.setConditionalFormatRules([depositCheckboxRule]);
 }
