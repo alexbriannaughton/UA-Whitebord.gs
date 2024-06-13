@@ -101,7 +101,7 @@ function cellIsEmpty(cellContents) {
 function removeVetstoriaDescriptionText(descriptionString) {
   if (descriptionString.startsWith('VETSTORIA')) {
     const newDescString = descriptionString
-      ?.match(/\((.*?)\)/g)
+      ?.match(/\(([\s\S]*?)\)/g)
       ?.at(-1)
       ?.slice(1, -1);
     if (newDescString) {

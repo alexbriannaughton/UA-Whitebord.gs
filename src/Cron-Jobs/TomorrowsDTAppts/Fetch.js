@@ -39,9 +39,9 @@ function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
 }
 
 // findLastVisitAndGetOtherAnimalConsults will iterate through dtAppts and:
-// 1. look for a valid previous appointment. if found it will attach the date to dtAppt[i].patientsLastVisitDate
+// 1. look for a valid previous appointment. if found it will store the date to dtAppt[i].patientsLastVisitDate
 // 2. if we do not find a valid previous appointment for this patient, and the owner has other pets on file,
-// then we're going to send a request to ezyvet for the consults of those other pets and we'll attach those consults to dtAppts[i].otherAnimalConsuts
+// then we're going to send a request to ezyvet for the consults of those other pets and we'll store those consults to dtAppts[i].otherAnimalConsuts
 function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
     const consultsForOtherContactAnimalsRequests = [];
     const fetchedForOtherAnimalConsultsMap = [];
@@ -63,8 +63,8 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
                 const consultDate = getDateAtMidnight(consult.date);
                 if (consultHasAppointment && consultDate < targetDate) {
                     // then we have confirmed a valid last consult for this patient
-                    const [_consultDayOfWeek, consultDayMonthYear] = convertEpochToUserTimezoneDate(consult.date).split(' ');
-                    dtAppts[i].patientsLastVisitDate = consultDayMonthYear;
+                    const dateString = convertEpochToUserTimezoneDate(consult.date);
+                    dtAppts[i].patientsLastVisitDate = dateString;
                     break;
                 }
                 // if consult does not have an appointment

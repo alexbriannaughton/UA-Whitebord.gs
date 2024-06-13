@@ -4,14 +4,17 @@ async function dtJobMain() {
     console.log('running getTomrrowsDTAppts job...');
     const  { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT Next Day Checklist');
-    const range = sheet.getRange(`A4:H204`)
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
+    const range = sheet.getRange(`K15:R60`)
     range.clearContent()
         .setWrap(true)
         .setFontColor("black")
         .setBackground("white")
-        .setFontLine("none");
+        .setFontLine("none")
+        .setBorder(false, false, false, false, false, false);
     putDataOnSheet(dtAppts, range, targetDateStr);
+    const reasonColumn = range.offset(0, 3, range.getNumRows(), 1);
+    reasonColumn.setWrap(false);
     console.log('finished getTomorrowsDtAppts job!');
 };
 

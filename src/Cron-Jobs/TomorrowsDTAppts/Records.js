@@ -18,7 +18,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         // if there's a ton of records, or if there's zero attachments,
         if (numOfAttachments > 10) {
             dtAppts[i].records = {
-                text: 'yes',
+                text: `${numOfAttachments} attachments...`,
             };
             continue;
         }
@@ -88,7 +88,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         const url = mergedPDFDriveFile.getUrl();
         dtAppts[i].records = {
             link: url,
-            text: `${downloadIDSet.size} attachments`
+            text: `${downloadIDSet.size} attachment${downloadIDSet.size > 1 ? 's' : ''}`
         };
     }
 }

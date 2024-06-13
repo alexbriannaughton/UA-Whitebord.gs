@@ -9,7 +9,7 @@ function extractWhoIsInAllLocationRooms(ssApp) {
         [6, '40'],//cat lobby (column 2)
     ]);
 
-    // this map works for both WC and DT, even though WC only has 5 rooms
+    // this map works for both WC and DT
     const rowFourIndexToStatusIDMap = new Map([
         [0, '18'], //Room 1
         [1, '25'], //Room 2
@@ -50,13 +50,13 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks
         parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, roomsWithLinks, sheetName);
     }
 
-    if (sheetName === 'DT') return;
+    if (sheetName === 'DT') return; // we dont currently make waitlogs for dt, so no need to determine its rooms in use
 
     const vals = range.getValues();
     const roomsInUse = sheetName === 'CH'
         ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(-3), true)
         : countRoomsInUse(vals);
-        
+
     numOfRoomsInUse[sheetName] = roomsInUse;
 }
 
