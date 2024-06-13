@@ -183,7 +183,7 @@ function handleDownloadError(
     if (errorDetailsString) {
         page.drawText(
             errorDetailsString,
-            { y: pageHeight - 90 }
+            { y: pageHeight - yDistanceFromTop }
         )
         yDistanceFromTop += 20;
     }
