@@ -23,8 +23,6 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             records
         } = dtAppts[i];
 
-        range.offset(i, 0, 1).setBorder(true, true, true, true, true, true);
-
         // time and reason cell are handled the same whether or not the appointment has an unmatched contact/animal record
         const timeCellVal = getTimeCellValue(i, appointment.start_time, contact.id, dtAppts);
         const timeCell = range.offset(i, 0, 1, 1);
@@ -42,12 +40,13 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
 
         const depositPaidCell = range.offset(i, 2, 1, 1);
         const hasDepositPaidStatus = appointment.details.appointment_status_id === '37';
-        if (hasDepositPaidStatus) {
-            depositPaidCell.setValue('yes');
-        }
-        else {
-            depositPaidCell.setValue('no').setBackground(highPriorityColor)
-        }
+        depositPaidCell.setValue(hasDepositPaidStatus);
+        // if (hasDepositPaidStatus) {
+        //     depositPaidCell.setValue('yes');
+        // }
+        // else {
+        //     depositPaidCell.setValue('no').setBackground(highPriorityColor)
+        // }
 
         // if we know the animal/contact stuff, continue normally
         const unknownSpeciesString = 'unknown species';
