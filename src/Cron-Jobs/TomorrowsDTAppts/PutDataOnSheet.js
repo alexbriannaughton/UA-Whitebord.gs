@@ -4,7 +4,7 @@ const unmatchedVetstoriaContactID = '72038';
 function putDataOnSheet(dtAppts, range, targetDateStr) {
     const dateCell = range.offset(-2, 0, 1, 1);
     dateCell.setValue(
-        `DVM appointments for ${targetDateStr}`
+        `Next day DVM appointments\n${targetDateStr}`
     );
 
     for (let i = 0; i < dtAppts.length; i++) {
