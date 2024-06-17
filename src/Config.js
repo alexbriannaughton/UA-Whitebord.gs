@@ -28,7 +28,7 @@ function updateToken() {
 
 function getEvCreds() {
     const props = PropertiesService.getScriptProperties();
-    const api = `https://secretmanager.googleapis.com/v1/projects/${props.getProperty('gcp_id')}/secrets/${props.getProperty('secret_name')}/versions/2:access`;
+    const api = `https://secretmanager.googleapis.com/v1/projects/${props.getProperty('gcp_id')}/secrets/${props.getProperty('secret_name')}/versions/${props.getProperty('secret_version')}:access`;
     const response = UrlFetchApp.fetch(api, {
         method: 'GET',
         headers: {
