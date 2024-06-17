@@ -203,10 +203,10 @@ function handleDownloadError(
 function getAttDLErrorDetails(fileNameInEzyVet) {
     const fileExt = fileNameInEzyVet.split('.').at(-1).toLowerCase();
     if (fileExt === 'heic') {
-        return 'Unable to download .HEIC files through the ezyvet API.';
+        return 'Alex is unable to download .HEIC files through the ezyvet API.';
     }
     if (fileNameInEzyVet.includes('/')) {
-        return 'Unable to download files whose names have slashes(/) in them.'
+        return 'Alex is unable to download files whose names have slashes(/) in them.'
     }
 }
 
