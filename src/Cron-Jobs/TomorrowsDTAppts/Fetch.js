@@ -63,7 +63,7 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
                 const consultDate = getDateAtMidnight(consult.date);
                 if (consultHasAppointment && consultDate < targetDate) {
                     // then we have confirmed a valid last consult for this patient
-                    const dateString = convertEpochToUserTimezoneDate(consult.date);
+                    const [_dayOfWeek, dateString] = convertEpochToUserTimezoneDate(consult.date).split(' ');
                     dtAppts[i].patientsLastVisitDate = dateString;
                     break;
                 }

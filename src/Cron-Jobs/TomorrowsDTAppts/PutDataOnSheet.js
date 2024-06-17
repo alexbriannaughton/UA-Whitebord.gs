@@ -111,7 +111,8 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             sedCellVal = 'no';
         }
         else {
-            sedCellVal = `${sedativeName} last filled ${convertEpochToUserTimezoneDate(sedativeDateLastFilled)}`;
+            const [_dayOfWeek, dateString] = convertEpochToUserTimezoneDate(sedativeDateLastFilled).split(' ');
+            sedCellVal = `${sedativeName} last filled ${dateString}`;
         }
         hasSedCell.setValue(sedCellVal);
     }
