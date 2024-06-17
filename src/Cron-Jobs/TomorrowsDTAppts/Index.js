@@ -1,6 +1,7 @@
 // Index.js
 // dtJobMain is the main function for the job that grabs the next day of dt appointments
 async function dtJobMain() {
+    const startTime = new Date();
     console.log('running getTomrrowsDTAppts job...');
     const  { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
@@ -8,7 +9,9 @@ async function dtJobMain() {
     const range = sheet.getRange(`K15:R60`)
     formatNextDayApptsCells(sheet, range, dtAppts.length);
     putDataOnSheet(dtAppts, range, targetDateStr);
-    console.log('finished getTomorrowsDtAppts job!');
+    const endTime = new Date();
+    const executionTime = (endTime - startTime) / 1000;
+    console.log(`finished getTomorrowsDtAppts job at ${executionTime} seconds!`);
 };
 
 function getNextDayDtAppts() {
