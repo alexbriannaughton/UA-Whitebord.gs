@@ -11,6 +11,8 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
 
     range.offset(0, 0, numOfDtAppts).setBorder(true, true, true, true, true, true);
 
+    range.offset(0, 2, range.getNumRows(), 1).removeCheckboxes();
+
     const reasonColumn = range.offset(0, 3, numOfDtAppts, 1);
     reasonColumn.setWrap(false);
 
