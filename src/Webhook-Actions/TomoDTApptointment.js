@@ -21,7 +21,7 @@ function handleTomorrowDTAppointment(appointment) {
 
     let ptCellRichText;
     if (!existingRow && highestEmptyRow) {
-        ptCellRichText = handleAddNewNames(appointment, ptCell);
+        ptCellRichText = handleAddNewNames(appointment);
     }
     else if (existingRow) {
         ptCellRichText = existingRowRichText[0][1];
@@ -59,7 +59,7 @@ function simpleTextToRichText(text) {
     return SpreadsheetApp.newRichTextValue().setText(text).build();
 }
 
-function handleAddNewNames(appointment, ptCell) {
+function handleAddNewNames(appointment) {
     const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
     const text = `${animalName} ${contactLastName} (${animalSpecies})`
     const link = makeLink(text, `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`);
