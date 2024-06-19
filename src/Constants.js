@@ -9,6 +9,8 @@ const dateStringPattern = 'EEEE MM/dd/yyyy';
 
 const dtNextDayApptsCoords = 'K15:R60';
 
+const sameFamString = '^same fam^';
+
 const echoApptTypeIDsSet = new Set([30]);
 const ausApptTypeIDsSet = new Set([29, 91]);
 

@@ -56,14 +56,22 @@ function resortTheAppts(range) {
     console.log(apptVals)
 
     const combinedVals = apptVals.map((apptVal, i) => {
+        const sameFamTime = apptVal[0] === sameFamString
+            ? apptVals[i-1][0]
+            : null;
         return {
             plainValue: apptVal,
-            richTextValue: apptRichTexts[i]
+            richTextValue: apptRichTexts[i],
+            sameFamTime
         };
     });
     combinedVals.sort((a, b) => {
-        const aSortVal = parseTimeForSort(a.plainValue[0]);
-        const bSortVal = parseTimeForSort(b.plainValue[0]);
+        const aSortVal = parseTimeForSort(
+            a.sameFamTime || a.plainValue[0]
+        );
+        const bSortVal = parseTimeForSort(
+            b.sameFamTime || b.plainValue[0]
+        );
         return aSortVal - bSortVal;
     });
 

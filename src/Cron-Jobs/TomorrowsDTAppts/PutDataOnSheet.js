@@ -121,7 +121,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
 function getTimeCellValue(i, startTime, contactID, dtAppts) {
     const isSameFam = i > 0 && contactID === dtAppts[i - 1].contact.id;
     if (isSameFam && contactID !== unmatchedVetstoriaContactID) {
-        return '^same fam^';
+        return sameFamString;
     }
     const time = convertEpochToUserTimezone2(startTime);
     return time;
