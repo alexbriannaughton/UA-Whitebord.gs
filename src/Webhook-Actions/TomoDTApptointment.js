@@ -13,16 +13,17 @@ function handleTomorrowDTAppointment(appointment) {
     }
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
+    const rowVals = rowRange.getValues();
 
     const apptStartTime = convertEpochToUserTimezone2(appointment.start_at);
     const timeCell = rowRange.offset(0, 0, 1, 1);
-    const timeCellValBeforeUpdating = timeCell.getValue();
+    const timeCellValBeforeUpdating = rowVals[0][0];
     timeCell.setValue(apptStartTime);
 
     const hasDepositPaidStatus = appointment.status_id === 37;
     const depositPaidCell = rowRange.offset(0, 2, 1, 1);
-    const depositCellBeforeUpdating = depositPaidCell.getValue();
-    const depositPaidCellValue = depositCellBeforeUpdating || hasDepositPaidStatus || 'FALSE';
+    const depositCellBeforeUpdating = rowVals[0][2];
+    const depositPaidCellValue = depositCellBeforeUpdating.startsWith('y') || hasDepositPaidStatus ? 'yes' : 'no';
     depositPaidCell.setValue(depositPaidCellValue);
 
     const needToResort = timeCellValBeforeUpdating !== apptStartTime;
@@ -57,7 +58,7 @@ function resortTheAppts(range) {
 
     const combinedVals = apptVals.map((apptVal, i) => {
         const sameFamTime = apptVal[0] === sameFamString
-            ? apptVals[i-1][0]
+            ? apptVals[i - 1][0]
             : null;
         return {
             plainValue: apptVal,

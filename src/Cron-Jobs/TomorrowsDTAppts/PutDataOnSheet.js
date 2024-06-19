@@ -40,13 +40,14 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
 
         const depositPaidCell = range.offset(i, 2, 1, 1);
         const hasDepositPaidStatus = appointment.details.appointment_status_id === '37';
-        depositPaidCell.setValue(hasDepositPaidStatus);
-        // if (hasDepositPaidStatus) {
-        //     depositPaidCell.setValue('yes');
-        // }
-        // else {
-        //     depositPaidCell.setValue('no').setBackground(highPriorityColor)
-        // }
+        // depositPaidCell.setValue(hasDepositPaidStatus);
+        if (hasDepositPaidStatus) {
+            depositPaidCell.setValue('yes');
+        }
+        else {
+            depositPaidCell.setValue('no')
+            // .setBackground(highPriorityColor)
+        }
 
         // if we know the animal/contact stuff, continue normally
         const unknownSpeciesString = 'unknown species';

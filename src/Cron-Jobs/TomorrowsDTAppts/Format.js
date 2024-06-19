@@ -16,6 +16,6 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
     const reasonColumn = range.offset(0, 3, numOfDtAppts, 1);
     reasonColumn.setWrap(false);
 
-    const depositPaidColumn = range.offset(0, 2, numOfDtAppts, 1);
-    depositPaidColumn.insertCheckboxes();
+    // const depositPaidColumn = range.offset(0, 2, numOfDtAppts, 1);
+    // depositPaidColumn.insertCheckboxes();
 }
