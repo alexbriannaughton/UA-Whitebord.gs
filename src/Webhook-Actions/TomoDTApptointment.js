@@ -16,15 +16,28 @@ function handleTomorrowDTAppointment(appointment) {
     const rowVals = rowRange.getValues();
 
     const apptStartTime = convertEpochToUserTimezone2(appointment.start_at);
-    const timeCell = rowRange.offset(0, 0, 1, 1);
+    // const timeCell = rowRange.offset(0, 0, 1, 1);
     const timeCellValBeforeUpdating = rowVals[0][0];
-    timeCell.setValue(apptStartTime);
+    // timeCell.setValue(apptStartTime);
+
+    const ptCell = rowRange.offset(0, 1, 1, 1);
+    if (!existingRow && highestEmptyRow) {
+        handleAddNewNames(appointment, ptCell);
+    }
 
     const hasDepositPaidStatus = appointment.status_id === 37;
-    const depositPaidCell = rowRange.offset(0, 2, 1, 1);
+    // const depositPaidCell = rowRange.offset(0, 2, 1, 1);
     const depositCellBeforeUpdating = rowVals[0][2];
     const depositPaidCellValue = depositCellBeforeUpdating.startsWith('y') || hasDepositPaidStatus ? 'yes' : 'no';
-    depositPaidCell.setValue(depositPaidCellValue);
+    // depositPaidCell.setValue(depositPaidCellValue);
+
+    const reasonCellValue = removeVetstoriaDescriptionText(appointment.description);
+
+    const rangeToSetVals = rowRange.offste(0, 0, 1, 4);
+    rangeToSetVals.setValues([
+        [apptStartTime, null, depositPaidCellValue, reasonCellValue]
+    ]);
+
 
     const needToResort = timeCellValBeforeUpdating !== apptStartTime;
     if (needToResort) {
@@ -33,6 +46,13 @@ function handleTomorrowDTAppointment(appointment) {
 
     return;
 
+}
+
+function handleAddNewNames(appointment, ptCell) {
+    const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
+    const text = `${animalName} ${contactLastName} (${animalSpecies})`
+    const link = makeLink(text, `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`);
+    ptCell.setRichTextValue(link);
 }
 
 function resortTheAppts(range) {
