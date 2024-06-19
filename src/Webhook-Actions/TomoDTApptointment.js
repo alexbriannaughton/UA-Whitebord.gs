@@ -34,38 +34,46 @@ function handleTomorrowDTAppointment(appointment) {
 
 }
 
-function resortTheAppts() {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
-    const range = sheet.getRange(dtNextDayApptsCoords);
+function resortTheAppts(range) {
+    if (!range) {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
+        range = sheet.getRange(dtNextDayApptsCoords);
+    }
     const richTextVals = range.getRichTextValues();
     const vals = range.getValues();
-  
+
     let numOfAppts;
     for (let i = 0; i < vals.length; i++) {
-      if (vals[i][0] === '') {
-        numOfAppts = i;
-        break;
-      }
+        if (vals[i][0] === '') {
+            numOfAppts = i;
+            break;
+        }
     }
     if (!numOfAppts) return;
-  
+
     const apptRichTexts = richTextVals.slice(0, numOfAppts);
     const apptVals = vals.slice(0, numOfAppts);
     console.log(apptVals)
-  
+
     const combinedVals = apptVals.map((apptVal, i) => {
-      return {
-        plainValue: apptVal,
-        richTextValue: apptRichTexts[i]
-      };
+        return {
+            plainValue: apptVal,
+            richTextValue: apptRichTexts[i]
+        };
     });
     combinedVals.sort((a, b) => {
-      const aN = a.plainValue[0][0]
-      const bN = b.plainValue[0][0]
-      // console.log(aN, bN)
-      return Number(aN) - Number(bN);
+        const aSortVal = parseTimeForSort(a.plainValue[0]);
+        const bSortVal = parseTimeForSort(b.plainValue[0]);
+        return aSortVal - bSortVal;
     });
-    
-    // const sortedRichText = combinedVals.map(val => val.richTextValue);
-    // range.setRichTextValues(sortedRichText);
-  }
+
+    const sortedRichText = combinedVals.map(val => val.richTextValue);
+    range.setRichTextValues(sortedRichText);
+}
+
+function parseTimeForSort(timeStr) {
+    const [time, period] = timeStr.split(/([AP]M)/);
+    const [hours, minutes] = time.split(':').map(Number);
+    const offset = period === 'PM' && hours !== 12 ? 12 : 0;
+    return (hours % 12 + offset) * 60 + minutes; // Convert to minutes since start of day
+}
