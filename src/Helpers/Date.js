@@ -1,16 +1,22 @@
-// check if utc timestamp is today in PST
-function isTodayInUserTimezone(timestamp) {
-    const timestampDate = Utilities.formatDate(
-        new Date(timestamp * 1000),
-        userTimezone,
-        'yyyy-MM-dd'
-    );
+// check if utc timestamp is today in user timezone
+function isTodayInUserTimezone(timestampDate) {
     const todaysDate = Utilities.formatDate(
         new Date(),
         userTimezone,
-        'yyyy-MM-dd'
+        dateStringPattern
     );
     return timestampDate === todaysDate;
+}
+
+function isTomorrowInUserTimezone(timestampDate) {
+    const date = new Date();
+    date.setDate(date.getDate() + 1);
+    const formattedTomorrowsDate = Utilities.formatDate(
+        date,
+        userTimezone,
+        'EEEE MM/dd/yyyy'
+    );
+    return timestampDate === formattedTomorrowsDate;
 }
 
 function convertEpochToUserTimezone(epoch) {
@@ -25,7 +31,7 @@ function convertEpochToUserTimezoneDate(epoch) {
     return Utilities.formatDate(
         new Date(epoch * 1000),
         userTimezone,
-        'EEEE MM/dd/yyyy'
+        dateStringPattern
     );
 }
 

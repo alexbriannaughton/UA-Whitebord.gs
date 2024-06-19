@@ -7,8 +7,16 @@ function handleAppointment(webhookType, appointment) {
         handleEchoOrAUS(appointment, 'AUS');
     }
 
-    // below here is for this script
-    if (!isTodayInUserTimezone(appointment.start_at) || !appointment.active) return;
+    // below here is for this sheet
+    const timestampDate = convertEpochToUserTimezoneDate(appointment.start_at);
+    const isTomorrow = isTomorrowInUserTimezone(timestampDate);
+    if (isTomorrow) {
+        const location = whichLocation(appointment.resources[0].id);
+        if (location !== 'DT') return;
+        return handleTomorrowDTAppointment(appointment);
+    }
+    const isToday = isTodayInUserTimezone(timestampDate);
+    if (!isToday || !appointment.active) return;
 
     appointment.description = removeVetstoriaDescriptionText(appointment.description);
 

@@ -6,7 +6,7 @@ async function dtJobMain() {
     const  { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
-    const range = sheet.getRange(`K15:R60`)
+    const range = sheet.getRange(dtNextDayApptsCoords);
     formatNextDayApptsCells(sheet, range, dtAppts.length);
     putDataOnSheet(dtAppts, range, targetDateStr);
     const endTime = new Date();

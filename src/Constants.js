@@ -5,6 +5,10 @@ const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species
 
 const userTimezone = 'America/Los_Angeles';
 
+const dateStringPattern = 'EEEE MM/dd/yyyy';
+
+const dtNextDayApptsCoords = 'K15:R60';
+
 const echoApptTypeIDsSet = new Set([30]);
 const ausApptTypeIDsSet = new Set([29, 91]);
 

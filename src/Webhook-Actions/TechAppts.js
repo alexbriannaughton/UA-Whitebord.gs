@@ -11,7 +11,7 @@ function addTechAppt(appointment) {
   const techBoxCoords = techBoxCoordsMap.get(location);
   const techApptRange = sheet.getRange(techBoxCoords);
 
-  const rowRange = findEmptyRow(techApptRange, appointment.consult_id, 1);
+  const { highestEmptyRow: rowRange } = findRow(techApptRange, appointment.consult_id, 1);
   if (!rowRange) return;
 
   const [animalName, animalSpecies] = getAnimalInfo(appointment.animal_id);

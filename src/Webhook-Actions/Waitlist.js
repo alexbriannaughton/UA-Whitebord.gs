@@ -10,7 +10,7 @@ function addToWaitlist(appointment) {
   const waitlistRange = sheet.getRange(`B7:K75`);
   // only checking up through row 75 on the waitlist
   // meaning only up to 69 pets can currently be on the waitlist (it never gets that high currently)
-  const rowRange = findEmptyRow(waitlistRange, appointment.consult_id, 1);
+  const { highestEmptyRow: rowRange } = findRow(waitlistRange, appointment.consult_id, 1);
   if (!rowRange) return;
 
   rowRange.setBackground('#f3f3f3');
