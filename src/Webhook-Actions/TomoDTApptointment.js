@@ -79,5 +79,5 @@ function parseTimeForSort(timeStr) {
     if (period === 'AM' && hours === 12) offset = -12;
     else if (period === 'PM' && hours !== 12) offset = 12;
 
-    return (hours % 12 + offset) * 60 + minutes;
+    return (hours + offset) * 60 + minutes;
 }
