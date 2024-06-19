@@ -123,7 +123,7 @@ function getTimeCellValue(i, startTime, contactID, dtAppts) {
     if (isSameFam && contactID !== unmatchedVetstoriaContactID) {
         return '^same fam^';
     }
-    const time = convertEpochToUserTimezone(startTime);
+    const time = convertEpochToUserTimezone2(startTime);
     return time;
 }
 
