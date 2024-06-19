@@ -34,6 +34,10 @@ function handleTomorrowDTAppointment(appointment) {
     const reasonCellValue = removeVetstoriaDescriptionText(appointment.description);
 
     const rangeToSetVals = rowRange.offset(0, 0, 1, 4);
+    console.log('type for apptStartTime: ', typeof apptStartTime);
+    console.log('type for depositPaidCellValue: ', typeof depositPaidCellValue);
+    console.log('type for reasonCellValue: ', typeof reasonCellValue);
+
     rangeToSetVals.setValues([
         [apptStartTime, null, depositPaidCellValue, reasonCellValue]
     ]);
