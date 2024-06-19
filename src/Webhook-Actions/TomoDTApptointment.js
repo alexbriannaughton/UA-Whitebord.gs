@@ -23,7 +23,9 @@ function handleTomorrowDTAppointment(appointment) {
 
     const hasDepositPaidStatus = appointment.status_id === 37;
     const depositPaidCell = rowRange.offset(0, 2, 1, 1);
-    depositPaidCell.setValue(hasDepositPaidStatus);
+    const depositCellBeforeUpdating = depositPaidCell.getValue();
+    const depositPaidCellValue = depositCellBeforeUpdating || hasDepositPaidStatus || 'FALSE';
+    depositPaidCell.setValue(depositPaidCellValue);
 
     const needToResort = timeCellValBeforeUpdating !== apptStartTime;
     if (needToResort) {
