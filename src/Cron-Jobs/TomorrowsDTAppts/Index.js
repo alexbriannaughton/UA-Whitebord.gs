@@ -52,7 +52,7 @@ function filterAndSortDTAppts(allTargetDayAppts) {
             const withinAnHour = Math.abs(appt2.appointment.start_time - appt1.appointment.start_time) <= 3600;
             if (!withinAnHour) break; // dont need to keep checking if were already further than an hour apart
 
-            const isSameContact = appt2.appointment.details.contact_id === appt2.appointment.details.contact_id;
+            const isSameContact = appt1.appointment.details.contact_id === appt2.appointment.details.contact_id;
             if (isSameContact) {
                 console.log('same appt found between animals', appt1.appointment.details.animal_id, 'and', appt2.appointment.details.animal_id)
                 dtAppts.splice(j + 1, 1);
