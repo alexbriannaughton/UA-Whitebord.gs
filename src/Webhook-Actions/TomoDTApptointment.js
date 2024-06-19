@@ -78,7 +78,6 @@ function resortTheAppts(range) {
 
     const apptRichTexts = richTextVals.slice(0, numOfAppts);
     const apptVals = vals.slice(0, numOfAppts);
-    console.log(apptVals)
 
     const combinedVals = apptVals.map((apptVal, i) => {
         const sameFamTime = apptVal[0] === sameFamString
@@ -103,7 +102,7 @@ function resortTheAppts(range) {
     const sortedRichText = combinedVals.map(val => val.richTextValue);
     range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
     const sortedVals = combinedVals.map(val => val.plainValue);
-    const sortedDepositVals = sortedVals.map(val => val[2]);
+    const sortedDepositVals = sortedVals.map(val => [val[2]]);
     range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);
 }
 
