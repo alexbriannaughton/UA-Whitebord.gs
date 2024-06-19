@@ -74,6 +74,10 @@ function resortTheAppts(range) {
 function parseTimeForSort(timeStr) {
     const [time, period] = timeStr.split(/([AP]M)/);
     const [hours, minutes] = time.split(':').map(Number);
-    const offset = period === 'PM' && hours !== 12 ? 12 : 0;
-    return (hours % 12 + offset) * 60 + minutes; // Convert to minutes since start of day
+
+    let offset = 0;
+    if (period === 'AM' && hours === 12) offset = -12;
+    else if (period === 'PM' && hours !== 12) offset = 12;
+
+    return (hours % 12 + offset) * 60 + minutes;
 }
