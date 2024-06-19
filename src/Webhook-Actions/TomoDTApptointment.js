@@ -6,6 +6,8 @@ function handleTomorrowDTAppointment(appointment) {
         console.error('COULD FIND A ROW TO POPULATE FOR DT TOMORROW HANDLER');
     }
 
+    if (!existingRow) return;
+    
     if (!appointment.active && existingRow) {
         // cross the row out
         existingRow.setFontLine('line-through');
@@ -33,7 +35,7 @@ function handleTomorrowDTAppointment(appointment) {
 }
 
 function resortTheAppts(range) {
-    const richTextVals = range.getRichTextVals();
+    const richTextVals = range.getRichTextValues();
     const vals = range.getValues();
     console.log('VALS')
     console.log(vals);
