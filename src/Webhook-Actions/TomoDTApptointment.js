@@ -13,33 +13,36 @@ function handleTomorrowDTAppointment(appointment) {
     }
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
-    const rowVals = rowRange.getValues();
+    const existingRowRichText = rowRange.getRichTextValues();
 
     const apptStartTime = convertEpochToUserTimezone2(appointment.start_at);
-    // const timeCell = rowRange.offset(0, 0, 1, 1);
-    const timeCellValBeforeUpdating = rowVals[0][0];
-    // timeCell.setValue(apptStartTime);
+    const apptTimeRichText = simpleTextToRichText(apptStartTime);
+    const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
 
-    const ptCell = rowRange.offset(0, 1, 1, 1);
+    let ptCellRichText;
     if (!existingRow && highestEmptyRow) {
-        handleAddNewNames(appointment, ptCell);
+        ptCellRichText = handleAddNewNames(appointment, ptCell);
+    }
+    else if (existingRow) {
+        ptCellRichText = existingRowRichText[0][1];
+    }
+    else if (!ptCellRichText) {
+        throw new Error('couldnt make rich text value for incoming patient name');
     }
 
     const hasDepositPaidStatus = appointment.status_id === 37;
-    // const depositPaidCell = rowRange.offset(0, 2, 1, 1);
-    const depositCellBeforeUpdating = rowVals[0][2];
-    const depositPaidCellValue = depositCellBeforeUpdating.startsWith('y') || hasDepositPaidStatus ? 'yes' : 'no';
-    // depositPaidCell.setValue(depositPaidCellValue);
+    const depositCellBeforeUpdating = existingRowRichText[0][2].getText();
+    const depositPaidText = depositCellBeforeUpdating.startsWith('y') || hasDepositPaidStatus ?
+        'yes' :
+        'no';
+    const depositPaidRichtext = simpleTextToRichText(depositPaidText);
 
-    const reasonCellValue = removeVetstoriaDescriptionText(appointment.description);
+    const reasonCellText = removeVetstoriaDescriptionText(appointment.description);
+    const reasonCellRichText = simpleTextToRichText(reasonCellText);
 
     const rangeToSetVals = rowRange.offset(0, 0, 1, 4);
-    console.log('type for apptStartTime: ', typeof apptStartTime);
-    console.log('type for depositPaidCellValue: ', typeof depositPaidCellValue);
-    console.log('type for reasonCellValue: ', typeof reasonCellValue);
-
-    rangeToSetVals.setValues([
-        [apptStartTime, null, depositPaidCellValue, reasonCellValue]
+    rangeToSetVals.setRichTextValues([
+        [apptTimeRichText, ptCellRichText, depositPaidRichtext, reasonCellRichText]
     ]);
 
 
@@ -52,11 +55,15 @@ function handleTomorrowDTAppointment(appointment) {
 
 }
 
+function simpleTextToRichText(text) {
+    return SpreadsheetApp.newRichTextValue().setText(text).build();
+}
+
 function handleAddNewNames(appointment, ptCell) {
     const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
     const text = `${animalName} ${contactLastName} (${animalSpecies})`
     const link = makeLink(text, `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`);
-    ptCell.setRichTextValue(link);
+    return link;
 }
 
 function resortTheAppts(range) {
