@@ -68,7 +68,7 @@ function resortTheAppts(range) {
     });
 
     const sortedRichText = combinedVals.map(val => val.richTextValue);
-    range.offset(0, numOfAppts).setRichTextValues(sortedRichText);
+    range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
 }
 
 function parseTimeForSort(timeStr) {
