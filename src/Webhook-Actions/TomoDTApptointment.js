@@ -77,6 +77,9 @@ function resortTheAppts(range) {
 
     const sortedRichText = combinedVals.map(val => val.richTextValue);
     range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
+    const sortedVals = combinedVals.map(val => val.plainValue);
+    const sortedDepositVals = sortedVals.map(val => val[2]);
+    range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);
 }
 
 function parseTimeForSort(timeStr) {
