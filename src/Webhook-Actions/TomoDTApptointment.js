@@ -33,7 +33,7 @@ function handleTomorrowDTAppointment(appointment) {
 
     const reasonCellValue = removeVetstoriaDescriptionText(appointment.description);
 
-    const rangeToSetVals = rowRange.offste(0, 0, 1, 4);
+    const rangeToSetVals = rowRange.offset(0, 0, 1, 4);
     rangeToSetVals.setValues([
         [apptStartTime, null, depositPaidCellValue, reasonCellValue]
     ]);
