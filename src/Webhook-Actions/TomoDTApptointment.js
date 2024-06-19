@@ -7,7 +7,7 @@ function handleTomorrowDTAppointment(appointment) {
     }
 
     if (!existingRow) return;
-    
+
     if (!appointment.active && existingRow) {
         // cross the row out
         existingRow.setFontLine('line-through');
@@ -39,4 +39,17 @@ function resortTheAppts(range) {
     const vals = range.getValues();
     console.log('VALS')
     console.log(vals);
+    const combinedVals = vals.map((val, i) => {
+        return {
+            plainValue: val,
+            richTextValue: richTextVals[i]
+        };
+    });
+    combinedVals.sort((a, b) => {
+        const aN = a.plainValue[0][0]
+        const bN = b.plainValue[0][0]
+        return Number(aN) - Number(bN);
+    });
+    const sortedRichText = combinedVals.map(val => val.richTextValue);
+    range.setRichTextValues(sortedRichText);
 }
