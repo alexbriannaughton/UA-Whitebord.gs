@@ -3,7 +3,7 @@
 async function dtJobMain() {
     const startTime = new Date();
     console.log('running getTomrrowsDTAppts job...');
-    const  { dtAppts, targetDateStr } = getNextDayDtAppts();
+    const { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
     const range = sheet.getRange(dtNextDayApptsCoords);
@@ -26,7 +26,7 @@ function getNextDayDtAppts() {
         const allTargetDayAppts = fetchAndParse(url);
         dtAppts = filterAndSortDTAppts(allTargetDayAppts);
     }
-    return { dtAppts, targetDateStr};
+    return { dtAppts, targetDateStr };
 }
 
 function filterAndSortDTAppts(allTargetDayAppts) {
@@ -43,8 +43,28 @@ function filterAndSortDTAppts(allTargetDayAppts) {
             && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
     });
 
-    return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+    dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+
+    for (let i = 0; i < dtAppts.length - 1; i++) {
+        const appt1 = dtAppts[i];
+        for (let j = i + 1; j < dtAppts.length; j++) {
+            const appt2 = dtAppts[j];
+            const withinAnHour = Math.abs(appt2.appointment.start_time - appt1.appointment.start_time) <= 3600;
+            if (!withinAnHour) break; // dont need to keep checking if were already further than an hour apart
+
+            const isSameContact = appt2.appointment.details.contact_id === appt2.appointment.details.contact_id;
+            if (isSameContact) {
+                dtAppts.splice(i + 1, 0, appt2);
+                dtAppts.splice(j + 1, 1);
+                break;
+            }
+        }
+    }
+
+    return dtAppts
     // .slice(0, 3); // slicing for dev
+
+
 };
 
 // fetch data for all appointments from all endpoints that we care about

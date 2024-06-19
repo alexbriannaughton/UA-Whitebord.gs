@@ -45,7 +45,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             depositPaidCell.setValue('yes');
         }
         else {
-            depositPaidCell.setValue('no')
+            depositPaidCell.setValue('no');
             // .setBackground(highPriorityColor)
         }
 

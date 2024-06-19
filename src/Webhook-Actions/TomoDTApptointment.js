@@ -6,10 +6,12 @@ function handleTomorrowDTAppointment(appointment) {
         console.error('COULD FIND A ROW TO POPULATE FOR DT TOMORROW HANDLER');
     }
 
-    if (!appointment.active && existingRow) {
-        // cross the row out
-        existingRow.setFontLine('line-through');
-        return;
+    if (existingRow) {
+        if (!appointment.active) {
+            existingRow.setFontLine('line-through');
+            return;
+        }
+        existingRow.setFontLine('none');
     }
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
