@@ -17,9 +17,11 @@ function handleTomorrowDTAppointment(appointment) {
     const rowRange = existingRow ? existingRow : highestEmptyRow;
     const existingRowRichText = rowRange.getRichTextValues();
 
-    const apptStartTime = convertEpochToUserTimezone2(appointment.start_at);
-    const apptTimeRichText = simpleTextToRichText(apptStartTime);
     const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
+    const apptStartTime = timeCellValBeforeUpdating === sameFamString
+        ? sameFamString
+        : convertEpochToUserTimezone2(appointment.start_at);
+    const apptTimeRichText = simpleTextToRichText(apptStartTime);
 
     let ptCellRichText;
     if (!existingRow && highestEmptyRow) {
@@ -109,9 +111,9 @@ function resortTheAppts(range) {
 
     const sortedRichText = combinedVals.map(val => val.richTextValue);
     range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
-    const sortedVals = combinedVals.map(val => val.plainValue);
-    const sortedDepositVals = sortedVals.map(val => [val[2]]);
-    range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);
+    // const sortedVals = combinedVals.map(val => val.plainValue);
+    // const sortedDepositVals = sortedVals.map(val => [val[2]]);
+    // range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);
 }
 
 function parseTimeForSort(timeStr) {
