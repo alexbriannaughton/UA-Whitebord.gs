@@ -56,7 +56,7 @@ function addToWaitlist(appointment) {
       null,
       reasonCellRichText,
       null,
-      ezyVetCellRichText
+      null
     ]
   ];
 
