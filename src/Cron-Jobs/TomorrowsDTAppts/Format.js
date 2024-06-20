@@ -64,9 +64,9 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
 
         // fractious column
         SpreadsheetApp.newConditionalFormatRule()
-            .whenTextEqualTo("no attachments")
+            .whenTextEqualTo("yes")
             .setBackground(highPriorityColor)
-            .setRanges([sheet.getRange("P15:P85")])
+            .setRanges([sheet.getRange("Q15:Q85")])
             .build(),
     ];
 
