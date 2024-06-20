@@ -14,6 +14,14 @@ const sameFamString = '^same fam^';
 const echoApptTypeIDsSet = new Set([30]);
 const ausApptTypeIDsSet = new Set([29, 91]);
 
+const dtDVMColumnResourceIDs = new Set([ // non procedures dt columns
+    '35', // dt dvm 1
+    '55', // used to be dt dvm 2, though it is not currently active 3/16/24
+    // '56', // dt tech
+    '1015', // used to be dt dvm 3, though it is not currently active 3/16/24
+    '1082' // dt DVM :15/:45
+]);
+
 // takes appointment.type_id and outputs a string for the procedure type
 const typeIDToCategoryMap = new Map([
     [7, 'sx'], [76, 'sx'], [89, 'sx'], [90, 'sx'],   // Surgery type IDs

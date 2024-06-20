@@ -31,15 +31,8 @@ function getNextDayDtAppts() {
 
 function filterAndSortDTAppts(allTargetDayAppts) {
     // filter all appts down to DT exams/techs
-    const dtResourceIDs = new Set([ // non procedures dt columns
-        '35', // dt dvm 1
-        '55', // used to be dt dvm 2, though it is not currently active 3/16/24
-        // '56', // dt tech
-        '1015', // used to be dt dvm 3, though it is not currently active 3/16/24
-        '1082' // dt DVM :15/:45
-    ]);
     const dtAppts = allTargetDayAppts.items.filter(({ appointment }) => {
-        return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT exam or tech column
+        return appointment.details.resource_list.some(id => dtDVMColumnResourceIDs.has(id)) // is in a DT exam or tech column
             && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
     });
 
