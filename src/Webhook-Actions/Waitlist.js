@@ -43,18 +43,22 @@ function addToWaitlist(appointment) {
   // reasonCell.setValue(appointment.description);
   const reasonCellRichText = simpleTextToRichText(appointment.description);
 
+  const ezyVetCellRichText = simpleTextToRichText('✅')
+
+  const emptyRichText = simpleTextToRichText('');
+
   const richTextValues = [
     [
       timeCellRichText,
-      link, 
+      emptyRichText, 
       link,
       speciesCellRichText,
-      null,
-      null,
-      null,
+      emptyRichText,
+      emptyRichText,
+      emptyRichText,
+      emptyRichText,
       reasonCellRichText,
-      null,
-      null
+      ezyVetCellRichText
     ]
   ];
 
