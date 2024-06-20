@@ -11,7 +11,7 @@ function handleAppointment(webhookType, appointment) {
     const timestampDate = convertEpochToUserTimezoneDate(appointment.start_at);
     const isTomorrow = isTomorrowInUserTimezone(timestampDate);
     if (isTomorrow) {
-        if (!dtDVMColumnResourceIDs.has(appointment.resources[0].id)) return;
+        if (!dtDVMColumnResourceIDs.has(String(appointment.resources[0].id))) return;
         return handleTomorrowDTAppointment(appointment);
     }
     const isToday = isTodayInUserTimezone(timestampDate);
