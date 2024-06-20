@@ -48,11 +48,12 @@ function handleTomorrowDTAppointment(appointment) {
             timeCellString = sameFamString;
         }
     }
+
     const apptTimeRichText = simpleTextToRichText(timeCellString);
 
     let ptCellRichText;
     if (!existingRow && highestEmptyRow) {
-        ptCellRichText = handleAddNewNames(appointment);
+        ptCellRichText = fetchForDataAndMakeLink(appointment);
     }
     else if (existingRow) {
         ptCellRichText = existingRowRichText[0][1];
@@ -85,7 +86,7 @@ function handleTomorrowDTAppointment(appointment) {
 
 }
 
-function handleAddNewNames(appointment) {
+function fetchForDataAndMakeLink(appointment) {
     const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
     const text = `${animalName} ${contactLastName} (${animalSpecies})`
     const link = makeLink(text, `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`);
@@ -123,13 +124,15 @@ function resortTheAppts(range) {
         };
     });
     combinedVals.sort((a, b) => {
-        const aSortVal = getTimeInMinutes(
-            a.sameFamTime || a.plainValue[0],
-            
-        );
-        const bSortVal = getTimeInMinutes(
-            b.sameFamTime || b.plainValue[0]
-        );
+        const aSortVal = a.sameFamTime?.getTime() || a.plainValue[0].getTime();
+        const bSortVal = b.sameFamTime?.getTime() || b.plainValue[0].getTime();
+        // const aSortVal = getTimeInMinutes(
+        //     a.sameFamTime || a.plainValue[0],
+
+        // );
+        // const bSortVal = getTimeInMinutes(
+        //     b.sameFamTime || b.plainValue[0]
+        // );
         return aSortVal - bSortVal;
     });
 
