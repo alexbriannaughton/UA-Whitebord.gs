@@ -48,8 +48,10 @@ function addToWaitlist(appointment) {
   const richTextValues = [
     [
       timeCellRichText,
+      null,
       link,
       speciesCellRichText,
+      null,
       null,
       null,
       null,
