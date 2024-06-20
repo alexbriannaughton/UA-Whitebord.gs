@@ -17,8 +17,9 @@ function handleTomorrowDTAppointment(appointment) {
     const rowRange = existingRow ? existingRow : highestEmptyRow;
     const existingRowRichText = rowRange.getRichTextValues();
 
-    const incomingTimeString = convertEpochToUserTimezone2(appointment.start_at);
-    let timeCellString = incomingTimeString;
+    // const incomingTimeValue = convertEpochToUserTimezone2(appointment.start_at);
+    const incomingTimeValue = new Date(appointment.start_at * 1000);
+    let timeCellString = incomingTimeValue;
     const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
     if (timeCellValBeforeUpdating === sameFamString) {
         // get the value of the time were pointing to
@@ -41,10 +42,16 @@ function handleTomorrowDTAppointment(appointment) {
             throw new Error(`unable to find corresponding time cell val at handleTomorrowDTAppointment(): ${appointment}`);
         }
         // if the value is within 2 hours of the incoming value, keep the time cell val to have sameFamString
-        const foundTimeInMins = getTimeInMinutes(foundCoorespondingTimeCellVal, appointment);
-        const incomingTimeInMins = getTimeInMinutes(incomingTimeString, appointment);
-        const timeDifference = Math.abs(foundTimeInMins - incomingTimeInMins);
-        if (timeDifference <= 120) {
+        // const foundTimeInMins = getTimeInMinutes(foundCoorespondingTimeCellVal, appointment);
+        // const incomingTimeInMins = getTimeInMinutes(incomingTimeValue, appointment);
+        // const timeDifference = Math.abs(foundTimeInMins - incomingTimeInMins);
+        // if (timeDifference <= 120) {
+        //     timeCellString = sameFamString;
+        // }
+
+        const timeDifferenceMs = Math.abs(incomingTimeValue - foundCoorespondingTimeCellVal);
+        const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
+        if (timeDifferenceHours <= 2) {
             timeCellString = sameFamString;
         }
     }
