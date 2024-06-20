@@ -55,7 +55,7 @@ function addToWaitlist(appointment) {
       null,
       null,
       reasonCellRichText,
-      null,
+      reasonCellRichText,
       null
     ]
   ];
