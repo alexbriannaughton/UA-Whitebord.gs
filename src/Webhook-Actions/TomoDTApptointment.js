@@ -17,11 +17,32 @@ function handleTomorrowDTAppointment(appointment) {
     const rowRange = existingRow ? existingRow : highestEmptyRow;
     const existingRowRichText = rowRange.getRichTextValues();
 
+    const incomingStartAtString = convertEpochToUserTimezone2(appointment.start_at);
+    let timeCellString = incomingStartAtString;
     const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
-    const apptStartTime = timeCellValBeforeUpdating === sameFamString
-        ? sameFamString
-        : convertEpochToUserTimezone2(appointment.start_at);
-    const apptTimeRichText = simpleTextToRichText(apptStartTime);
+    if (timeCellValBeforeUpdating === sameFamString) {
+        // get the value of the time were pointing to
+        let foundCoorespondingTimeCellVal;
+        let rowOffset = -1;
+        while (!foundCoorespondingTimeCellVal) {
+            const rowRangeAbove = rowRange.offset(rowOffset);
+            const timeCellVal = rowRangeAbove.getValue();
+            console.log('time cell val in while loop: ', timeCellVal)
+            if (timeCellVal !== sameFamString) {
+                foundCoorespondingTimeCellVal = timeCellVal;
+                break;
+            }
+            rowOffset--;
+        }
+        // if the value is within 2 hours of the incoming value, keep the time cell val to have sameFamString
+        const foundTimeInMins = getTimeInMinutes(foundCoorespondingTimeCellVal);
+        const incomingTimeInMins = getTimeInMinutes(incomingStartAtString);
+        const timeDifference = Math.abs(foundTimeInMins - incomingTimeInMins);
+        if (timeDifference <= 120) {
+            timeCellString = sameFamString;
+        }
+    }
+    const apptTimeRichText = simpleTextToRichText(timeCellString);
 
     let ptCellRichText;
     if (!existingRow && highestEmptyRow) {
@@ -49,7 +70,7 @@ function handleTomorrowDTAppointment(appointment) {
         [apptTimeRichText, ptCellRichText, depositPaidRichtext, reasonCellRichText]
     ]);
 
-    const needToResort = timeCellValBeforeUpdating !== apptStartTime;
+    const needToResort = timeCellValBeforeUpdating !== timeCellString;
     if (needToResort) {
         resortTheAppts(range);
     }
@@ -100,10 +121,10 @@ function resortTheAppts(range) {
         };
     });
     combinedVals.sort((a, b) => {
-        const aSortVal = parseTimeForSort(
+        const aSortVal = getTimeInMinutes(
             a.sameFamTime || a.plainValue[0]
         );
-        const bSortVal = parseTimeForSort(
+        const bSortVal = getTimeInMinutes(
             b.sameFamTime || b.plainValue[0]
         );
         return aSortVal - bSortVal;
@@ -116,7 +137,7 @@ function resortTheAppts(range) {
     // range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);
 }
 
-function parseTimeForSort(timeStr) {
+function getTimeInMinutes(timeStr) {
     const [time, period] = timeStr.split(/([AP]M)/);
     const [hours, minutes] = time.split(':').map(Number);
 
