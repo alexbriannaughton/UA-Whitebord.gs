@@ -24,8 +24,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         }
         if (numOfAttachments < 1) {
             dtAppts[i].records = {
-                text: 'no attachments',
-                highPriority: true
+                text: 'no attachments'
             };
             continue;
         }

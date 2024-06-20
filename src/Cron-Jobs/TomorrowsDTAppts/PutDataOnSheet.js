@@ -1,5 +1,4 @@
 // PutDataOnSheet.js
-const highPriorityColor = '#f9cb9c'; // for highlighting certain items in light orange 2
 const unmatchedVetstoriaContactID = '72038';
 function putDataOnSheet(dtAppts, range, targetDateStr) {
     const dateCell = range.offset(-2, 0, 1, 1);
@@ -46,15 +45,11 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         }
         else {
             depositPaidCell.setValue('no');
-            // .setBackground(highPriorityColor)
         }
 
         // if we know the animal/contact stuff, continue normally
         const unknownSpeciesString = 'unknown species';
         const ptSpecies = speciesMap[animal.species_id] || unknownSpeciesString;
-        if (ptSpecies === unknownSpeciesString) {
-            ptCell.setBackground(highPriorityColor);
-        }
         const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
         const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
         const link = makeLink(ptText, animalURL);
@@ -62,18 +57,17 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
 
         const firstTimeHereCell = range.offset(i, 4, 1, 1);
         if (firstTime) {
-            firstTimeHereCell.setValue('yes').setBackground(highPriorityColor);
+            firstTimeHereCell.setValue('yes');
         }
         else if (patientsLastVisitDate) {
             firstTimeHereCell.setValue(`${animal.name}'s last visit: ${patientsLastVisitDate}`);
         }
         else if (otherAnimalsWhoHaveBeenHere) {
             firstTimeHereCell
-                .setValue(`first time for ${animal.name} but owner has been in with ${otherAnimalsWhoHaveBeenHere}`)
-                .setBackground(highPriorityColor);
+                .setValue(`first time for ${animal.name} but owner has been in with ${otherAnimalsWhoHaveBeenHere}`);
         }
         else {
-            firstTimeHereCell.setValue('ERROR').setBackground(highPriorityColor);
+            firstTimeHereCell.setValue('ERROR');
             console.error(`first time here cell data not found for ${animal.name} ${contact.last_name}`);
         }
 
@@ -84,14 +78,11 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
                 makeLink(records.text, records.link)
             )
             : recordsCell.setValue(records.text);
-        if (records.highPriority) {
-            recordsCell.setBackground(highPriorityColor);
-        }
 
 
         const hxFractiousCell = range.offset(i, 6, 1, 1);
         animal.is_hostile === '1'
-            ? hxFractiousCell.setValue('yes').setBackground(highPriorityColor)
+            ? hxFractiousCell.setValue('yes')
             : hxFractiousCell.setValue('no');
 
 
@@ -175,7 +166,6 @@ function handleUnmatchedRecord(appointment, ptCell) {
     const animalName = wonkyAnimalData.replace(/^\s*\(New client\) ?/, '').trim();
     // remove empty whitespace and (New client) at the front of this string^^^
     ptCell.setValue(`UNMATCHED PATIENT/CLIENT:\n${animalName}\n${contactName}\n${email}\n${phone}`);
-    ptCell.setBackground(highPriorityColor);
     // set every cell, except for the reason cell with a value of "-"
     ptCell.offset(0, 1).setValue('-');
     let columnDistFromPtCell = 3;
