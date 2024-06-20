@@ -54,7 +54,6 @@ function filterAndSortDTAppts(allTargetDayAppts) {
 
             const isSameContact = appt1.appointment.details.contact_id === appt2.appointment.details.contact_id;
             if (isSameContact) {
-                console.log('same appt found between animals', appt1.appointment.details.animal_id, 'and', appt2.appointment.details.animal_id)
                 dtAppts.splice(j, 1);
                 dtAppts.splice(i + 1, 0, appt2);
                 break;
