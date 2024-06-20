@@ -43,6 +43,8 @@ function addToWaitlist(appointment) {
   // reasonCell.setValue(appointment.description);
   const reasonCellRichText = simpleTextToRichText(appointment.description);
 
+  const ezyVetCellRichText = simpleTextToRichText(true);
+
   const richTextValues = [
     [
       timeCellRichText,
@@ -54,7 +56,7 @@ function addToWaitlist(appointment) {
       null,
       reasonCellRichText,
       reasonCellRichText,
-      null
+      ezyVetCellRichText
     ]
   ];
 
@@ -62,8 +64,8 @@ function addToWaitlist(appointment) {
   rowRange.setRichTextValues(richTextValues);
 
   // set 'in ezyVet?' checkbox to true
-  const ezyVetCell = rowRange.offset(0, 9, 1, 1);
-  ezyVetCell.setDataValidation(createCheckbox()).setValue(true);
+  // const ezyVetCell = rowRange.offset(0, 9, 1, 1);
+  // ezyVetCell.setDataValidation(createCheckbox()).setValue(true);
 
   return;
 
