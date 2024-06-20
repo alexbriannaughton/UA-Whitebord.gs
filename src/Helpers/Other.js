@@ -117,3 +117,7 @@ function removeVetstoriaDescriptionText(descriptionString) {
   }
   return descriptionString;
 }
+
+function simpleTextToRichText(text) {
+  return SpreadsheetApp.newRichTextValue().setText(text).build();
+}

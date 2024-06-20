@@ -57,9 +57,9 @@ function handleTomorrowDTAppointment(appointment) {
 
     const hasDepositPaidStatus = appointment.status_id === 37;
     const depositCellBeforeUpdating = existingRowRichText[0][2].getText();
-    const depositPaidText = depositCellBeforeUpdating.startsWith('y') || hasDepositPaidStatus ?
-        'yes' :
-        'no';
+    const depositPaidText = depositCellBeforeUpdating === 'yes' || hasDepositPaidStatus
+        ? 'yes'
+        : 'no';
     const depositPaidRichtext = simpleTextToRichText(depositPaidText);
 
     const reasonCellText = removeVetstoriaDescriptionText(appointment.description);
@@ -77,10 +77,6 @@ function handleTomorrowDTAppointment(appointment) {
 
     return;
 
-}
-
-function simpleTextToRichText(text) {
-    return SpreadsheetApp.newRichTextValue().setText(text).build();
 }
 
 function handleAddNewNames(appointment) {
