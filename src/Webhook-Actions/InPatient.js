@@ -21,9 +21,14 @@ function populateInpatientRow(appointment, highestEmptyRow) {
   // nameCell.setRichTextValue(link);
   // const reasonCell = highestEmptyRow.offset(0, 3, 1, 1);
   // reasonCell.setValue(appointment.description);
-  const emptyRichText = simpleTextToRichText('');
+
   highestEmptyRow.offset(0, 0, 1, 4).setRichTextValues([
-    [link, link, emptyRichText, appointment.description]
+    [
+      link,
+      link,
+      simpleTextToRichText(''),
+      simpleTextToRichText(appointment.description)
+    ]
   ]);
   return;
 };
