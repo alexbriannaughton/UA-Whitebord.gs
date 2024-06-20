@@ -11,7 +11,7 @@ function handleTomorrowDTAppointment(appointment) {
             existingRow.setFontLine('line-through');
             return;
         }
-        existingRow.setFontLine('none');
+        existingRow.setFontLine('none').setBorder(true, true, true, true, true, true);
     }
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
