@@ -38,8 +38,8 @@ function handleTomorrowDTAppointment(appointment) {
             throw new Error(`unable to find corresponding time cell val at handleTomorrowDTAppointment(): ${appointment}`);
         }
         // if the value is within 2 hours of the incoming value, keep the time cell val to have sameFamString
-        const foundTimeInMins = getTimeInMinutes(foundCoorespondingTimeCellVal);
-        const incomingTimeInMins = getTimeInMinutes(incomingTimeString);
+        const foundTimeInMins = getTimeInMinutes(foundCoorespondingTimeCellVal, appointment);
+        const incomingTimeInMins = getTimeInMinutes(incomingTimeString, appointment);
         const timeDifference = Math.abs(foundTimeInMins - incomingTimeInMins);
         if (timeDifference <= 120) {
             timeCellString = sameFamString;
@@ -121,7 +121,8 @@ function resortTheAppts(range) {
     });
     combinedVals.sort((a, b) => {
         const aSortVal = getTimeInMinutes(
-            a.sameFamTime || a.plainValue[0]
+            a.sameFamTime || a.plainValue[0],
+            
         );
         const bSortVal = getTimeInMinutes(
             b.sameFamTime || b.plainValue[0]
@@ -136,7 +137,10 @@ function resortTheAppts(range) {
     // range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);
 }
 
-function getTimeInMinutes(timeStr) {
+function getTimeInMinutes(timeStr, appointment = undefined) {
+    console.log('at getTimeInMinutes: ')
+    console.log('timeStr: ', timeStr)
+    console.log('appointment: ', appointment)
     const [time, period] = timeStr.split(/([AP]M)/);
     const [hours, minutes] = time.split(':').map(Number);
 
