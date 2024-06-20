@@ -49,7 +49,7 @@ function handleTomorrowDTAppointment(appointment) {
         [apptTimeRichText, ptCellRichText, depositPaidRichtext, reasonCellRichText]
     ]);
 
-    const needToResort = timeCellValBeforeUpdating === sameFamString && timeCellValBeforeUpdating !== apptStartTime;
+    const needToResort = timeCellValBeforeUpdating !== apptStartTime;
     if (needToResort) {
         resortTheAppts(range);
     }
