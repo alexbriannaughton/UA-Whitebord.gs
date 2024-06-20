@@ -17,8 +17,8 @@ function handleTomorrowDTAppointment(appointment) {
     const rowRange = existingRow ? existingRow : highestEmptyRow;
     const existingRowRichText = rowRange.getRichTextValues();
 
-    const incomingStartAtString = convertEpochToUserTimezone2(appointment.start_at);
-    let timeCellString = incomingStartAtString;
+    const incomingTimeString = convertEpochToUserTimezone2(appointment.start_at);
+    let timeCellString = incomingTimeString;
     const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
     if (timeCellValBeforeUpdating === sameFamString) {
         // get the value of the time were pointing to
@@ -36,7 +36,7 @@ function handleTomorrowDTAppointment(appointment) {
         }
         // if the value is within 2 hours of the incoming value, keep the time cell val to have sameFamString
         const foundTimeInMins = getTimeInMinutes(foundCoorespondingTimeCellVal);
-        const incomingTimeInMins = getTimeInMinutes(incomingStartAtString);
+        const incomingTimeInMins = getTimeInMinutes(incomingTimeString);
         const timeDifference = Math.abs(foundTimeInMins - incomingTimeInMins);
         if (timeDifference <= 120) {
             timeCellString = sameFamString;

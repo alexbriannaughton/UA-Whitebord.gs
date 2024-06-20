@@ -38,12 +38,14 @@ function filterAndSortDTAppts(allTargetDayAppts) {
 
     dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 
+    // check for contacts with multiple appointments for different pets who are scheduled within 3600 seconds of each other
     for (let i = 0; i < dtAppts.length - 1; i++) {
         const appt1 = dtAppts[i];
         for (let j = i + 1; j < dtAppts.length; j++) {
             const appt2 = dtAppts[j];
+            
             const withinAnHour = Math.abs(appt2.appointment.start_time - appt1.appointment.start_time) <= 3600;
-            if (!withinAnHour) break; // dont need to keep checking if were already further than an hour apart
+            if (!withinAnHour) break;
 
             const isSameContact = appt1.appointment.details.contact_id === appt2.appointment.details.contact_id;
             if (isSameContact) {
