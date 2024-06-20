@@ -21,7 +21,7 @@ function doPost(e) {
 
   catch (error) {
     // wait 3 seconds and try a second time if we get an error
-    console.log('error after the first try:', error);
+    console.error('error after the first try:', error);
     Utilities.sleep(3000);
     try {
       const params = JSON.parse(e.postData.contents);
@@ -36,7 +36,7 @@ function doPost(e) {
     }
 
     catch (error) {
-      console.log('second error hit:', error);
+      console.error('second error hit:', error);
       throw error;
     };
 

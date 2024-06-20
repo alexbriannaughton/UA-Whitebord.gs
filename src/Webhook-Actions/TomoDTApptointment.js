@@ -34,6 +34,9 @@ function handleTomorrowDTAppointment(appointment) {
             }
             rowOffset--;
         }
+        if (!foundCoorespondingTimeCellVal) {
+            throw new Error(`unable to find corresponding time cell val at handleTomorrowDTAppointment(): ${appointment}`);
+        }
         // if the value is within 2 hours of the incoming value, keep the time cell val to have sameFamString
         const foundTimeInMins = getTimeInMinutes(foundCoorespondingTimeCellVal);
         const incomingTimeInMins = getTimeInMinutes(incomingTimeString);
