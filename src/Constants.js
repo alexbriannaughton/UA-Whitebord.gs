@@ -7,7 +7,7 @@ const userTimezone = 'America/Los_Angeles';
 
 const dateStringPattern = 'EEEE MM/dd/yyyy';
 
-const dtNextDayApptsCoords = 'K15:R60';
+const dtNextDayApptsCoords = 'K15:R85';
 
 const sameFamString = '^same fam^';
 
