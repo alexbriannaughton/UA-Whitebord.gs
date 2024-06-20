@@ -47,8 +47,7 @@ function handleTomorrowDTAppointment(appointment) {
         [apptTimeRichText, ptCellRichText, depositPaidRichtext, reasonCellRichText]
     ]);
 
-
-    const needToResort = timeCellValBeforeUpdating !== apptStartTime;
+    const needToResort = timeCellValBeforeUpdating === sameFamString && timeCellValBeforeUpdating !== apptStartTime;
     if (needToResort) {
         resortTheAppts(range);
     }
@@ -90,7 +89,7 @@ function resortTheAppts(range) {
 
     const combinedVals = apptVals.map((apptVal, i) => {
         const sameFamTime = apptVal[0] === sameFamString
-            ? apptVals[i - 1][0]
+            ? getFirstSameFamTime(apptVals, i)
             : null;
         return {
             plainValue: apptVal,
@@ -124,4 +123,15 @@ function parseTimeForSort(timeStr) {
     else if (period === 'PM' && hours !== 12) offset = 12;
 
     return (hours + offset) * 60 + minutes;
+}
+
+function getFirstSameFamTime(apptVals, i) {
+    let j = i - 1;
+    while (j >= 0) {
+        const timeVal = apptVals[j][0];
+        if (timeVal !== sameFamString) {
+            return timeVal;
+        }
+        j--;
+    }
 }
