@@ -26,7 +26,10 @@ function handleTomorrowDTAppointment(appointment) {
         let rowOffset = -1;
         while (!foundCoorespondingTimeCellVal) {
             const rowRangeAbove = rowRange.offset(rowOffset, 0);
-            const timeCellVal = rowRangeAbove.getValue();
+            const timeCellVal = rowRangeAbove.getValue(); // note api call within a loop, not ideal
+            if (!timeCellVal) {
+                throw new Error(`no time cell at tomoDtAppt() while loop: ${appointment}`)
+            }
             console.log('time cell val in while loop: ', timeCellVal)
             if (timeCellVal !== sameFamString) {
                 foundCoorespondingTimeCellVal = timeCellVal;
