@@ -12,7 +12,7 @@ function getCacheVals() {
     if (!daysToNextDtAppts) daysToNextDtAppts = getNextDayDtAppts(cache);
 }
 
-function getNextDayDtAppts(cache) {
+function getDaysAheadDT(cache) {
     let foundDay = false;
     let daysAhead = 0;
 
