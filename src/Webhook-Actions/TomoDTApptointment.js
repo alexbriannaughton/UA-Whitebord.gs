@@ -11,10 +11,10 @@ function handleTomorrowDTAppointment(appointment) {
             existingRow.setFontLine('line-through');
             return;
         }
-        existingRow.setFontLine('none').setBorder(true, true, true, true, true, true);
     }
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
+    rowRange.setFontLine('none').setBorder(true, true, true, true, true, true);
     const existingRowRichText = rowRange.getRichTextValues();
 
     // const incomingTimeValue = convertEpochToUserTimezone2(appointment.start_at);
@@ -81,9 +81,9 @@ function handleTomorrowDTAppointment(appointment) {
 
     const rangeToSetVals = rowRange.offset(0, 0, 1, 4);
     rangeToSetVals.setRichTextValues([
-        [apptTimeRichText, ptCellRichText, depositPaidRichtext, reasonCellRichText]
+        [simpleTextToRichText(''), ptCellRichText, depositPaidRichtext, reasonCellRichText]
     ]);
-
+    rangeToSetVals.setValue(timeCellString)
     const needToResort = timeCellValBeforeUpdating !== timeCellString;
     if (needToResort) {
         resortTheAppts(range);

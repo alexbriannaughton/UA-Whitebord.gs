@@ -198,6 +198,7 @@ function fetchAllResponses(requests, resourceName) {
     catch (error) {
         console.error(error);
         if (error.message.includes('too many requests recently')) {
+            console.log('Rate limit error detected. Going to wait 1 minute.');
             Utilities.sleep(60000);
             outputItems = [];
             responses = tryFetchAll(requests, resourceName);
