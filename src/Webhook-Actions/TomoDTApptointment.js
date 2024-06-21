@@ -56,7 +56,7 @@ function handleTomorrowDTAppointment(appointment) {
         }
     }
 
-    const apptTimeRichText = simpleTextToRichText(timeCellString);
+    // const apptTimeRichText = simpleTextToRichText(timeCellString);
 
     let ptCellRichText;
     if (!existingRow && highestEmptyRow) {
@@ -70,18 +70,21 @@ function handleTomorrowDTAppointment(appointment) {
     }
 
     const hasDepositPaidStatus = appointment.status_id === 37;
+    console.log('status id: ', appointment.status_id)
     const depositCellBeforeUpdating = existingRowRichText[0][2].getText();
     const depositPaidText = depositCellBeforeUpdating === 'yes' || hasDepositPaidStatus
         ? 'yes'
         : 'no';
+    console.log('desposit paid text: ', depositPaidText);
+
     const depositPaidRichtext = simpleTextToRichText(depositPaidText);
 
     const reasonCellText = removeVetstoriaDescriptionText(appointment.description);
     const reasonCellRichText = simpleTextToRichText(reasonCellText);
 
-    const rangeToSetVals = rowRange.offset(0, 0, 1, 4);
+    const rangeToSetVals = rowRange.offset(0, 1, 1, 3);
     rangeToSetVals.setRichTextValues([
-        [simpleTextToRichText(''), ptCellRichText, depositPaidRichtext, reasonCellRichText]
+        [ptCellRichText, depositPaidRichtext, reasonCellRichText]
     ]);
     rangeToSetVals.offset(0, 0, 1, 1).setValue(timeCellString)
     const needToResort = timeCellValBeforeUpdating !== timeCellString;
