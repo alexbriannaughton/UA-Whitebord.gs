@@ -1,6 +1,8 @@
 // receive appointment webhook events here
 function doPost(e) {
   try {
+    getCacheVals();
+    
     const startTime = new Date(); // this is for logging executions that hang exessively 
     const params = JSON.parse(e.postData.contents);
     const apptItems = params.items;

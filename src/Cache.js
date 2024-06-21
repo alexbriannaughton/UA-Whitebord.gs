@@ -1,11 +1,16 @@
-const cache = CacheService.getScriptCache();
-const cacheVals = cache.getAll(['ezyVet_token', 'days_to_next_dt_appts']);
+let token;
+let daysToNextDtAppts;
 
-let token = cacheVals.ezyVet_token;
-if (!token) token = updateToken();
+function getCacheVals() {
+    const cache = CacheService.getScriptCache();
+    const cacheVals = cache.getAll(['ezyVet_token', 'days_to_next_dt_appts']);
 
-let daysToNextDtAppts = cacheVals.days_to_next_dt_appts;
-if (!daysToNextDtAppts) daysToNextDtAppts = getNextDayDtAppts(cache);
+    token = cacheVals.ezyVet_token;
+    if (!token) token = updateToken(cache);
+
+    daysToNextDtAppts = cacheVals.days_to_next_dt_appts;
+    if (!daysToNextDtAppts) daysToNextDtAppts = getNextDayDtAppts(cache);
+}
 
 function getNextDayDtAppts(cache) {
     let foundDay = false;
@@ -23,7 +28,7 @@ function getNextDayDtAppts(cache) {
         throw new Error('unable to find next day of dt appts in Cache.js');
     }
 
-    console.log(`putting ${daysAhead} as days_to_next_dt_appts into cache...`)
+    console.log(`putting ${daysAhead} as days_to_next_dt_appts into cache...`);
     cache.put('days_to_next_dt_appts', daysAhead, 21600);
 
     return daysAhead;
