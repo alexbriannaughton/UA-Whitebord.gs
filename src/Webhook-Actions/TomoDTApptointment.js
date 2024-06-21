@@ -152,19 +152,19 @@ function resortTheAppts(range) {
     // range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);
 }
 
-function getTimeInMinutes(timeStr, appointment = undefined) {
-    console.log('at getTimeInMinutes: ')
-    console.log('timeStr: ', timeStr)
-    console.log('appointment: ', appointment)
-    const [time, period] = timeStr.split(/([AP]M)/);
-    const [hours, minutes] = time.split(':').map(Number);
+// function getTimeInMinutes(timeStr, appointment = undefined) {
+//     console.log('at getTimeInMinutes: ')
+//     console.log('timeStr: ', timeStr)
+//     console.log('appointment: ', appointment)
+//     const [time, period] = timeStr.split(/([AP]M)/);
+//     const [hours, minutes] = time.split(':').map(Number);
 
-    let offset = 0;
-    if (period === 'AM' && hours === 12) offset = -12;
-    else if (period === 'PM' && hours !== 12) offset = 12;
+//     let offset = 0;
+//     if (period === 'AM' && hours === 12) offset = -12;
+//     else if (period === 'PM' && hours !== 12) offset = 12;
 
-    return (hours + offset) * 60 + minutes;
-}
+//     return (hours + offset) * 60 + minutes;
+// }
 
 function getFirstSameFamTime(apptVals, i) {
     let j = i - 1;
