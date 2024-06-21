@@ -23,6 +23,7 @@ function getNextDayDtAppts(cache) {
         throw new Error('unable to find next day of dt appts in Cache.js');
     }
 
+    console.log(`putting ${daysAhead} as days_to_next_dt_appts into cache...`)
     cache.put('days_to_next_dt_appts', daysAhead, 21600);
 
     return daysAhead;
