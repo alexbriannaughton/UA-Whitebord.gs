@@ -83,7 +83,7 @@ function handleTomorrowDTAppointment(appointment) {
     rangeToSetVals.setRichTextValues([
         [simpleTextToRichText(''), ptCellRichText, depositPaidRichtext, reasonCellRichText]
     ]);
-    rangeToSetVals.setValue(timeCellString)
+    rangeToSetVals.offset(0, 0, 1, 1).setValue(timeCellString)
     const needToResort = timeCellValBeforeUpdating !== timeCellString;
     if (needToResort) {
         resortTheAppts(range);
