@@ -9,7 +9,7 @@ function getCacheVals() {
     if (!token) token = updateToken(cache);
 
     daysToNextDtAppts = cacheVals.days_to_next_dt_appts;
-    if (!daysToNextDtAppts) daysToNextDtAppts = getNextDayDtAppts(cache);
+    if (!daysToNextDtAppts) daysToNextDtAppts = getDaysAheadDT(cache);
 }
 
 function getDaysAheadDT(cache) {
