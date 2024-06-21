@@ -9,9 +9,8 @@ function handleAppointment(webhookType, appointment) {
 
     // below here is for this sheet
     const timestampDate = convertEpochToUserTimezoneDate(appointment.start_at);
-    const isTomorrow = isTomorrowInUserTimezone(timestampDate);
-    if (isTomorrow) {
-        if (!dtDVMColumnResourceIDs.has(String(appointment.resources[0].id))) return;
+    const couldBeNextDayDtAppt = isOnNextDayOfDtAppts(timestampDate) && !dtDVMColumnResourceIDs.has(String(appointment.resources[0].id));
+    if (couldBeNextDayDtAppt) {
         return handleTomorrowDTAppointment(appointment);
     }
     const isToday = isTodayInUserTimezone(timestampDate);

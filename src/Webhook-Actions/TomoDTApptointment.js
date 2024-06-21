@@ -70,12 +70,10 @@ function handleTomorrowDTAppointment(appointment) {
     }
 
     const hasDepositPaidStatus = appointment.status_id === 37;
-    console.log('status id: ', appointment.status_id)
     const depositCellBeforeUpdating = existingRowRichText[0][2].getText();
     const depositPaidText = depositCellBeforeUpdating === 'yes' || hasDepositPaidStatus
         ? 'yes'
         : 'no';
-    console.log('desposit paid text: ', depositPaidText);
 
     const depositPaidRichtext = simpleTextToRichText(depositPaidText);
 

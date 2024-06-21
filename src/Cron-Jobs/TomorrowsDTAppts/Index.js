@@ -26,6 +26,7 @@ function getNextDayDtAppts() {
         const allTargetDayAppts = fetchAndParse(url);
         dtAppts = filterAndSortDTAppts(allTargetDayAppts);
     }
+    CacheService.getScriptCache().put('days_to_next_dt_appts', daysAhead, 21600);
     return { dtAppts, targetDateStr };
 }
 

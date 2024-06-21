@@ -8,15 +8,15 @@ function isTodayInUserTimezone(timestampDate) {
     return timestampDate === todaysDate;
 }
 
-function isTomorrowInUserTimezone(timestampDate) {
+function isOnNextDayOfDtAppts(timestampDate) {
     const date = new Date();
-    date.setDate(date.getDate() + 1);
-    const formattedTomorrowsDate = Utilities.formatDate(
+    date.setDate(date.getDate() + daysToNextDtAppts);
+    const nextDTApptDateFormatted = Utilities.formatDate(
         date,
         userTimezone,
         'EEEE MM/dd/yyyy'
     );
-    return timestampDate === formattedTomorrowsDate;
+    return timestampDate === nextDTApptDateFormatted;
 }
 
 function convertEpochToUserTimezone(epoch) {
