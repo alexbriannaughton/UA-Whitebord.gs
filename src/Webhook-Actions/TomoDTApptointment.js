@@ -147,6 +147,7 @@ function resortTheAppts(range) {
     range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
     const sortedDateVals = combinedVals.map(val => [val.plainValue[0]]);
     range.offset(0, 0, numOfAppts, 1).setValues(sortedDateVals);
+    range.offset(0, 0, range.getNumRows(), 1).setNumberFormat('h:mma/p');
     // const sortedVals = combinedVals.map(val => val.plainValue);
     // const sortedDepositVals = sortedVals.map(val => [val[2]]);
     // range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);

@@ -39,13 +39,16 @@ function addToWaitlist(appointment) {
   const speciesCellRichText = animalSpecies ? simpleTextToRichText(animalSpecies) : null;
 
   // reason for visit
-  // const reasonCell = rowRange.offset(0, 7, 1, 2).merge();
+  const reasonCell = rowRange.offset(0, 7, 1, 2).merge();
   // reasonCell.setValue(appointment.description);
   const reasonCellRichText = simpleTextToRichText(appointment.description);
 
   const ezyVetCellRichText = simpleTextToRichText('TRUE');
 
   const emptyRichText = simpleTextToRichText('');
+
+  rowRange.offset(0, 1, 1, 2).merge(); // patient cell
+  rowRange.offset(0, 7, 1, 2).merge(); // reason cell
 
   const richTextValues = [
     [
