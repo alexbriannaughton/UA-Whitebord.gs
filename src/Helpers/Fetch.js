@@ -1,6 +1,6 @@
 // singular get request to ezyvet api that will grab a new token if we get a 401 reponse
 function fetchAndParse(url) {
-    // token = getToken();
+    token = getToken();
 
     const options = {
         muteHttpExceptions: true,
@@ -41,7 +41,7 @@ function getLastName(contactID) {
 
 // this is like a promise.all to get animal name and last name at the same time
 function getAnimalInfoAndLastName(animalID, contactID) {
-    // token = getToken();
+    token = getToken();
 
     const animalRequest = {
         muteHttpExceptions: true,
