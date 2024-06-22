@@ -1,4 +1,5 @@
 function handleTomorrowDTAppointment(appointment) {
+    console.log('hello from handleTomorrowDTApptointment....');
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
     const range = sheet.getRange(dtNextDayApptsCoords);
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
