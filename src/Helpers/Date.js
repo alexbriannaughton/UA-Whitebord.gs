@@ -11,6 +11,7 @@ function isTodayInUserTimezone(timestampDate) {
 function isOnNextDayOfDtAppts(timestampDate) {
     const date = new Date();
     date.setDate(date.getDate() + daysToNextDtAppts);
+    
     const nextDTApptDateFormatted = Utilities.formatDate(
         date,
         userTimezone,
