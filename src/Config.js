@@ -1,8 +1,8 @@
-function getToken() {
-    token = token || CacheService.getScriptCache().get('ezyVet_token');
-    if (!token) token = updateToken();
-    return token;
-}
+// function getToken() {
+//     token = token || CacheService.getScriptCache().get('ezyVet_token');
+//     if (!token) token = updateToken();
+//     return token;
+// }
 
 function updateToken(cache = CacheService.getScriptCache()) {
     const url = `${proxy}/v2/oauth/access_token`;
