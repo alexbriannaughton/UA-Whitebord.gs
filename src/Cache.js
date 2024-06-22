@@ -8,7 +8,7 @@ function getCacheVals() {
     token = cacheVals.ezyVet_token;
     if (!token) token = updateToken(cache);
 
-    daysToNextDtAppts = cacheVals.days_to_next_dt_appts;
+    daysToNextDtAppts = Number(cacheVals.days_to_next_dt_appts);
     if (!daysToNextDtAppts) daysToNextDtAppts = getDaysAheadDT(cache);
 }
 
