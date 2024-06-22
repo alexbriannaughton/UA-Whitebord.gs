@@ -1,24 +1,20 @@
-function handleTomorrowDTAppointment(appointment) {
-    console.log('hello from handleTomorrowDTApptointment....');
+function handleNextDayDtAppt(appointment) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
     const range = sheet.getRange(dtNextDayApptsCoords);
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
     if (!highestEmptyRow && !existingRow) {
-        console.error('COULD FIND A ROW TO POPULATE FOR DT TOMORROW HANDLER');
+        throw new Error('COULD NOT FIND A ROW TO POPULATE FOR NEXT DAY DT APPT HANDLER', appointment);
     }
 
-    if (existingRow) {
-        if (!appointment.active) {
-            existingRow.setFontLine('line-through');
-            return;
-        }
+    if (!appointment.active) {
+        if (existingRow) existingRow.setFontLine('line-through');
+        return;
     }
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
     rowRange.setFontLine('none').setBorder(true, true, true, true, true, true);
     const existingRowRichText = rowRange.getRichTextValues();
 
-    // const incomingTimeValue = convertEpochToUserTimezone2(appointment.start_at);
     const incomingTimeValue = new Date(appointment.start_at * 1000);
     let timeCellString = incomingTimeValue;
     const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
@@ -26,13 +22,9 @@ function handleTomorrowDTAppointment(appointment) {
         // get the value of the time were pointing to
         let foundCoorespondingTimeCellVal;
         let rowOffset = -1;
-        while (!foundCoorespondingTimeCellVal) {
+        while (!foundCoorespondingTimeCellVal || rowOffset < -10) {
             const rowRangeAbove = rowRange.offset(rowOffset, 0);
             const timeCellVal = rowRangeAbove.getValue(); // note api call within a loop, not ideal
-            if (!timeCellVal) {
-                throw new Error(`no time cell at tomoDtAppt() while loop: ${appointment}`)
-            }
-            console.log('time cell val in while loop: ', timeCellVal)
             if (timeCellVal !== sameFamString) {
                 foundCoorespondingTimeCellVal = timeCellVal;
                 break;
@@ -40,16 +32,9 @@ function handleTomorrowDTAppointment(appointment) {
             rowOffset--;
         }
         if (!foundCoorespondingTimeCellVal) {
-            throw new Error(`unable to find corresponding time cell val at handleTomorrowDTAppointment(): ${appointment}`);
+            throw new Error(`unable to find corresponding time cell val at handleNextDayDtAppts(): ${appointment}`);
         }
         // if the value is within 2 hours of the incoming value, keep the time cell val to have sameFamString
-        // const foundTimeInMins = getTimeInMinutes(foundCoorespondingTimeCellVal, appointment);
-        // const incomingTimeInMins = getTimeInMinutes(incomingTimeValue, appointment);
-        // const timeDifference = Math.abs(foundTimeInMins - incomingTimeInMins);
-        // if (timeDifference <= 120) {
-        //     timeCellString = sameFamString;
-        // }
-
         const timeDifferenceMs = Math.abs(incomingTimeValue - foundCoorespondingTimeCellVal);
         const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
         if (timeDifferenceHours <= 2) {
@@ -57,10 +42,8 @@ function handleTomorrowDTAppointment(appointment) {
         }
     }
 
-    // const apptTimeRichText = simpleTextToRichText(timeCellString);
-
     let ptCellRichText;
-    if (!existingRow && highestEmptyRow) {
+    if (highestEmptyRow) {
         ptCellRichText = fetchForDataAndMakeLink(appointment);
     }
     else if (existingRow) {
@@ -72,7 +55,7 @@ function handleTomorrowDTAppointment(appointment) {
 
     const hasDepositPaidStatus = appointment.status_id === 37;
     const depositCellBeforeUpdating = existingRowRichText[0][2].getText();
-    const depositPaidText = depositCellBeforeUpdating === 'yes' || hasDepositPaidStatus
+    const depositPaidText = depositCellBeforeUpdating?.includes('yes') || hasDepositPaidStatus
         ? 'yes'
         : 'no';
 
@@ -81,15 +64,17 @@ function handleTomorrowDTAppointment(appointment) {
     const reasonCellText = removeVetstoriaDescriptionText(appointment.description);
     const reasonCellRichText = simpleTextToRichText(reasonCellText);
 
-    const rangeToSetVals = rowRange.offset(0, 1, 1, 3);
-    rangeToSetVals.setRichTextValues([
+    rowRange.offset(0, 1, 1, 3).setRichTextValues([
         [ptCellRichText, depositPaidRichtext, reasonCellRichText]
     ]);
-    rangeToSetVals.offset(0, -1, 1, 1).setValue(timeCellString)
-    const needToResort = timeCellValBeforeUpdating !== timeCellString;
-    if (needToResort) {
-        resortTheAppts(range);
+
+    if (highestEmptyRow) {
+        rowRange.offset(0, 4, 1, 1).setValue('will have to check chart for this data >>>');
     }
+
+    rowRange.offset(0, 0, 1, 1).setValue(timeCellString);
+
+    resortTheAppts(range);
 
     return;
 
@@ -97,16 +82,14 @@ function handleTomorrowDTAppointment(appointment) {
 
 function fetchForDataAndMakeLink(appointment) {
     const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
-    const text = `${animalName} ${contactLastName} (${animalSpecies})`
+    const text = `${animalName} ${contactLastName} (${animalSpecies})`;
     const link = makeLink(text, `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`);
     return link;
 }
 
-function resortTheAppts(range) {
-    if (!range) {
-        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
-        range = sheet.getRange(dtNextDayApptsCoords);
-    }
+function resortTheAppts(
+    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT').getRange(dtNextDayApptsCoords)
+) {
     const richTextVals = range.getRichTextValues();
     const vals = range.getValues();
 
@@ -135,39 +118,17 @@ function resortTheAppts(range) {
     combinedVals.sort((a, b) => {
         const aSortVal = a.sameFamTime || a.plainValue[0];
         const bSortVal = b.sameFamTime || b.plainValue[0];
-        // const aSortVal = getTimeInMinutes(
-        //     a.sameFamTime || a.plainValue[0],
-
-        // );
-        // const bSortVal = getTimeInMinutes(
-        //     b.sameFamTime || b.plainValue[0]
-        // );
         return aSortVal - bSortVal;
     });
 
     const sortedRichText = combinedVals.map(val => val.richTextValue);
     range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
+
     const sortedDateVals = combinedVals.map(val => [val.plainValue[0]]);
     range.offset(0, 0, numOfAppts, 1).setValues(sortedDateVals);
+
     range.offset(0, 0, range.getNumRows(), 1).setNumberFormat('h:mma/p');
-    // const sortedVals = combinedVals.map(val => val.plainValue);
-    // const sortedDepositVals = sortedVals.map(val => [val[2]]);
-    // range.offset(0, 2, numOfAppts, 1).setValues(sortedDepositVals);
 }
-
-// function getTimeInMinutes(timeStr, appointment = undefined) {
-//     console.log('at getTimeInMinutes: ')
-//     console.log('timeStr: ', timeStr)
-//     console.log('appointment: ', appointment)
-//     const [time, period] = timeStr.split(/([AP]M)/);
-//     const [hours, minutes] = time.split(':').map(Number);
-
-//     let offset = 0;
-//     if (period === 'AM' && hours === 12) offset = -12;
-//     else if (period === 'PM' && hours !== 12) offset = 12;
-
-//     return (hours + offset) * 60 + minutes;
-// }
 
 function getFirstSameFamTime(apptVals, i) {
     let j = i - 1;

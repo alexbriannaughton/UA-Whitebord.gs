@@ -89,7 +89,7 @@ function findRow(range, id, keyToID) {
   }
 
   return {
-    existingRow: false,
+    existingRow: null,
     highestEmptyRow
   };
 };

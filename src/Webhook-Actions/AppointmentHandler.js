@@ -12,7 +12,7 @@ function handleAppointment(webhookType, appointment) {
 
     const couldBeNextDayDtAppt = isOnNextDayOfDtAppts(timestampDate) && dtDVMColumnResourceIDs.has(String(appointment.resources[0].id));
     if (couldBeNextDayDtAppt) {
-        return handleTomorrowDTAppointment(appointment);
+        return handleNextDayDtAppt(appointment);
     }
 
     const isToday = isTodayInUserTimezone(timestampDate);
