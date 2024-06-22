@@ -16,6 +16,8 @@ function isOnNextDayOfDtAppts(timestampDate) {
         userTimezone,
         'EEEE MM/dd/yyyy'
     );
+    console.log('nextDTApptDateFormatted-->', nextDTApptDateFormatted)
+    
     return timestampDate === nextDTApptDateFormatted;
 }
 
