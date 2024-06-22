@@ -70,7 +70,7 @@ function handleNextDayDtAppt(appointment) {
 
     if (highestEmptyRow) {
         console.log('hit block where supposed to set last visit val')
-        rowRange.offset(0, 4, 1, 1).setValue('will have to check chart for this data >>>');
+        rowRange.offset(0, 4, 1, 1).setValue('will have to manually check chart for this data >>>');
     }
 
     rowRange.offset(0, 0, 1, 1).setValue(timeCellString);
