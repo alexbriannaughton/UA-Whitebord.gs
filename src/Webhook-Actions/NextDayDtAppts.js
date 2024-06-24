@@ -113,14 +113,39 @@ function resortDtAppts(
         return {
             plainValue: apptVal,
             richTextValue: apptRichTexts[i],
-            sameFamTime
+            sameFamTime,
+            lastName: apptVal[1].split(' ').at(-2)
         };
     });
+
     combinedVals.sort((a, b) => {
         const aSortVal = a.sameFamTime || a.plainValue[0];
         const bSortVal = b.sameFamTime || b.plainValue[0];
         return aSortVal - bSortVal;
     });
+
+    for (let i = 0; i < combinedVals.length - 1; i++) {
+        const {
+            lastName: curApptLastName,
+            plainValue: curApptPlainValues
+        } = combinedVals[i];
+        console.log('cur appt date: ', curApptPlainValues[0])
+
+        for (let j = i + 1; j < combinedVals.length; j++) {
+            const {
+                lastName: nextApptLastName,
+                plainValue: nextApptPlainValues
+            } = combinedVals[j];
+
+            console.log('next appt date: ', nextApptPlainValues[0])
+
+            if (curApptLastName === nextApptLastName && nextApptPlainValues[0] !== sameFamString) {
+                // get nextLastName's contact id
+                // if the contact id matches the incoming appointments contact id, nextPlainValue[0] = sameFamString
+                console.log('might need to change vals for ', nextApptLastName)
+            }
+        }
+    }
 
     const sortedRichText = combinedVals.map(val => val.richTextValue);
     range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
