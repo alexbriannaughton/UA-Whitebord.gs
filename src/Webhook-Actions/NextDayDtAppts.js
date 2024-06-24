@@ -124,37 +124,99 @@ function resortDtAppts(
         return aSortVal - bSortVal;
     });
 
+    // below there are two for loops which are two versions that try to handle
+    // incoming appointments that should have same family flags in their time cell
+    // the first version only flags if the two appointements are already back to back in the combinedVals array
+    // the second version tries to handle this and resort the array if there are two appts within same family within two hours of each other
+    // but i have not completed the second versin
+    // version 1:
     for (let i = 0; i < combinedVals.length - 1; i++) {
         const {
             lastName: curApptLastName,
-            plainValue: curApptPlainValues
+            plainValue: curApptPlainValues,
+            richTextValue: curApptRichTextValues
         } = combinedVals[i];
 
         const curApptDate = curApptPlainValues[0];
 
         if (curApptDate === sameFamString) continue;
 
-        for (let j = i + 1; j < combinedVals.length; j++) {
-            const {
-                lastName: nextApptLastName,
-                plainValue: nextApptPlainValues
-            } = combinedVals[j];
-            
-            const nextApptDate = nextApptPlainValues[0];
-            
-            if (nextApptDate === sameFamString) continue;
+        const {
+            lastName: nextApptLastName,
+            plainValue: nextApptPlainValues,
+            richTextValue: nextApptRichTextValues
+        } = combinedVals[i];
 
-            const diff = Math.abs(nextApptDate - curApptDate);
-            console.log(`diff between ${curApptLastName} and ${nextApptLastName} is ${diff}`)
-            // console.log('next appt date: ', nextApptPlainValues[0])
+        const nextApptDate = nextApptPlainValues[0];
 
-            if (curApptLastName === nextApptLastName) {
-                // get nextLastName's contact id
-                // if the contact id matches the incoming appointments contact id, nextPlainValue[0] = sameFamString
-                console.log('might need to change vals for ', nextApptLastName)
+        if (nextApptDate === sameFamString) continue;
+
+        if (curApptLastName === nextApptLastName) {
+            const curPtNameCellRuns = curApptRichTextValues[1].getRuns();
+            const curAnimalLink = getLinkFromRuns(curPtNameCellRuns);
+            const curApptAnimalID = curAnimalLink?.split('=').at(-1);
+            if (!curApptAnimalID) continue;
+
+            const nextPtNameCellRuns = nextApptRichTextValues[1].getRuns();
+            const nextAnimalLink = getLinkFromRuns(nextPtNameCellRuns);
+            const nextApptAnimalID = nextAnimalLink?.split('=').at(-1);
+            if (!nextApptAnimalID) continue;
+
+            const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
+
+            if (curAnimalContactID === nextAnimalContactID) {
+                combinedVals[i + 1].plainValue[0] = sameFamString;
             }
         }
     }
+
+    // version 2:
+    // for (let i = 0; i < combinedVals.length - 1; i++) {
+    //     const {
+    //         lastName: curApptLastName,
+    //         plainValue: curApptPlainValues,
+    //         richTextValue: curApptRichTextValues
+    //     } = combinedVals[i];
+
+    //     const curApptDate = curApptPlainValues[0];
+
+    //     if (curApptDate === sameFamString) continue;
+
+    //     for (let j = i + 1; j < combinedVals.length; j++) {
+    //         const {
+    //             lastName: nextApptLastName,
+    //             plainValue: nextApptPlainValues,
+    //             richTextValue: nextApptRichTextValues
+    //         } = combinedVals[j];
+
+    //         const nextApptDate = nextApptPlainValues[0];
+
+    //         if (nextApptDate === sameFamString) continue;
+
+    //         const diff = Math.abs(nextApptDate - curApptDate);
+
+    //         if (diff > 60 * 60 * 1000) break;
+
+    //         if (curApptLastName === nextApptLastName) {
+    //             const curPtNameCellRuns = curApptRichTextValues[1].getRuns();
+    //             const curAnimalLink = getLinkFromRuns(curPtNameCellRuns);
+    //             const curApptAnimalID = curAnimalLink?.split('=').at(-1);
+    //             if (!curApptAnimalID) continue;
+
+    //             const nextPtNameCellRuns = nextApptRichTextValues[1].getRuns();
+    //             const nextAnimalLink = getLinkFromRuns(nextPtNameCellRuns);
+    //             const nextApptAnimalID = nextAnimalLink?.split('=').at(-1);
+    //             if (!nextApptAnimalID) continue;
+
+    //             const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
+
+    //             if (curAnimalContactID === nextAnimalContactID) {
+    //                 // ensure that they are next to each other in the array and set nextPlainValue[0] = sameFamString
+    //                 // 
+    //             }
+    //         }
+    //     }
+    // }
 
     const sortedRichText = combinedVals.map(val => val.richTextValue);
     range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
