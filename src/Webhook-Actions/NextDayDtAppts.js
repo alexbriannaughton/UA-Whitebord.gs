@@ -1,7 +1,7 @@
 function handleNextDayDtAppt(appointment) {
     if (!dtResourceIDs.has(appointment.resources[0].id)) return;
     if (!dtDVMApptTypeIDs.has(appointment.type_id)) return;
-    
+
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
     const range = sheet.getRange(dtNextDayApptsCoords);
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
@@ -10,7 +10,11 @@ function handleNextDayDtAppt(appointment) {
     }
 
     if (!appointment.active) {
-        if (existingRow) existingRow.setFontLine('line-through');
+        // if (existingRow) existingRow.setFontLine('line-through');
+        if (existingRow) {
+            existingRow.clearContent();
+            resortDtAppts(range);
+        }
         return;
     }
 
