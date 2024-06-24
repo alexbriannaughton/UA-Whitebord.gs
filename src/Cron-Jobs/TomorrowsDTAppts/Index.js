@@ -33,8 +33,8 @@ function getNextDayDtAppts() {
 function filterAndSortDTAppts(allTargetDayAppts) {
     // filter all appts down to DT exams/techs
     const dtAppts = allTargetDayAppts.items.filter(({ appointment }) => {
-        return appointment.details.resource_list.some(id => dtDVMColumnResourceIDs.has(id)) // is in a DT exam or tech column
-            && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
+        return appointment.details.resource_list.some(id => dtResourceIDs.has(Number(id))) // is in a DT exam or tech column
+            && dtDVMApptTypeIDs.has(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
     });
 
     dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);

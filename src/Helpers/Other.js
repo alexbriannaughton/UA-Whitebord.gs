@@ -120,7 +120,8 @@ function removeVetstoriaDescriptionText(descriptionString) {
       return arr[1].trim();
     }
   }
-  return descriptionString;
+
+  else return descriptionString;
 }
 
 function simpleTextToRichText(text) {

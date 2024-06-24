@@ -1,4 +1,7 @@
 function handleNextDayDtAppt(appointment) {
+    if (!dtResourceIDs.has(appointment.resources[0].id)) return;
+    if (!dtDVMApptTypeIDs.has(appointment.type_id)) return;
+    
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
     const range = sheet.getRange(dtNextDayApptsCoords);
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
