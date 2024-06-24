@@ -37,7 +37,7 @@ function handleNextDayDtAppt(appointment) {
         // if the value is within 2 hours of the incoming value, keep the time cell val to have sameFamString
         const timeDifferenceMs = Math.abs(incomingTimeValue - foundCoorespondingTimeCellVal);
         const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
-        if (timeDifferenceHours <= 2) {
+        if (timeDifferenceHours <= 1) {
             timeCellString = sameFamString;
         }
     }
