@@ -111,9 +111,9 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     let [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
 
-    if (animalResponse.getResponseCode() === 401 || contactResponse.getResponseCode() === 401) {
-        animalRequest.headers.authorization = updateToken();
-        contactRequest.headers.authorization = token;
+    if (animalOneResponse.getResponseCode() === 401 || animalTwoResponse.getResponseCode() === 401) {
+        animalOneRequest.headers.authorization = updateToken();
+        animalTwoRequest.headers.authorization = token;
         [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
     }
 
