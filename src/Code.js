@@ -14,7 +14,7 @@ function doPost(e) {
     const endTime = new Date();
     const executionTime = (endTime - startTime) / 1000;
     if (executionTime > 10) {
-      console.log(`EXECUTION TOOK ${executionTime} SECONDS`);
+      console.log(`DOPOST EXECUTION TOOK ${executionTime} SECONDS`);
       console.log('appt items --->', apptItems);
     }
 
@@ -26,6 +26,7 @@ function doPost(e) {
     console.error('error after the first try:', error);
     Utilities.sleep(3000);
     try {
+      getCacheVals();
       const params = JSON.parse(e.postData.contents);
       console.log('second try appointment objects: ', params?.items);
       const apptItems = params.items;

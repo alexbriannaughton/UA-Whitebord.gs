@@ -75,7 +75,7 @@ function handleNextDayDtAppt(appointment) {
 
     rowRange.offset(0, 0, 1, 1).setValue(timeCellString);
 
-    resortTheAppts(range);
+    resortDtAppts(range);
 
     return;
 
@@ -88,7 +88,7 @@ function fetchForDataAndMakeLink(appointment) {
     return link;
 }
 
-function resortTheAppts(
+function resortDtAppts(
     range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT').getRange(dtNextDayApptsCoords)
 ) {
     const richTextVals = range.getRichTextValues();

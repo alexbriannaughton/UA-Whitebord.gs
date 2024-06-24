@@ -39,7 +39,7 @@ function addToWaitlist(appointment) {
   const speciesCellRichText = animalSpecies ? simpleTextToRichText(animalSpecies) : null;
 
   // reason for visit
-  const reasonCell = rowRange.offset(0, 7, 1, 2).merge();
+  // const reasonCell = rowRange.offset(0, 7, 1, 2).merge();
   // reasonCell.setValue(appointment.description);
   const reasonCellRichText = simpleTextToRichText(appointment.description);
 
