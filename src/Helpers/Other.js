@@ -115,9 +115,9 @@ function removeVetstoriaDescriptionText(descriptionString) {
       return newDescString;
     }
 
-    const arr = descriptionString.split(' - ');
+    const arr = descriptionString.split('-');
     if (arr.length === 2) {
-      return arr[1];
+      return arr[1].trim();
     }
   }
   return descriptionString;
