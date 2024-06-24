@@ -69,7 +69,7 @@ function handleNextDayDtAppt(appointment) {
     ]);
 
     if (highestEmptyRow) {
-        console.log('hit block where supposed to set last visit val')
+        // console.log('hit block where supposed to set last visit val')
         rowRange.offset(0, 4, 1, 1).setValue('will have to manually check chart for this data >>>');
     }
 
@@ -142,7 +142,6 @@ function resortDtAppts(
         if (curApptDate === sameFamString) continue;
 
         let j = i + 1;
-
         while (j < combinedVals.length) {
             const {
                 lastName: nextApptLastName,
