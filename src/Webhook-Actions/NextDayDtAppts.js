@@ -145,7 +145,7 @@ function resortDtAppts(
             lastName: nextApptLastName,
             plainValue: nextApptPlainValues,
             richTextValue: nextApptRichTextValues
-        } = combinedVals[i];
+        } = combinedVals[i + 1];
 
         const nextApptDate = nextApptPlainValues[0];
 
