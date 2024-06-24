@@ -34,7 +34,7 @@ function handleNextDayDtAppt(appointment) {
         if (!foundCoorespondingTimeCellVal) {
             throw new Error(`unable to find corresponding time cell val at handleNextDayDtAppts(): ${appointment}`);
         }
-        // if the value is within 2 hours of the incoming value, keep the time cell val to have sameFamString
+        // if the value is within 1 hour of the incoming value, keep the time cell val to have sameFamString
         const timeDifferenceMs = Math.abs(incomingTimeValue - foundCoorespondingTimeCellVal);
         const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
         if (timeDifferenceHours <= 1) {
@@ -141,33 +141,38 @@ function resortDtAppts(
 
         if (curApptDate === sameFamString) continue;
 
-        const {
-            lastName: nextApptLastName,
-            plainValue: nextApptPlainValues,
-            richTextValue: nextApptRichTextValues
-        } = combinedVals[i + 1];
+        let j = i + 1;
 
-        const nextApptDate = nextApptPlainValues[0];
+        while (j < combinedVals.length) {
+            const {
+                lastName: nextApptLastName,
+                plainValue: nextApptPlainValues,
+                richTextValue: nextApptRichTextValues
+            } = combinedVals[j];
 
-        if (nextApptDate === sameFamString) continue;
+            const nextApptDate = nextApptPlainValues[0];
 
-        if (curApptLastName === nextApptLastName) {
-            const curPtNameCellRuns = curApptRichTextValues[1].getRuns();
-            const curAnimalLink = getLinkFromRuns(curPtNameCellRuns);
-            const curApptAnimalID = curAnimalLink?.split('=').at(-1);
-            if (!curApptAnimalID) continue;
+            if (nextApptDate === sameFamString) {
+                j++;
+                continue;
+            }
 
-            const nextPtNameCellRuns = nextApptRichTextValues[1].getRuns();
-            const nextAnimalLink = getLinkFromRuns(nextPtNameCellRuns);
-            const nextApptAnimalID = nextAnimalLink?.split('=').at(-1);
-            if (!nextApptAnimalID) continue;
+            if (curApptLastName !== nextApptLastName) break;
+
+            const curApptAnimalID = getAnimaIdFromCellRichText(curApptRichTextValues[1])
+            if (!curApptAnimalID) break;
+
+            const nextApptAnimalID = getAnimaIdFromCellRichText(nextApptRichTextValues[1]);
+            if (!nextApptAnimalID) break;
 
             const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
 
             if (curAnimalContactID === nextAnimalContactID) {
-                combinedVals[i + 1].plainValue[0] = sameFamString;
+                combinedVals[j].plainValue[0] = sameFamString;
             }
+
         }
+
     }
 
     // version 2:
@@ -236,4 +241,11 @@ function getFirstSameFamTime(apptVals, i) {
         }
         j--;
     }
+}
+
+function getAnimaIdFromCellRichText(richText) {
+    const curPtNameCellRuns = richText.getRuns();
+    const curAnimalLink = getLinkFromRuns(curPtNameCellRuns);
+    const curApptAnimalID = curAnimalLink?.split('=').at(-1);
+    return curApptAnimalID;
 }
