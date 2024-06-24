@@ -129,17 +129,26 @@ function resortDtAppts(
             lastName: curApptLastName,
             plainValue: curApptPlainValues
         } = combinedVals[i];
-        console.log('cur appt date: ', curApptPlainValues[0])
+
+        const curApptDate = curApptPlainValues[0];
+
+        if (curApptDate === sameFamString) continue;
 
         for (let j = i + 1; j < combinedVals.length; j++) {
             const {
                 lastName: nextApptLastName,
                 plainValue: nextApptPlainValues
             } = combinedVals[j];
+            
+            const nextApptDate = nextApptPlainValues[0];
+            
+            if (nextApptDate === sameFamString) continue;
 
-            console.log('next appt date: ', nextApptPlainValues[0])
+            const diff = Math.abs(nextApptDate - curApptDate);
+            console.log(`diff between ${curApptLastName} and ${nextApptLastName} is ${diff}`)
+            // console.log('next appt date: ', nextApptPlainValues[0])
 
-            if (curApptLastName === nextApptLastName && nextApptPlainValues[0] !== sameFamString) {
+            if (curApptLastName === nextApptLastName) {
                 // get nextLastName's contact id
                 // if the contact id matches the incoming appointments contact id, nextPlainValue[0] = sameFamString
                 console.log('might need to change vals for ', nextApptLastName)
