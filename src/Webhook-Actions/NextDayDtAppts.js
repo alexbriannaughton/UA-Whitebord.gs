@@ -266,11 +266,6 @@ function handleDeleteRow(existingRow, range) {
     const numOfAppts = getNumOfApptRows(vals);
     if (!numOfAppts) return;
 
-    const apptRichTexts = richTextVals.slice(0, numOfAppts);
-    const apptVals = vals.slice(0, numOfAppts);
-
-    // get the row number
-    const existingRowNum = existingRow.getRow();
     const existingRowIndexWithinRange = existingRow.getRow() - dtNextDayApptsRowStartNumber;
     // grab all the appointments below
     const rowsBelow = range.offset(
