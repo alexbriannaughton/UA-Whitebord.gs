@@ -48,7 +48,6 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         }
 
         // if we know the animal/contact stuff, continue normally
-        const unknownSpeciesString = 'unknown species';
         const ptSpecies = speciesMap[animal.species_id] || unknownSpeciesString;
         const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
         const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;

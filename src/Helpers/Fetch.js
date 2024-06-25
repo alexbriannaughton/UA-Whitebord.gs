@@ -80,12 +80,13 @@ function getAnimalInfoAndLastName(animalID, contactID) {
     const animal = parsedAnimal.items.at(-1).animal;
     const speciesMap = { 1: 'K9', 2: 'FEL' };
     const animalSpecies = speciesMap[animal.species_id] || undefined;
+    const isHostile = animal.is_hostile === '1';
 
     const contactJSON = contactResponse.getContentText();
     const parsedContact = JSON.parse(contactJSON);
     const contactLastName = parsedContact.items.at(-1).contact.last_name;
 
-    return [animal.name, animalSpecies, contactLastName]
+    return [animal.name, animalSpecies, contactLastName, isHostile]
 };
 
 function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {

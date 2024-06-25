@@ -49,8 +49,13 @@ function handleNextDayDtAppt(appointment) {
     }
 
     let ptCellRichText;
+    let fractiousCellRichText;
     if (highestEmptyRow) {
-        ptCellRichText = fetchForDataAndMakeLink(appointment);
+        const { link, isHostile } = fetchForDataAndMakeLink(appointment);
+        ptCellRichText = link;
+        const fractiousCellText = isHostile ? 'yes' : 'no';
+        fractiousCellRichText = simpleTextToRichText(fractiousCellText);
+
     }
     else if (existingRow) {
         ptCellRichText = existingRowRichText[0][1];
@@ -70,13 +75,21 @@ function handleNextDayDtAppt(appointment) {
     const reasonCellText = removeVetstoriaDescriptionText(appointment.description);
     const reasonCellRichText = simpleTextToRichText(reasonCellText);
 
-    rowRange.offset(0, 1, 1, 3).setRichTextValues([
-        [ptCellRichText, depositPaidRichtext, reasonCellRichText]
-    ]);
+    // if existing row, this is all im gonna set
+    if (existingRow) {
+        rowRange.offset(0, 1, 1, 3).setRichTextValues([
+            [ptCellRichText, depositPaidRichtext, reasonCellRichText]
+        ]);
+    }
+
+    // if highest empty row, need to set:
+    // [ptCellRichText, depositPaidRichtext, reasonCellRichText, checkchart text, check chart text, hx fractious, check chart text]
 
     if (highestEmptyRow) {
-        // console.log('hit block where supposed to set last visit val')
-        rowRange.offset(0, 4, 1, 1).setValue('will have to manually check chart for this data >>>');
+        const checkChartRichText = simpleTextToRichText('see pt chart');
+        rowRange.offset(0, 1, 1, 7).setRichTextValues([
+            [ptCellRichText, depositPaidRichtext, reasonCellRichText, checkChartRichText, checkChartRichText, fractiousCellRichText, checkChartRichText]
+        ]);
     }
 
     rowRange.offset(0, 0, 1, 1).setValue(timeCellString);
@@ -88,8 +101,13 @@ function handleNextDayDtAppt(appointment) {
 }
 
 function fetchForDataAndMakeLink(appointment) {
-    const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
-    const text = `${animalName} ${contactLastName} (${animalSpecies})`;
+    const [
+        animalName,
+        animalSpecies,
+        contactLastName,
+        isHostile
+    ] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
+    const text = `${animalName} ${contactLastName} (${animalSpecies || unknownSpeciesString})`;
     const link = makeLink(text, `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`);
     return link;
 }
@@ -286,6 +304,6 @@ function handleDeleteRow(existingRow, range) {
         .setFontColor("black")
         .setBackground("white")
         .setFontLine("none")
-        .setBorder(false, false, false, false, false, false);
+        .setBorder(true, false, false, false, false, false);
 
 }

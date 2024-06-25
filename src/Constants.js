@@ -1,6 +1,7 @@
 const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
 
+const unknownSpeciesString = 'unknown species';
 const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
 const userTimezone = 'America/Los_Angeles';
