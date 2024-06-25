@@ -60,3 +60,10 @@ function isRoomStatus(statusID) {
 
     return (statusID >= 25 && statusID <= 33) || [18, 36, 39, 40].includes(statusID);
 };
+
+function filterForValidDtAppts(allTargetDayAppts) {
+    return allTargetDayAppts.items.filter(({ appointment }) => {
+        return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT exam column
+            && dtDVMApptTypeIDs.has(appointment.details.appointment_type_id); // is a dt doctor exam type
+    });
+};

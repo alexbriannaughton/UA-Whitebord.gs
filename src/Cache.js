@@ -33,10 +33,3 @@ function getDaysAheadDT(cache) {
 
     return daysAhead;
 };
-
-function filterForValidDtAppts(allTargetDayAppts) {
-    return allTargetDayAppts.items.filter(({ appointment }) => {
-        return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT exam column
-            && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
-    });
-};
