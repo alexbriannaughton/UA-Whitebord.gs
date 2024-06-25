@@ -12,8 +12,7 @@ function handleNextDayDtAppt(appointment) {
     if (!appointment.active) {
         // if (existingRow) existingRow.setFontLine('line-through');
         if (existingRow) {
-            existingRow.offset(0, 0, 1, 8).clearContent();
-            
+            handleDeleteRow(existingRow, range);
         }
         return;
     }
@@ -101,13 +100,7 @@ function resortDtAppts(
     const richTextVals = range.getRichTextValues();
     const vals = range.getValues();
 
-    let numOfAppts;
-    for (let i = 0; i < vals.length; i++) {
-        if (vals[i][0] === '') {
-            numOfAppts = i;
-            break;
-        }
-    }
+    const numOfAppts = getNumOfApptRows(vals);
     if (!numOfAppts) return;
 
     const apptRichTexts = richTextVals.slice(0, numOfAppts);
@@ -238,6 +231,17 @@ function resortDtAppts(
     range.offset(0, 0, range.getNumRows(), 1).setNumberFormat('h:mma/p');
 }
 
+function getNumOfApptRows(vals) {
+    let numOfAppts;
+    for (let i = 0; i < vals.length; i++) {
+        if (vals[i][0] === '') {
+            numOfAppts = i;
+            break;
+        }
+    }
+    return numOfAppts;
+}
+
 function getFirstSameFamTime(apptVals, i) {
     let j = i - 1;
     while (j >= 0) {
@@ -254,4 +258,39 @@ function getAnimaIdFromCellRichText(richText) {
     const curAnimalLink = getLinkFromRuns(curPtNameCellRuns);
     const curApptAnimalID = curAnimalLink?.split('=').at(-1);
     return curApptAnimalID;
+}
+
+function handleDeleteRow(existingRow, range) {
+    const vals = range.getValues();
+
+    const numOfAppts = getNumOfApptRows(vals);
+    if (!numOfAppts) return;
+
+    const apptRichTexts = richTextVals.slice(0, numOfAppts);
+    const apptVals = vals.slice(0, numOfAppts);
+
+    // get the row number
+    const existingRowNum = existingRow.getRow();
+    const existingRowIndexWithinRange = existingRow.getRow() - dtNextDayApptsRowStartNumber;
+    // grab all the appointments below
+    const rowsBelow = range.offset(
+        existingRowIndexWithinRange + 1,
+        0,
+        numOfAppts - 1 - existingRowIndexWithinRange
+    );
+    // paste them in the existing row
+    const targetRange = range.offset(
+        existingRowIndexWithinRange,
+        0,
+        numOfAppts - 1 - existingRowIndexWithinRange - 1
+    )
+    rowsBelow.copyTo(targetRange);
+    // delete the last appointment, reset its format
+    range.offset(numOfAppts - 1, 0, 1)
+        .clearContent()
+        .setFontColor("black")
+        .setBackground("white")
+        .setFontLine("none")
+        .setBorder(false, false, false, false, false, false);
+
 }
