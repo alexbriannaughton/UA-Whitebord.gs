@@ -12,8 +12,8 @@ function handleNextDayDtAppt(appointment) {
     if (!appointment.active) {
         // if (existingRow) existingRow.setFontLine('line-through');
         if (existingRow) {
-            existingRow.offset(0, -1, 1, 8).clearContent();
-            resortDtAppts(range);
+            existingRow.offset(0, 0, 1, 8).clearContent();
+            
         }
         return;
     }
