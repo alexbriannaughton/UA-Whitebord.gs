@@ -1,4 +1,6 @@
 function handleNextDayDtAppt(appointment) {
+    console.log('resource id type: ', typeof appointment.resources[0].id)
+    console.log('appt type type: ', typeof appointment.type_id)
     if (!dtResourceIDs.has(appointment.resources[0].id)) return;
     if (!dtDVMApptTypeIDs.has(appointment.type_id)) return;
 
