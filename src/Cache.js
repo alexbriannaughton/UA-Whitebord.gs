@@ -16,7 +16,7 @@ function getDaysAheadDT(cache) {
     let foundDay = false;
     let daysAhead = 0;
 
-    while (!foundDay && daysAhead < 1) {
+    while (!foundDay && daysAhead < 10) {
         const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(++daysAhead);
         const url = `${proxy}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
         const allTargetDayAppts = fetchAndParse(url);
@@ -36,8 +36,6 @@ function getDaysAheadDT(cache) {
 
 function filterForValidDtAppts(allTargetDayAppts) {
     return allTargetDayAppts.items.filter(({ appointment }) => {
-        console.log('resource id type: ', typeof appointment.details.resource_list[0])
-        console.log('appt type type: ', typeof appointment.details.appointment_type_id)
         return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT exam column
             && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
     });

@@ -15,18 +15,18 @@ const echoApptTypeIDsSet = new Set([30]);
 const ausApptTypeIDsSet = new Set([29, 91]);
 
 const dtResourceIDs = new Set([ // non procedures dt columns
-    35, // dt dvm 1
+    '35', // dt dvm 1
     // 55, // used to be dt dvm 2, though it is not currently active 3/16/24
-    56, // dt tech
+    '56', // dt tech
     // 1015, // used to be dt dvm 3, though it is not currently active 3/16/24
-    1082, // dt DVM :15/:45
-    57, // dt procedure 1
-    58, // dt procedure 2
+    '1082', // dt DVM :15/:45
+    '57', // dt procedure 1
+    '58', // dt procedure 2
 ]);
 const dtDVMApptTypeIDs = new Set([
-    79, // downtown - appointment
-    95, // Downtown - Appointment (:15/:45)
-    93, // Downtown - Same Day Sick
+    '79', // downtown - appointment
+    '95', // Downtown - Appointment (:15/:45)
+    '93', // Downtown - Same Day Sick
 ]);
 
 // takes appointment.type_id and outputs a string for the procedure type
