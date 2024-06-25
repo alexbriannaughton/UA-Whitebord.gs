@@ -11,6 +11,8 @@ const dateStringPattern = 'EEEE MM/dd/yyyy';
 const dtNextDayApptsRowStartNumber = 15;
 const dtNextDayApptsCoords = `K${dtNextDayApptsRowStartNumber}:R85`;
 
+const firstTimeString = 'first time';
+
 const sameFamString = '^same fam^';
 
 const echoApptTypeIDsSet = new Set([30]);

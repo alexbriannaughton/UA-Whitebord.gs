@@ -56,10 +56,10 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
 
         const firstTimeHereCell = range.offset(i, 4, 1, 1);
         if (firstTime) {
-            firstTimeHereCell.setValue('yes');
+            firstTimeHereCell.setValue(firstTimeString);
         }
         else if (patientsLastVisitDate) {
-            firstTimeHereCell.setValue(`${animal.name}'s last visit: ${patientsLastVisitDate}`);
+            firstTimeHereCell.setValue(patientsLastVisitDate);
         }
         else if (otherAnimalsWhoHaveBeenHere) {
             firstTimeHereCell

@@ -29,7 +29,7 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
 
         // pt name column
         SpreadsheetApp.newConditionalFormatRule()
-            .whenTextContains("unknown species")
+            .whenTextContains(unknownSpeciesString)
             .setBackground(highPriorityColor)
             .setRanges([sheet.getRange("L15:L85")])
             .build(),
@@ -50,7 +50,7 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
 
         // first time column
         SpreadsheetApp.newConditionalFormatRule()
-            .whenTextEqualTo("yes")
+            .whenTextEqualTo(firstTimeString)
             .setBackground(highPriorityColor)
             .setRanges([sheet.getRange("O15:O85")])
             .build(),
