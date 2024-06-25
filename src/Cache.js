@@ -32,7 +32,7 @@ function getDaysAheadDT(cache) {
     cache.put('days_to_next_dt_appts', daysAhead, 21600);
 
     return daysAhead;
-}
+};
 
 function filterForValidDtAppts(allTargetDayAppts) {
     return allTargetDayAppts.items.filter(({ appointment }) => {
