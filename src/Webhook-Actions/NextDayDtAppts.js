@@ -109,7 +109,7 @@ function fetchForDataAndMakeLink(appointment) {
     ] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
     const text = `${animalName} ${contactLastName} (${animalSpecies || unknownSpeciesString})`;
     const link = makeLink(text, `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`);
-    return link;
+    return { link, isHostile };
 }
 
 function resortDtAppts(
