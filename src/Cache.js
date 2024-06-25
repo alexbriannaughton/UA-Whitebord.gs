@@ -36,6 +36,8 @@ function getDaysAheadDT(cache) {
 
 function filterForValidDtAppts(allTargetDayAppts) {
     return allTargetDayAppts.items.filter(({ appointment }) => {
+        console.log('resource id type: ', typeof appointment.details.resource_list[0])
+        console.log('appt type type: ', typeof appointment.details.appointment_type_id)
         return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT exam column
             && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
     });
