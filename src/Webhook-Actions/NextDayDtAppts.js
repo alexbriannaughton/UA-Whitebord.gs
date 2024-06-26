@@ -320,7 +320,8 @@ function handleDeleteRow(existingRow, range) {
 
 function getActualStartTime(animalID) {
     const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextDtAppts);
-    const url = `${proxy}/v1/appointment?active=1&animal_id=${animalID}&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
+    const encodedTime = `start_time=${encodeURIComponent(JSON.stringify({ ">": targetDayStart, "<": targetDayEnd }))}`;
+    const url = `${proxy}/v1/appointment?active=1&animal_id=${animalID}&${encodedTime}&limit=200`;
     const allTargetDayAppts = fetchAndParse(url);
     const appts = filterAndSortDTAppts(allTargetDayAppts);
     console.log('appts: ', appts)
