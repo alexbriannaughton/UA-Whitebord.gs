@@ -50,7 +50,7 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
 
         // first time column
         SpreadsheetApp.newConditionalFormatRule()
-            .whenTextEqualTo(firstTimeString)
+            .whenTextEqualTo('yes')
             .setBackground(highPriorityColor)
             .setRanges([sheet.getRange("O15:O85")])
             .build(),
