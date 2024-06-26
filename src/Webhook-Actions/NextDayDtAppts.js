@@ -46,12 +46,13 @@ function handleNextDayDtAppt(appointment) {
 
     let ptCellRichText;
     let fractiousCellRichText;
+    let seeChartRichText;
     if (highestEmptyRow) {
-        const { link, isHostile } = fetchForDataAndMakeLink(appointment);
-        ptCellRichText = link;
+        const { ptCellLink, isHostile, seeChartLink } = fetchForDataAndMakeLink(appointment);
+        ptCellRichText = ptCellLink;
         const fractiousCellText = isHostile ? 'yes' : 'no';
         fractiousCellRichText = simpleTextToRichText(fractiousCellText);
-
+        seeChartRichText = seeChartLink;
     }
     else if (existingRow) {
         ptCellRichText = existingRowRichText[0][1];
@@ -78,9 +79,8 @@ function handleNextDayDtAppt(appointment) {
     }
 
     if (highestEmptyRow) {
-        const checkChartRichText = simpleTextToRichText('see pt chart');
         rowRange.offset(0, 1, 1, 7).setRichTextValues([
-            [ptCellRichText, depositPaidRichtext, reasonCellRichText, checkChartRichText, checkChartRichText, fractiousCellRichText, checkChartRichText]
+            [ptCellRichText, depositPaidRichtext, reasonCellRichText, seeChartRichText, seeChartRichText, fractiousCellRichText, seeChartRichText]
         ]);
     }
 
@@ -100,8 +100,10 @@ function fetchForDataAndMakeLink(appointment) {
         isHostile
     ] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
     const text = `${animalName} ${contactLastName} (${animalSpecies || unknownSpeciesString})`;
-    const link = makeLink(text, `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`);
-    return { link, isHostile };
+    const url = `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`;
+    const ptCellLink = makeLink(text, url);
+    const seeChartLink = makeLink('see pt chart', url);
+    return { ptCellLink, isHostile, seeChartLink };
 }
 
 function resortDtAppts(
