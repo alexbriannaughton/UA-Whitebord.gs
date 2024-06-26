@@ -284,14 +284,24 @@ function handleDeleteRow(existingRow, range) {
     const existingRowIndexWithinRange = existingRow.getRow() - dtNextDayApptsRowStartNumber;
 
     const existingRowTimeValue = vals[existingRowIndexWithinRange][0];
-    const nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
+    let nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
 
     if (nextRowTimeValue === sameFamString && existingRowTimeValue !== sameFamString) {
-        // set this value to an actual time
-        const nextRow = range.offset(existingRowIndexWithinRange + 1, 0, 1);
-        const nextRowRichText = nextRow.getRichTextValues();
-        const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[0][1]);
-        const nextRowDate = getActualStartTime(nextRowAnimalID);
+        let totalNumOfRowsPointingToExistingRowTime = 0;
+        while (nextRowTimeValue === sameFamString) {
+            totalNumOfRowsPointingToExistingRowTime++;
+            nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime][0];
+        }
+
+        const rowsInSameFam = range.offset(existingRowIndexWithinRange + 1, 0, totalNumOfRowsPointingToExistingRowTime);
+        const nextRowRichText = rowsInSameFam.getRichTextValues();
+        const animalIDs = [];
+        for (let k = 0; k < nextRowRichText.length; k++) {
+            const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[k][1]);
+            animalIDs.push(nextRowAnimalID);
+        }
+
+        const nextRowDate = getActualStartTime(animalIDs);
         nextRow.offset(0, 0, 1, 1).setValue(nextRowDate);
     }
 
@@ -318,15 +328,18 @@ function handleDeleteRow(existingRow, range) {
 
 }
 
-function getActualStartTime(animalID) {
+function getActualStartTime(animalIDs) {
     const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextDtAppts);
     const encodedTime = `start_time=${encodeURIComponent(JSON.stringify({ ">": targetDayStart, "<": targetDayEnd }))}`;
-    const url = `${proxy}/v1/appointment?active=1&animal_id=${animalID}&${encodedTime}&limit=200`;
+    const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": animalIDs }));
+    const url = `${proxy}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}&limit=200`;
     const allTargetDayAppts = fetchAndParse(url);
     const appts = filterAndSortDTAppts(allTargetDayAppts);
     console.log('appts: ', appts)
-    if (appts.length !== 1) {
-        throw new Error(`there are ${appts.length} on next day of dt appts for animal with id of ${animalID}`);
+    if (appts.length !== animalIDs.length) {
+        throw new Error(`there are ${appts.length} on next day of dt appts for animals with ids of ${animalIDs}`);
     }
-    return new Date(appts[0].appointment.start_time * 1000);
+    const startTimes = appts.map(({appointment}) => Number(appointment.start_time));
+    const minStartTime = Math.min(...startTimes);
+    return new Date(minStartTime * 1000);
 }
