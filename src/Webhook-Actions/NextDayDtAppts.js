@@ -5,19 +5,15 @@ function handleNextDayDtAppt(appointment) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
     const range = sheet.getRange(dtNextDayApptsCoords);
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
+
     if (!highestEmptyRow && !existingRow) {
         throw new Error('COULD NOT FIND A ROW TO POPULATE FOR NEXT DAY DT APPT HANDLER', appointment);
     }
 
-    if (!appointment.active) {
-        // if (existingRow) existingRow.setFontLine('line-through');
-        if (existingRow) {
-            handleDeleteRow(existingRow, range);
-        }
-        return;
-    }
+    if (!appointment.active) return handleDeleteRow(existingRow, range);
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
+
     rowRange.setFontLine('none').setBorder(true, true, true, true, true, true);
     const existingRowRichText = rowRange.getRichTextValues();
 
@@ -75,15 +71,11 @@ function handleNextDayDtAppt(appointment) {
     const reasonCellText = removeVetstoriaDescriptionText(appointment.description);
     const reasonCellRichText = simpleTextToRichText(reasonCellText);
 
-    // if existing row, this is all im gonna set
     if (existingRow) {
         rowRange.offset(0, 1, 1, 3).setRichTextValues([
             [ptCellRichText, depositPaidRichtext, reasonCellRichText]
         ]);
     }
-
-    // if highest empty row, need to set:
-    // [ptCellRichText, depositPaidRichtext, reasonCellRichText, checkchart text, check chart text, hx fractious, check chart text]
 
     if (highestEmptyRow) {
         const checkChartRichText = simpleTextToRichText('see pt chart');
@@ -115,11 +107,9 @@ function fetchForDataAndMakeLink(appointment) {
 function resortDtAppts(
     range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT').getRange(dtNextDayApptsCoords)
 ) {
-    const richTextVals = range.getRichTextValues();
     const vals = range.getValues();
-
     const numOfAppts = getNumOfApptRows(vals);
-    if (!numOfAppts) return;
+    const richTextVals = range.getRichTextValues();
 
     const apptRichTexts = richTextVals.slice(0, numOfAppts);
     const apptVals = vals.slice(0, numOfAppts);
@@ -148,51 +138,6 @@ function resortDtAppts(
     // the second version tries to handle this and resort the array if there are two appts within same family within two hours of each other
     // but i have not completed the second versin
     // version 1:
-    for (let i = 0; i < combinedVals.length - 1; i++) {
-        const {
-            lastName: curApptLastName,
-            plainValue: curApptPlainValues,
-            richTextValue: curApptRichTextValues
-        } = combinedVals[i];
-
-        const curApptDate = curApptPlainValues[0];
-
-        if (curApptDate === sameFamString) continue;
-
-        let j = i + 1;
-        while (j < combinedVals.length) {
-            const {
-                lastName: nextApptLastName,
-                plainValue: nextApptPlainValues,
-                richTextValue: nextApptRichTextValues
-            } = combinedVals[j];
-
-            const nextApptDate = nextApptPlainValues[0];
-
-            if (nextApptDate === sameFamString) {
-                j++;
-                continue;
-            }
-
-            if (curApptLastName !== nextApptLastName) break;
-
-            const curApptAnimalID = getAnimaIdFromCellRichText(curApptRichTextValues[1])
-            if (!curApptAnimalID) break;
-
-            const nextApptAnimalID = getAnimaIdFromCellRichText(nextApptRichTextValues[1]);
-            if (!nextApptAnimalID) break;
-
-            const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
-
-            if (curAnimalContactID === nextAnimalContactID) {
-                combinedVals[j].plainValue[0] = sameFamString;
-            }
-
-        }
-
-    }
-
-    // version 2:
     // for (let i = 0; i < combinedVals.length - 1; i++) {
     //     const {
     //         lastName: curApptLastName,
@@ -204,7 +149,8 @@ function resortDtAppts(
 
     //     if (curApptDate === sameFamString) continue;
 
-    //     for (let j = i + 1; j < combinedVals.length; j++) {
+    //     let j = i + 1;
+    //     while (j < combinedVals.length) {
     //         const {
     //             lastName: nextApptLastName,
     //             plainValue: nextApptPlainValues,
@@ -213,32 +159,78 @@ function resortDtAppts(
 
     //         const nextApptDate = nextApptPlainValues[0];
 
-    //         if (nextApptDate === sameFamString) continue;
-
-    //         const diff = Math.abs(nextApptDate - curApptDate);
-
-    //         if (diff > 60 * 60 * 1000) break;
-
-    //         if (curApptLastName === nextApptLastName) {
-    //             const curPtNameCellRuns = curApptRichTextValues[1].getRuns();
-    //             const curAnimalLink = getLinkFromRuns(curPtNameCellRuns);
-    //             const curApptAnimalID = curAnimalLink?.split('=').at(-1);
-    //             if (!curApptAnimalID) continue;
-
-    //             const nextPtNameCellRuns = nextApptRichTextValues[1].getRuns();
-    //             const nextAnimalLink = getLinkFromRuns(nextPtNameCellRuns);
-    //             const nextApptAnimalID = nextAnimalLink?.split('=').at(-1);
-    //             if (!nextApptAnimalID) continue;
-
-    //             const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
-
-    //             if (curAnimalContactID === nextAnimalContactID) {
-    //                 // ensure that they are next to each other in the array and set nextPlainValue[0] = sameFamString
-    //                 // 
-    //             }
+    //         if (nextApptDate === sameFamString) {
+    //             j++;
+    //             continue;
     //         }
+
+    //         if (curApptLastName !== nextApptLastName) break;
+
+    //         const curApptAnimalID = getAnimaIdFromCellRichText(curApptRichTextValues[1])
+    //         if (!curApptAnimalID) break;
+
+    //         const nextApptAnimalID = getAnimaIdFromCellRichText(nextApptRichTextValues[1]);
+    //         if (!nextApptAnimalID) break;
+
+    //         const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
+
+    //         if (curAnimalContactID === nextAnimalContactID) {
+    //             combinedVals[j].plainValue[0] = sameFamString;
+    //         }
+
     //     }
+
     // }
+
+    // version 2:
+    for (let i = 0; i < combinedVals.length - 1; i++) {
+        const {
+            lastName: curApptLastName,
+            plainValue: curApptPlainValues,
+            richTextValue: curApptRichTextValues
+        } = combinedVals[i];
+
+        const curApptDate = curApptPlainValues[0];
+
+        if (curApptDate === sameFamString) continue;
+
+        let sameFamWouldBeForCurAppt = true;
+        for (let j = i + 1; j < combinedVals.length; j++) {
+            const {
+                lastName: nextApptLastName,
+                plainValue: nextApptPlainValues,
+                richTextValue: nextApptRichTextValues
+            } = combinedVals[j];
+
+            const nextApptDate = nextApptPlainValues[0];
+
+            if (nextApptDate === sameFamString && sameFamWouldBeForCurAppt) continue;
+
+            sameFamWouldBeForCurAppt = false;
+
+            const diff = Math.abs(nextApptDate - curApptDate);
+            if (diff > 60 * 60 * 1000) break;
+
+            if (curApptLastName === nextApptLastName) {
+                const curApptAnimalID = getAnimaIdFromCellRichText(curApptRichTextValues[1])
+                if (!curApptAnimalID) continue;
+
+                const nextApptAnimalID = getAnimaIdFromCellRichText(nextApptRichTextValues[1]);
+                if (!nextApptAnimalID) continue;
+
+                const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
+
+                if (curAnimalContactID === nextAnimalContactID) {
+                    // ensure that they are next to each other in the array and set nextPlainValue[0] = sameFamString
+                    // 
+                    combinedVals[j].plainValue[0] = sameFamString;
+                    [combinedVals[i + 1], combinedVals[j]] = [combinedVals[j], combinedVals[i + 1]];
+                    i--;
+                    break;
+                }
+            }
+        }
+    }
 
     const sortedRichText = combinedVals.map(val => val.richTextValue);
     range.offset(0, 0, numOfAppts).setRichTextValues(sortedRichText);
@@ -256,6 +248,9 @@ function getNumOfApptRows(vals) {
             numOfAppts = i;
             break;
         }
+    }
+    if (!numOfAppts) {
+        throw new Error(`num of appts is ${numOfAppts} when trying to count the appointment rows`);
     }
     return numOfAppts;
 }
@@ -279,6 +274,8 @@ function getAnimaIdFromCellRichText(richText) {
 }
 
 function handleDeleteRow(existingRow, range) {
+    if (!existingRow) return;
+
     const vals = range.getValues();
 
     const numOfAppts = getNumOfApptRows(vals);
@@ -291,12 +288,12 @@ function handleDeleteRow(existingRow, range) {
         0,
         numOfAppts - 1 - existingRowIndexWithinRange
     );
-    // paste them in the existing row
+    // paste them in, starting from the existing row
     const targetRange = range.offset(
         existingRowIndexWithinRange,
         0,
         numOfAppts - 1 - existingRowIndexWithinRange - 1
-    )
+    );
     rowsBelow.copyTo(targetRange);
     // delete the last appointment, reset its format
     range.offset(numOfAppts - 1, 0, 1)
