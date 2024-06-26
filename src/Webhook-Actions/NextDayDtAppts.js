@@ -224,7 +224,8 @@ function resortDtAppts(
                     // ensure that they are next to each other in the array and set nextPlainValue[0] = sameFamString
                     // 
                     combinedVals[j].plainValue[0] = sameFamString;
-                    [combinedVals[i + 1], combinedVals[j]] = [combinedVals[j], combinedVals[i + 1]];
+                    const curValToMove = combinedVals.splice(j, 1);
+                    combinedVals.splice(i + 1, 0, curValToMove);
                     break;
                 }
             }
