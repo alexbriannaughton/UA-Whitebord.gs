@@ -283,15 +283,14 @@ function handleDeleteRow(existingRow, range) {
 
     const existingRowIndexWithinRange = existingRow.getRow() - dtNextDayApptsRowStartNumber;
 
+    const existingRowTimeValue = vals[existingRowIndexWithinRange][0];
     const nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
 
-    if (nextRowTimeValue === sameFamString) {
+    if (nextRowTimeValue === sameFamString && existingRowTimeValue !== sameFamString) {
         // set this value to an actual time
         const nextRow = range.offset(existingRowIndexWithinRange + 1, 0, 1);
-        console.log('next row vals = ', nextRow.getValues())
         const nextRowRichText = nextRow.getRichTextValues();
-        console.log('next row rich text: ', nextRowRichText)
-        const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[1]);
+        const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[0][1]);
         const nextRowDate = getActualStartTime(nextRowAnimalID);
         nextRow.offset(0, 0, 1, 1).setValue(nextRowDate);
     }
