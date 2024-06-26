@@ -302,7 +302,7 @@ function handleDeleteRow(existingRow, range) {
         }
 
         const nextRowDate = getActualStartTime(animalIDs);
-        nextRow.offset(0, 0, 1, 1).setValue(nextRowDate);
+        range.offset(existingRowIndexWithinRange + 1, 0, 1, 1).setValue(nextRowDate);
     }
 
     // grab all the appointments below
