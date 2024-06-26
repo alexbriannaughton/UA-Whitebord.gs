@@ -276,18 +276,22 @@ function getAnimaIdFromCellRichText(richText) {
 function handleDeleteRow(existingRow, range) {
     if (!existingRow) return;
 
-    let vals = range.getValues();
+    const vals = range.getValues();
 
     const numOfAppts = getNumOfApptRows(vals);
     if (!numOfAppts) return;
-    
+
     const existingRowIndexWithinRange = existingRow.getRow() - dtNextDayApptsRowStartNumber;
 
     const nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
 
     if (nextRowTimeValue === sameFamString) {
         // set this value to an actual time
-        range.offset(existingRowIndexWithinRange + 1, 0, 1).setValue('hey')
+        const nextRow = range.offset(existingRowIndexWithinRange + 1, 0, 1);
+        const nextRowRichText = nextRow.getRichTextValues();
+        const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[1]);
+        const nextRowDate = getActualStartTime(nextRowAnimalID);
+        nextRow.offset(0, 0, 1, 1).setValue(nextRowDate);
     }
 
     // grab all the appointments below
@@ -311,4 +315,15 @@ function handleDeleteRow(existingRow, range) {
         .setFontLine("none")
         .setBorder(true, false, false, false, false, false);
 
+}
+
+function getActualStartTime(animalID) {
+    const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextDtAppts);
+    const url = `${proxy}/v1/appointment?active=1&animal_id=${animalID}&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
+    const allTargetDayAppts = fetchAndParse(url);
+    const appts = filterAndSortDTAppts(allTargetDayAppts);
+    if (appts.length !== 1) {
+        throw new Error(`there are ${appts.length} on next day of dt appts for animal with id of ${animalID}`);
+    }
+    return new Date(appts[0].appointment.start_time * 1000);
 }
