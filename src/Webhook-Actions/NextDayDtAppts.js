@@ -295,26 +295,19 @@ function handleDeleteRow(existingRow, range) {
         nextRow.offset(0, 0, 1, 1).setValue(nextRowDate);
     }
 
-    // grab all the appointments below
+    // grab all the appointments below plus an empty one
     const rowsBelow = range.offset(
         existingRowIndexWithinRange + 1,
         0,
-        numOfAppts - 1 - existingRowIndexWithinRange
+        numOfAppts - existingRowIndexWithinRange
     );
     // paste them in, starting from the existing row
     const targetRange = range.offset(
         existingRowIndexWithinRange,
         0,
-        numOfAppts - 1 - existingRowIndexWithinRange - 1
+        numOfAppts - 1 - existingRowIndexWithinRange
     );
     rowsBelow.copyTo(targetRange);
-    // delete the last appointment, reset its format
-    range.offset(numOfAppts - 1, 0, 1)
-        .clearContent()
-        .setFontColor("black")
-        .setBackground("white")
-        .setFontLine("none")
-        .setBorder(true, false, false, false, false, false);
 
 }
 
