@@ -323,6 +323,7 @@ function getActualStartTime(animalID) {
     const url = `${proxy}/v1/appointment?active=1&animal_id=${animalID}&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
     const allTargetDayAppts = fetchAndParse(url);
     const appts = filterAndSortDTAppts(allTargetDayAppts);
+    console.log('appts: ', appts)
     if (appts.length !== 1) {
         throw new Error(`there are ${appts.length} on next day of dt appts for animal with id of ${animalID}`);
     }
