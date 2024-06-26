@@ -276,12 +276,20 @@ function getAnimaIdFromCellRichText(richText) {
 function handleDeleteRow(existingRow, range) {
     if (!existingRow) return;
 
-    const vals = range.getValues();
+    let vals = range.getValues();
 
     const numOfAppts = getNumOfApptRows(vals);
     if (!numOfAppts) return;
-
+    
     const existingRowIndexWithinRange = existingRow.getRow() - dtNextDayApptsRowStartNumber;
+
+    const nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
+
+    if (nextRowTimeValue === sameFamString) {
+        // set this value to an actual time
+        range.offset(existingRowIndexWithinRange + 1, 0, 1).setValue('hey')
+    }
+
     // grab all the appointments below
     const rowsBelow = range.offset(
         existingRowIndexWithinRange + 1,
