@@ -225,7 +225,6 @@ function resortDtAppts(
                     // 
                     combinedVals[j].plainValue[0] = sameFamString;
                     [combinedVals[i + 1], combinedVals[j]] = [combinedVals[j], combinedVals[i + 1]];
-                    i--;
                     break;
                 }
             }
