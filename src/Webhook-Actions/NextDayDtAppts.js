@@ -307,19 +307,23 @@ function handleDeleteRow(existingRow, range) {
         range.offset(existingRowIndexWithinRange + 1, 0, 1, 1).setValue(nextRowDate);
     }
 
-    // grab all the appointments below
-    const rowsBelow = range.offset(
-        existingRowIndexWithinRange + 1,
-        0,
-        numOfAppts - 1 - existingRowIndexWithinRange
-    );
-    // paste them in, starting from the existing row
-    const targetRange = range.offset(
-        existingRowIndexWithinRange,
-        0,
-        numOfAppts - 1 - existingRowIndexWithinRange
-    );
-    rowsBelow.copyTo(targetRange);
+    // grab all the appointments below (if its not the last appointment) and paste them one row up
+    const numOfApptsBelowDeleted = numOfAppts - 1 - existingRowIndexWithinRange;
+    if (numOfApptsBelowDeleted > 0) {
+        const rowsBelow = range.offset(
+            existingRowIndexWithinRange + 1,
+            0,
+            numOfApptsBelowDeleted
+        );
+        // paste them in, starting from the existing row
+        const targetRange = range.offset(
+            existingRowIndexWithinRange,
+            0,
+            numOfAppts - 1 - existingRowIndexWithinRange
+        );
+        rowsBelow.copyTo(targetRange);
+    }
+
     // delete the last appointment, reset its format
     range.offset(numOfAppts - 1, 0, 1)
         .clearContent()
@@ -341,7 +345,7 @@ function getActualStartTime(animalIDs) {
     if (appts.length !== animalIDs.length) {
         throw new Error(`there are ${appts.length} on next day of dt appts for animals with ids of ${animalIDs}`);
     }
-    const startTimes = appts.map(({appointment}) => Number(appointment.start_time));
+    const startTimes = appts.map(({ appointment }) => Number(appointment.start_time));
     const minStartTime = Math.min(...startTimes);
     return new Date(minStartTime * 1000);
 }
