@@ -51,6 +51,12 @@ function getDateAtMidnight(epochInSecs) {
     return date;
 }
 
+function getDateForEndOfToday() {
+    const date = new Date();
+    date.setHours(23, 59, 59, 999);
+    return date;
+}
+
 function epochRangeForFutureDay(numOfDaysFromToday) {
     const now = new Date().toLocaleString("en-US", { timeZone: userTimezone });
     const targetDay = new Date(now);
