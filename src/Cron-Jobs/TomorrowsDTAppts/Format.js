@@ -14,7 +14,8 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
     const reasonColumn = range.offset(0, 3, numOfDtAppts, 1);
     reasonColumn.setWrap(false);
 
-    range.offset(0, 0, range.getNumRows(), 1).setNumberFormat('h:mma/p');
+    const numOfRowsInRange = range.getNumRows();
+    range.offset(0, 0, numOfRowsInRange, 1).setNumberFormat('h:mma/p');
 
     const highPriorityColor = "#f9cb9c";
 
@@ -24,49 +25,49 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
         SpreadsheetApp.newConditionalFormatRule()
             .whenTextEqualTo(sameFamString)
             .setBackground(highPriorityColor)
-            .setRanges([sheet.getRange("K15:K85")])
+            .setRanges([range.offset(0, 0, numOfRowsInRange, 1)])
             .build(),
 
         // pt name column
         SpreadsheetApp.newConditionalFormatRule()
             .whenTextContains(unknownSpeciesString)
             .setBackground(highPriorityColor)
-            .setRanges([sheet.getRange("L15:L85")])
+            .setRanges([range.offset(0, 1, numOfRowsInRange, 1)])
             .build(),
 
         // pt name column
         SpreadsheetApp.newConditionalFormatRule()
             .whenTextContains("unmatched")
             .setBackground(highPriorityColor)
-            .setRanges([sheet.getRange("L15:L85")])
+            .setRanges([range.offset(0, 1, numOfRowsInRange, 1)])
             .build(),
 
         // deposit column
         SpreadsheetApp.newConditionalFormatRule()
             .whenTextEqualTo("no")
             .setBackground(highPriorityColor)
-            .setRanges([sheet.getRange("M15:M85")])
+            .setRanges([range.offset(0, 2, numOfRowsInRange, 1)])
             .build(),
 
         // first time column
         SpreadsheetApp.newConditionalFormatRule()
             .whenTextEqualTo('yes')
             .setBackground(highPriorityColor)
-            .setRanges([sheet.getRange("O15:O85")])
+            .setRanges([range.offset(0, 4, numOfRowsInRange, 1)])
             .build(),
 
         // attachments column
         SpreadsheetApp.newConditionalFormatRule()
             .whenTextEqualTo("no attachments")
             .setBackground(highPriorityColor)
-            .setRanges([sheet.getRange("P15:P85")])
+            .setRanges([range.offset(0, 5, numOfRowsInRange, 1)])
             .build(),
 
         // fractious column
         SpreadsheetApp.newConditionalFormatRule()
             .whenTextEqualTo("yes")
             .setBackground(highPriorityColor)
-            .setRanges([sheet.getRange("Q15:Q85")])
+            .setRanges([range.offset(0, 6, numOfRowsInRange, 1)])
             .build(),
     ];
 
