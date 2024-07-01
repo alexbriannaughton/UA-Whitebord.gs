@@ -71,6 +71,5 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
             .build(),
     ];
 
-    // Apply the conditional formatting rules to the sheet
     sheet.setConditionalFormatRules(rules);
 }

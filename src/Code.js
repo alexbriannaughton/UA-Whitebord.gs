@@ -72,7 +72,6 @@ function attemptGet() {
   const { roomsWithLinks, numOfRoomsInUse } = extractWhoIsInAllLocationRooms(ssApp)
   const wait = getWaitData(ssApp, numOfRoomsInUse);
   const output = { roomsWithLinks, wait };
-  console.log('doGet output: ', output);
   return ContentService.createTextOutput(
     JSON.stringify(output)
   ).setMimeType(ContentService.MimeType.JSON);
