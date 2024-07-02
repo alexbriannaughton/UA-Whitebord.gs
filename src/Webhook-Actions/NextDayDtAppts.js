@@ -14,7 +14,6 @@ function handleNextDayDtAppt(appointment) {
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
 
-    rowRange.setFontLine('none').setBorder(true, true, true, true, true, true);
     const existingRowRichText = rowRange.getRichTextValues();
 
     const incomingTimeValue = new Date(appointment.start_at * 1000);
@@ -48,6 +47,7 @@ function handleNextDayDtAppt(appointment) {
     let fractiousCellRichText;
     let seeChartRichText;
     if (highestEmptyRow) {
+        highestEmptyRow.setBorder(true, true, true, true, true, true);
         const { ptCellLink, isHostile, seeChartLink } = fetchForDataAndMakeLink(appointment);
         ptCellRichText = ptCellLink;
         const fractiousCellText = isHostile ? 'yes' : 'no';
