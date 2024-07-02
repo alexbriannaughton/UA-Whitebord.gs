@@ -56,35 +56,42 @@ function foundCorrectRoom(link, appointment) {
   return (linkIDType === 'Consult' && linkID === appointment.consult_id) || (linkIDType === 'Contact' && linkID === appointment.contact_id);
 };
 
-// findEmptyRow() returns the range for the highest unpopulated row within the given range
+// findRow() returns the range for the highest unpopulated row within the given range
 // will return null if there's already a link with this appointment's consult id within the range
 // will return undefined if theres no unpopulated rows left within this range
-function findEmptyRow(range, consultID, keyToConsultID) {
+function findRow(range, id, keyToID) {
   const rowContents = range.getValues();
   const allRichTextValues = range.getRichTextValues();
 
-  let emptyRowRange;
+  let highestEmptyRow;
   for (let i = 0; i < rowContents.length; i++) {
-    const cellRichText = allRichTextValues[i][keyToConsultID];
+    const cellRichText = allRichTextValues[i][keyToID];
     const allRichTextsInCell = cellRichText.getRuns();
 
     for (const richText of allRichTextsInCell) {
       const link = richText.getLinkUrl();
-      const consultIDOnRow = link?.split('=').at(-1);
+      const existingID = link?.split('=').at(-1);
       // if we find that this cell has the link with the incoming consult id, that means it's already here, so return null
-      if (consultIDOnRow === String(consultID)) return null;
+      if (existingID === String(id)) {
+        return {
+          existingRow: range.offset(i, 0, 1),
+          highestEmptyRow: null
+        };
+      }
     }
 
     // if we haven't already found the highest empty row AND
-    // every item within this rowContents array is falsy (or just a space lol),
     // this is the highest empty row
-    if (!emptyRowRange && rowContents[i].every(cellIsEmpty)) {
-      emptyRowRange = range.offset(i, 0, 1);
+    if (!highestEmptyRow && rowContents[i].every(cellIsEmpty)) {
+      highestEmptyRow = range.offset(i, 0, 1);
     }
 
   }
 
-  return emptyRowRange;
+  return {
+    existingRow: null,
+    highestEmptyRow
+  };
 };
 
 function getLinkFromRuns(runs) {
@@ -107,6 +114,16 @@ function removeVetstoriaDescriptionText(descriptionString) {
     if (newDescString) {
       return newDescString;
     }
+
+    const arr = descriptionString.split('-');
+    if (arr.length === 2) {
+      return arr[1].trim();
+    }
   }
-  return descriptionString;
+
+  else return descriptionString;
+}
+
+function simpleTextToRichText(text) {
+  return SpreadsheetApp.newRichTextValue().setText(text).build();
 }

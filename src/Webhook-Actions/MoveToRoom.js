@@ -31,32 +31,50 @@ function moveToRoom(appointment) {
 };
 
 function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, ptCell) {
-  // set bg color of entire room
-  roomRange.offset(0, 0, 8, 1)
-    .setBackground(
-      getRoomColor(appointment.type_id, appointment.resources[0].id)
-    );
+  // set bg color of room
+  roomRange.offset(0, 0, 8, 1).setBackground(
+    getRoomColor(appointment.type_id, appointment.resources[0].id)
+  );
 
   // time cell
-  roomRange.offset(0, 0, 1, 1)
-    .setValue(
-      convertEpochToUserTimezone(appointment.modified_at)
-    );
+  // roomRange.offset(0, 0, 1, 1)
+  //   .setValue(
+  //     convertEpochToUserTimezone(appointment.modified_at)
+  //   );
+  const timeText = convertEpochToUserTimezone(appointment.modified_at);
+  const timeRichText = simpleTextToRichText(timeText);
 
   // name/species/link cell
   const link = makeLink(
     incomingAnimalText,
     `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`
   );
-  ptCell.setRichTextValue(link);
+  // ptCell.setRichTextValue(link);
 
   // reason cell
-  roomRange.offset(2, 0, 1, 1)
-    .setValue(`${appointment.description}${techText(appointment.type_id)}`);
+  // roomRange.offset(2, 0, 1, 1)
+  //   .setValue(`${appointment.description}${techText(appointment.type_id)}`);
+  const reasonText = `${appointment.description}${techText(appointment.type_id)}`;
+  const reasonRichText = simpleTextToRichText(reasonText);
+
+  const emptyRichText = simpleTextToRichText('');
 
   // mark room as dirty
-  roomRange.offset(8, 0, 1, 1)
-    .setValue('d');
+  // roomRange.offset(8, 0, 1, 1)
+  //   .setValue('d');
+  const richTextVals = [
+    [timeRichText],
+    [link],
+    [reasonRichText],
+    [emptyRichText],
+    [emptyRichText],
+    [emptyRichText],
+    [emptyRichText],
+    [emptyRichText],
+    [simpleTextToRichText('d')]
+  ];
+
+  roomRange.offset(0, 0, 9, 1).setRichTextValues(richTextVals);
 
   // delete from the waitlist
   deleteFromWaitlist(location, appointment.consult_id);

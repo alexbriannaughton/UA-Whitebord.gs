@@ -3,10 +3,10 @@
 async function dtJobMain() {
     const startTime = new Date();
     console.log('running getTomrrowsDTAppts job...');
-    const  { dtAppts, targetDateStr } = getNextDayDtAppts();
+    const { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
-    const range = sheet.getRange(`K15:R60`)
+    const range = sheet.getRange(dtNextDayApptsCoords);
     formatNextDayApptsCells(sheet, range, dtAppts.length);
     putDataOnSheet(dtAppts, range, targetDateStr);
     const endTime = new Date();
@@ -26,25 +26,38 @@ function getNextDayDtAppts() {
         const allTargetDayAppts = fetchAndParse(url);
         dtAppts = filterAndSortDTAppts(allTargetDayAppts);
     }
-    return { dtAppts, targetDateStr};
+    CacheService.getScriptCache().put('days_to_next_dt_appts', daysAhead, 21600);
+    return { dtAppts, targetDateStr };
 }
 
 function filterAndSortDTAppts(allTargetDayAppts) {
     // filter all appts down to DT exams/techs
-    const dtResourceIDs = new Set([ // non procedures dt columns
-        '35', // dt dvm 1
-        '55', // used to be dt dvm 2, though it is not currently active 3/16/24
-        // '56', // dt tech
-        '1015', // used to be dt dvm 3, though it is not currently active 3/16/24
-        '1082' // dt DVM :15/:45
-    ]);
-    const dtAppts = allTargetDayAppts.items.filter(({ appointment }) => {
-        return appointment.details.resource_list.some(id => dtResourceIDs.has(id)) // is in a DT exam or tech column
-            && appointment.details.appointment_type_id !== '4'; // & is not a blocked off spot
-    });
+    const dtAppts = filterForValidDtAppts(allTargetDayAppts);
 
-    return dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+    dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+
+    // check for contacts with multiple appointments for different pets who are scheduled within an hour of each other
+    for (let i = 0; i < dtAppts.length - 1; i++) {
+        const appt1 = dtAppts[i];
+        for (let j = i + 1; j < dtAppts.length; j++) {
+            const appt2 = dtAppts[j];
+            
+            const withinAnHour = Math.abs(appt2.appointment.start_time - appt1.appointment.start_time) <= 3600; 
+            if (!withinAnHour) break;
+
+            const isSameContact = appt1.appointment.details.contact_id === appt2.appointment.details.contact_id;
+            if (isSameContact) {
+                dtAppts.splice(j, 1);
+                dtAppts.splice(i + 1, 0, appt2);
+                break;
+            }
+        }
+    }
+
+    return dtAppts
     // .slice(0, 3); // slicing for dev
+
+
 };
 
 // fetch data for all appointments from all endpoints that we care about

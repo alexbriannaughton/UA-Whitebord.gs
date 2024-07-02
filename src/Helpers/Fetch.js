@@ -39,6 +39,12 @@ function getLastName(contactID) {
     return lastName;
 };
 
+function getContactIdFromAnimalId(animalID) {
+    const url = `${proxy}/v1/animal/${animalID}`;
+    const contactID = fetchAndParse(url).items.at(-1).contact_id;
+    return contactID;
+}
+
 // this is like a promise.all to get animal name and last name at the same time
 function getAnimalInfoAndLastName(animalID, contactID) {
     token = getToken();
@@ -74,10 +80,51 @@ function getAnimalInfoAndLastName(animalID, contactID) {
     const animal = parsedAnimal.items.at(-1).animal;
     const speciesMap = { 1: 'K9', 2: 'FEL' };
     const animalSpecies = speciesMap[animal.species_id] || undefined;
+    const isHostile = animal.is_hostile === '1';
 
     const contactJSON = contactResponse.getContentText();
     const parsedContact = JSON.parse(contactJSON);
     const contactLastName = parsedContact.items.at(-1).contact.last_name;
 
-    return [animal.name, animalSpecies, contactLastName]
+    return [animal.name, animalSpecies, contactLastName, isHostile]
+};
+
+function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
+    token = getToken();
+
+    const animalOneRequest = {
+        muteHttpExceptions: true,
+        url: `${proxy}/v1/animal/${animalOneID}`,
+        method: "GET",
+        headers: {
+            authorization: token
+        }
+    };
+
+    const animalTwoRequest = {
+        muteHttpExceptions: true,
+        url: `${proxy}/v1/animal/${animalTwoID}`,
+        method: "GET",
+        headers: {
+            authorization: token
+        }
+    };
+
+    let [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
+
+    if (animalOneResponse.getResponseCode() === 401 || animalTwoResponse.getResponseCode() === 401) {
+        animalOneRequest.headers.authorization = updateToken();
+        animalTwoRequest.headers.authorization = token;
+        [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
+    }
+
+    const animalOneJSON = animalOneResponse.getContentText();
+    const parsedAnimalOne = JSON.parse(animalOneJSON);
+    const animalOneContactID = parsedAnimalOne.items.at(-1).animal.contact_id;
+
+    const animalTwoJSON = animalTwoResponse.getContentText();
+    const parsedAnimalTwo = JSON.parse(animalTwoJSON);
+    const animalTwoContactID = parsedAnimalTwo.items.at(-1).animal.contact_id;
+
+    return [animalOneContactID, animalTwoContactID];
 };

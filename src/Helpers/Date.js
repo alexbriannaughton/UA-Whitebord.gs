@@ -1,16 +1,24 @@
-// check if utc timestamp is today in PST
-function isTodayInUserTimezone(timestamp) {
-    const timestampDate = Utilities.formatDate(
-        new Date(timestamp * 1000),
-        userTimezone,
-        'yyyy-MM-dd'
-    );
+// check if utc timestamp is today in user timezone
+function isTodayInUserTimezone(timestampDate) {
     const todaysDate = Utilities.formatDate(
         new Date(),
         userTimezone,
-        'yyyy-MM-dd'
+        dateStringPattern
     );
     return timestampDate === todaysDate;
+}
+
+function isOnNextDayOfDtAppts(timestampDate) {
+    const date = new Date();
+    date.setDate(date.getDate() + daysToNextDtAppts);
+    
+    const nextDTApptDateFormatted = Utilities.formatDate(
+        date,
+        userTimezone,
+        'EEEE MM/dd/yyyy'
+    );
+
+    return timestampDate === nextDTApptDateFormatted;
 }
 
 function convertEpochToUserTimezone(epoch) {
@@ -21,17 +29,31 @@ function convertEpochToUserTimezone(epoch) {
     );
 };
 
+function convertEpochToUserTimezone2(epoch) {
+    return Utilities.formatDate(
+        new Date(epoch * 1000),
+        userTimezone,
+        'h:mma'
+    );
+};
+
 function convertEpochToUserTimezoneDate(epoch) {
     return Utilities.formatDate(
         new Date(epoch * 1000),
         userTimezone,
-        'EEEE MM/dd/yyyy'
+        dateStringPattern
     );
 }
 
 function getDateAtMidnight(epochInSecs) {
     const date = new Date(epochInSecs * 1000);
     date.setHours(0, 0, 0, 0);
+    return date;
+}
+
+function getDateForEndOfToday() {
+    const date = new Date();
+    date.setHours(23, 59, 59, 999);
     return date;
 }
 

@@ -187,12 +187,33 @@ function bodyForEzyVetGet(url) {
     }
 };
 
+function fetchAllResponses(requests, resourceName) {
+    let outputItems = [];
+
+    let responses = tryFetchAll(requests, resourceName);
+
+    try {
+        handleRespsForFetchAll(responses, outputItems, resourceName, requests);
+    }
+    catch (error) {
+        console.error(error);
+        if (error.message.includes('too many requests recently')) {
+            console.log('Rate limit error detected. Going to wait 1 minute.');
+            Utilities.sleep(60000);
+            outputItems = [];
+            responses = tryFetchAll(requests, resourceName);
+            handleRespsForFetchAll(responses, outputItems, resourceName);
+        }
+        else throw (error);
+    }
+
+    return outputItems;
+}
+
 function handleRespsForFetchAll(
     responses,
     outputItems,
-    resourceName,
-    requests,
-    retry = false
+    resourceName
 ) {
     for (let i = 0; i < responses.length; i++) {
         const response = responses[i];
@@ -201,57 +222,27 @@ function handleRespsForFetchAll(
 
         if (!data || response.getResponseCode() !== 200) {
             console.error(`Error at index ${i} fetching ${resourceName} data.`);
-            console.error('Error from ezyVet: ', contentText);
-
-            if (retry === false && contentText.includes('too many requests recently')) {
-                console.log('Rate limit error detected. Retrying after 1 minute.');
-                Utilities.sleep(60000);
-                return handleRespsForFetchAll(
-                    responses,
-                    outputItems,
-                    resourceName,
-                    requests,
-                    true // is a retry
-                );
-            }
-
-            console.error(`All ${resourceName} Requests:`, requests);
-            outputItems = [];
-            break;
+            console.error('Error from ezyVet:');
+            throw new Error(contentText);
         }
 
         outputItems.push(data.items);
     }
 }
 
-function fetchAllResponses(requests, resourceName) {
-    let outputItems = [];
 
+function tryFetchAll(requests, resourceName) {
     try {
         console.log(`getting all ${resourceName} data...`);
-        const responses = UrlFetchApp.fetchAll(requests);
-        handleRespsForFetchAll(responses, outputItems, resourceName, requests);
+        const responses1 = UrlFetchApp.fetchAll(requests);
+        return responses1;
     }
-
     catch (error) {
-        console.error(`Error fetching ${resourceName} data:`, error);
-        console.error(`${resourceName} Requests:`);
-        requests.forEach(req => console.error(req));
-
-        if (error.message?.toLowerCase().includes('url length')) {
-            try {
-                console.log(`second try getting ${resourceName} data after url length error...`)
-                const responses = UrlFetchApp.fetchAll(requests);
-                handleRespsForFetchAll(responses, outputItems, resourceName, requests);
-            }
-            catch (error) {
-                console.error('error at second try after url length error: ', error);
-                outputItems = [];
-            }
-        }
+        console.error(error);
+        console.error(`trying again to get all ${resourceName} data...`);
+        const responses2 = UrlFetchApp.fetchAll(requests);
+        return responses2;
     }
-
-    return outputItems;
 }
 
 function secondRoundOfFetches(dtAppts) {

@@ -1,12 +1,10 @@
-let token; // global
-
 function getToken() {
     token = token || CacheService.getScriptCache().get('ezyVet_token');
     if (!token) token = updateToken();
     return token;
 }
 
-function updateToken() {
+function updateToken(cache = CacheService.getScriptCache()) {
     const url = `${proxy}/v2/oauth/access_token`;
     const payload = getEvCreds();
     const options = {
@@ -20,7 +18,7 @@ function updateToken() {
     token = `${token_type} ${access_token}`;
     console.log('successfully grabbed new ezyvet token.');
 
-    CacheService.getScriptCache().put('ezyVet_token', token, 30600);
+    cache.put('ezyVet_token', token, 21600);
     console.log('put new token in cache.')
 
     return token;

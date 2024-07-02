@@ -1,12 +1,35 @@
 const proxy = 'https://api.ezyvet.com';
 const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
 
+const unknownSpeciesString = 'unknown species';
 const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
 const userTimezone = 'America/Los_Angeles';
 
+const dateStringPattern = 'EEEE MM/dd/yyyy';
+
+const dtNextDayApptsRowStartNumber = 15;
+const dtNextDayApptsCoords = `K${dtNextDayApptsRowStartNumber}:R85`;
+
+const sameFamString = '^same fam^';
+
 const echoApptTypeIDsSet = new Set([30]);
 const ausApptTypeIDsSet = new Set([29, 91]);
+
+const dtResourceIDs = new Set([ // non procedures dt columns
+    35, // dt dvm 1
+    // 55, // used to be dt dvm 2, though it is not currently active 3/16/24
+    56, // dt tech
+    // 1015, // used to be dt dvm 3, though it is not currently active 3/16/24
+    1082, // dt DVM :15/:45
+    57, // dt procedure 1
+    58, // dt procedure 2
+]);
+const dtDVMApptTypeIDs = new Set([
+    79, // downtown - appointment
+    95, // Downtown - Appointment (:15/:45)
+    93, // Downtown - Same Day Sick
+]);
 
 // takes appointment.type_id and outputs a string for the procedure type
 const typeIDToCategoryMap = new Map([

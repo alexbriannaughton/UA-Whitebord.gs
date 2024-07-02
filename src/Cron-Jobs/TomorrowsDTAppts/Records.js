@@ -24,8 +24,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         }
         if (numOfAttachments < 1) {
             dtAppts[i].records = {
-                text: 'no attachments',
-                highPriority: true
+                text: 'no attachments'
             };
             continue;
         }
@@ -127,7 +126,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
             }
             catch (error) {
                 console.error(`error using PDFLib for ${fileNameInEzyVet}: `, error);
-                handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName);
+                handleDownloadError(mergedPDF, fileNameInEzyVet, animalID, animalName, error.message);
                 continue;
             }
         }
@@ -160,12 +159,13 @@ function handleDownloadError(
     mergedPDF,
     fileNameInEzyVet,
     animalID,
-    animalName
+    animalName,
+    errorMessage = undefined
 ) {
     const page = mergedPDF.addPage();
     page.setFontSize(16);
     const pageHeight = page.getHeight();
-    const errorDetailsString = getAttDLErrorDetails(fileNameInEzyVet);
+    const errorDetailsString = getAttDLErrorDetails(fileNameInEzyVet, errorMessage);
     let yDistanceFromTop = 50;
     // line 1:
     page.drawText(
@@ -200,13 +200,16 @@ function handleDownloadError(
     page.drawText(animalURL, linkTextOptions);
 }
 
-function getAttDLErrorDetails(fileNameInEzyVet) {
+function getAttDLErrorDetails(fileNameInEzyVet, errorMessage = undefined) {
     const fileExt = fileNameInEzyVet.split('.').at(-1).toLowerCase();
     if (fileExt === 'heic') {
-        return 'Alex is unable to download .HEIC files through the ezyvet API.';
+        return 'We are unable to download .HEIC files through the ezyvet API.';
     }
     if (fileNameInEzyVet.includes('/')) {
-        return 'Alex is unable to download files whose names have slashes(/) in them.'
+        return 'We are unable to download files whose names have slashes(/) in them.'
+    }
+    if (errorMessage.includes('encrypt')) {
+        return 'This file is encrypted, so we are unable to programatically download it.'
     }
 }
 
