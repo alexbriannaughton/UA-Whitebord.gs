@@ -1,5 +1,6 @@
 // receive appointment webhook events here
 function doPost(e) {
+  console.log('updated deployment')
   try {
     getCacheVals();
     
