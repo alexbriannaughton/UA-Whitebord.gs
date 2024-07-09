@@ -208,7 +208,7 @@ function getAttDLErrorDetails(fileNameInEzyVet, errorMessage = undefined) {
     if (fileNameInEzyVet.includes('/')) {
         return 'We are unable to download files whose names have slashes(/) in them.'
     }
-    if (errorMessage.includes('encrypt')) {
+    if (errorMessage?.includes('encrypt')) {
         return 'This file is encrypted, so we are unable to programatically download it.'
     }
 }
