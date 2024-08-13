@@ -19,47 +19,34 @@ function moveToRoom(appointment, location) {
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
-  const [roomRange, incomingAnimalText, ptCell] = parseTheRoom(sheet, appointment, location) || [];
+  const [roomRange, incomingAnimalText] = parseTheRoom(sheet, appointment, location) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, ptCell);
+  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location);
 
   return;
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, ptCell) {
+function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location) {
   // set bg color of room
   roomRange.offset(0, 0, 8, 1).setBackground(
     getRoomColor(appointment.type_id, appointment.resources[0].id)
   );
 
-  // time cell
-  // roomRange.offset(0, 0, 1, 1)
-  //   .setValue(
-  //     convertEpochToUserTimezone(appointment.modified_at)
-  //   );
   const timeText = convertEpochToUserTimezone(appointment.modified_at);
   const timeRichText = simpleTextToRichText(timeText);
 
-  // name/species/link cell
   const link = makeLink(
     incomingAnimalText,
     `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`
   );
-  // ptCell.setRichTextValue(link);
 
-  // reason cell
-  // roomRange.offset(2, 0, 1, 1)
-  //   .setValue(`${appointment.description}${techText(appointment.type_id)}`);
   const reasonText = `${appointment.description}${techText(appointment.type_id)}`;
   const reasonRichText = simpleTextToRichText(reasonText);
 
   const emptyRichText = simpleTextToRichText('');
 
-  // mark room as dirty
-  // roomRange.offset(8, 0, 1, 1)
-  //   .setValue('d');
   const richTextVals = [
     [timeRichText],
     [link],
@@ -188,7 +175,7 @@ function parseTheRoom(
   }
 
   // otherwise, this is a normal empty room
-  return [roomRange, incomingAnimalText, ptCell];
+  return [roomRange, incomingAnimalText];
 }
 
 function getRoomRange(locationStatusCode, sheet) {
