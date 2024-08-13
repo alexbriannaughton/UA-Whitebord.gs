@@ -11,9 +11,7 @@
 // appointment.status_id 36 = room11 = CH cells: H13, H14, H15
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
-function moveToRoom(appointment) {
-  const location = whichLocation(appointment.resources[0].id);
-
+function moveToRoom(appointment, location) {
   // if we're moving into a room that doesn't exist... don't do that
   if ((appointment.status_id >= 31 && location === 'DT') || (appointment.status_id >= 29 && location === 'WC')) {
     return stopMovingToRoom(appointment);

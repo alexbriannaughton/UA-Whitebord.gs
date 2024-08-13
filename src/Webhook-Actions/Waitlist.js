@@ -1,5 +1,16 @@
-function addToWaitlist(appointment) {
-  const { highestEmptyRow: rowRange } = getWaitlistRowRange(appointment);
+function getWaitlistRowRange(appointment, location) {
+  const waitlistRange = SpreadsheetApp
+    .getActiveSpreadsheet()
+    .getSheetByName(`${location} Wait List`)
+    .getRange(`B7:K75`);
+  // only checking up through row 75 on the waitlists
+  // meaning only up to 69 pets can currently be on the waitlist (it never gets that high currently)
+
+  return findRow(waitlistRange, appointment.consult_id, 1);
+}
+
+function addToWaitlist(appointment, location) {
+  const { highestEmptyRow: rowRange } = getWaitlistRowRange(appointment, location);
   if (!rowRange) return;
 
   rowRange.setBackground('#f3f3f3');
@@ -47,24 +58,8 @@ function addToWaitlist(appointment) {
 
 }
 
-function getWaitlistRowRange(appointment) {
-  // grab correct location's waitlist sheet
-  const sheetName = `${whichLocation(appointment.resources[0].id)} Wait List`;
-
-  // downtown doesnt have a waitlist anymore
-  if (sheetName === 'DT Wait List') return;
-
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-
-  const waitlistRange = sheet.getRange(`B7:K75`);
-  // only checking up through row 75 on the waitlist
-  // meaning only up to 69 pets can currently be on the waitlist (it never gets that high currently)
-
-  return findRow(waitlistRange, appointment.consult_id, 1);
-}
-
-function handleInactiveApptOnWaitlist(appointment) {
-  const { existingRow } = getWaitlistRowRange(appointment);
+function handleInactiveApptOnWaitlist(appointment, location) {
+  const { existingRow } = getWaitlistRowRange(appointment, location);
   if (!existingRow) return;
 
   const notesCell = existingRow.offset(0, 4, 1, 1);
@@ -87,8 +82,8 @@ function handleInactiveApptOnWaitlist(appointment) {
   return;
 }
 
-function addTextedTimestampOnWaitlist(appointment) {
-  const { existingRow } = getWaitlistRowRange(appointment);
+function addTextedTimestampOnWaitlist(appointment, location) {
+  const { existingRow } = getWaitlistRowRange(appointment, location);
   if (!existingRow) return;
 
   const notesCell = existingRow.offset(0, 4, 1, 1);
@@ -99,12 +94,10 @@ function addTextedTimestampOnWaitlist(appointment) {
   if (curNotesVal.includes(newNotePreText)) return;
 
   const timeString = convertEpochToUserTimezone(appointment.modified_at);
-  
+
   const newNotesCellVal = `${curNotesVal}\n[${newNotePreText} ${timeString}]`;
-  
-  const bgColor = locationTextedColorMap.get(
-    whichLocation(appointment.resources[0].id)
-  );
+
+  const bgColor = locationTextedColorMap.get(location);
 
   notesCell.setValue(newNotesCellVal)
   notesCell.setBackground(bgColor);

@@ -1,7 +1,4 @@
-function addTechAppt(appointment) {
-  const location = whichLocation(appointment.resources[0].id);
-  if (location === 'DT') return;
-
+function addTechAppt(appointment, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
   const techBoxCoordsMap = new Map([
