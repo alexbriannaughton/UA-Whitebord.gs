@@ -1,4 +1,6 @@
 function handleReadyStatus(appointment, location) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
+
   const readyCell = findTargetCell(
     location,
     sheet,
