@@ -29,14 +29,6 @@ function convertEpochToUserTimezone(epoch) {
     );
 };
 
-function convertEpochToUserTimezone2(epoch) {
-    return Utilities.formatDate(
-        new Date(epoch * 1000),
-        userTimezone,
-        'h:mma'
-    );
-};
-
 function convertEpochToUserTimezoneDate(epoch) {
     return Utilities.formatDate(
         new Date(epoch * 1000),

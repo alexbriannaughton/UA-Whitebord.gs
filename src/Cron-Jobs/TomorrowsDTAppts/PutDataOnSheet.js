@@ -114,8 +114,6 @@ function getTimeCellValue(i, startTime, contactID, dtAppts) {
     if (isSameFam && contactID !== unmatchedVetstoriaContactID) {
         return sameFamString;
     }
-    // const time = convertEpochToUserTimezone2(startTime);
-    // return time;
     const date = new Date(startTime * 1000);
     return date;
 }
