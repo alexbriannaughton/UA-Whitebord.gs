@@ -100,7 +100,7 @@ function addTextedTimestampOnWaitlist(appointment) {
 
   const timeString = convertEpochToUserTimezone(appointment.modified_at);
   
-  const newNotesCellVal = `[${curNotesVal}\n${newNotePreText} ${timeString}]`;
+  const newNotesCellVal = `${curNotesVal}\n[${newNotePreText} ${timeString}]`;
   
   const bgColor = locationTextedColorMap.get(
     whichLocation(appointment.resources[0].id)
