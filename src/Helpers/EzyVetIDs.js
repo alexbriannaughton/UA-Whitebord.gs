@@ -67,3 +67,18 @@ function filterForValidDtAppts(allTargetDayAppts) {
             && dtDVMApptTypeIDs.has(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
     });
 };
+
+function getCancellationReason(id) {
+    const idToReason = new Map([
+        [1, 'No show'],
+        [2, 'Owners request'],
+        [3, 'Incorrect entry'],
+        [4, 'Symptoms subsiding'],
+        [5, 'Unable to see (waitlist closed)'],
+        [6, 'Seen at another location'],
+        [7, 'Rescheduled'],
+        [8, 'No deposit sent']
+    ]);
+
+    return idToReason.get(id);
+}

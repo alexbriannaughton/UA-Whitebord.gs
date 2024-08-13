@@ -1,8 +1,5 @@
 function handleAppointment(webhookType, appointment) {
-    // handle for possible post to aus/echo tracker sheet/script
-
-    console.log(appointment)
-
+    // first, send to aus/echo tracker sheet/script if its an echo or aus
     if (echoApptTypeIDsSet.has(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'Echos');
     }
