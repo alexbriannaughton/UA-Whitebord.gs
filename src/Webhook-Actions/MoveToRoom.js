@@ -14,7 +14,7 @@
 function moveToRoom(appointment, location) {
   // if we're moving into a room that doesn't exist... don't do that
   if ((appointment.status_id >= 31 && location === 'DT') || (appointment.status_id >= 29 && location === 'WC')) {
-    return stopMovingToRoom(appointment);
+    return stopMovingToRoom(appointment, location);
   }
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
@@ -122,7 +122,7 @@ function parseTheRoom(
 
     // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
     if (roomValues[1][0].includes(incomingAnimalText)) {
-      stopMovingToRoom(appointment);
+      stopMovingToRoom(appointment, location);
       return;
     }
 
@@ -135,7 +135,7 @@ function parseTheRoom(
           roomRange.offset(0, 1) // this is the range for the second cat lobby column
         )
       }
-      else stopMovingToRoom(appointment); // otherwise we're done here bc we dont want to overwrite whatever is in the column
+      else stopMovingToRoom(appointment, location); // otherwise we're done here bc we dont want to overwrite whatever is in the column
       return;
     }
 
@@ -183,12 +183,34 @@ function parseTheRoom(
     }
 
     // otherwise dont move to room because the room is not empty
-    stopMovingToRoom(appointment);
+    stopMovingToRoom(appointment, location);
     return;
   }
 
   // otherwise, this is a normal empty room
   return [roomRange, incomingAnimalText, ptCell];
+}
+
+function getRoomRange(locationStatusCode, sheet) {
+  const otherRowsToGrab = 5;
+  const topRoomsRowStart = 3;
+  const topRoomsRowEnd = topRoomsRowStart + otherRowsToGrab;
+  const bottomRoomsRowStart = 13;
+  const bottomRoomsRowEnd = bottomRoomsRowStart + otherRowsToGrab
+  const codeToRangeA1 = new Map([
+    ['CH18', `C${topRoomsRowStart}:C${topRoomsRowEnd}`], // 1
+    ['CH25', `D${topRoomsRowStart}:D${topRoomsRowEnd}`], // 2
+    ['CH26', `E${topRoomsRowStart}:E${topRoomsRowEnd}`], // 3
+    ['CH27', `F${topRoomsRowStart}:F${topRoomsRowEnd}`], // 4
+    ['CH28', `G${topRoomsRowStart}:G${topRoomsRowEnd}`], // 5
+    ['CH29', `C${bottomRoomsRowStart}:C${bottomRoomsRowEnd}`], // 6
+    ['CH30', ``], // 7
+    ['CH31', ``], // 8
+    ['CH32', ``], // 9
+    ['CH33', ``], // 10
+    ['CH36', ``], // 11
+    ['CH40', `H${topRoomsRowStart}:H${topRoomsRowEnd}`], // cat lobby
+  ])
 }
 
 // note that we have already weeded out status ids >= 31 at DT and status ids >= 29 at WC earlier in moveToRoom()
@@ -257,10 +279,10 @@ function techText(typeID) {
     : "";
 }
 
-function stopMovingToRoom(appointment) {
+function stopMovingToRoom(appointment, location) {
   // add it to the waitlist if it was just created
   if (appointment.created_at === appointment.modified_at) {
-    addToWaitlist(appointment);
+    addToWaitlist(appointment, location);
   }
   return;
 }

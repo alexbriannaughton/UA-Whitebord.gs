@@ -5,10 +5,6 @@ function handleNextDayDtAppt(appointment, location) {
     const range = sheet.getRange(dtNextDayApptsCoords);
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
-    if (!highestEmptyRow && !existingRow) {
-        throw new Error('COULD NOT FIND A ROW TO POPULATE FOR NEXT DAY DT APPT HANDLER', appointment);
-    }
-
     if (!appointment.active) return handleDeleteRow(existingRow, range);
 
     const rowRange = existingRow ? existingRow : highestEmptyRow;
