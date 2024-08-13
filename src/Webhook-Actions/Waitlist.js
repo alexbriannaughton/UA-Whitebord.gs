@@ -74,7 +74,10 @@ function handleInactiveApptOnWaitlist(appointment, location) {
   const { cancellation_reason, cancellation_reason_text } = appointment;
   const cancelText = cancellation_reason_text ?? getCancellationReason(cancellation_reason) ?? '';
 
-  const newNotesCellVal = `${curNotesVal}\n[${newNotePreText} ${timeString}. "${cancelText}"]`;
+  const incomingText = `[${newNotePreText} ${timeString}. "${cancelText}"]`;
+  const newNotesCellVal = curNotesVal
+    ? `${curNotesVal}\n${incomingText}`
+    : incomingText;
 
   notesCell.setValue(newNotesCellVal);
   notesCell.setBackground('red');
@@ -95,7 +98,10 @@ function addTextedTimestampOnWaitlist(appointment, location) {
 
   const timeString = convertEpochToUserTimezone(appointment.modified_at);
 
-  const newNotesCellVal = `${curNotesVal}\n[${newNotePreText} ${timeString}]`;
+  const newText = `[${newNotePreText} ${timeString}]`;
+  const newNotesCellVal = curNotesVal
+    ? `${curNotesVal}\n${newText}`
+    : newText;
 
   const bgColor = locationTextedColorMap.get(location);
 
