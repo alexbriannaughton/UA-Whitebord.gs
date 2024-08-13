@@ -1,4 +1,5 @@
 function whichLocation(resourceID) {
+    console.log(resourceID)
     const resourceIDToLocationMap = new Map();
 
     // calendar resource ids for CH:

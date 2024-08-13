@@ -9,6 +9,8 @@ function handleAppointment(webhookType, appointment) {
 
     // below here is for this sheet
 
+    if (appointment.type_id === 4) return; // block off
+
     const location = whichLocation(appointment.resources[0].id);
 
     if (location === 'DT') return handleDTAppointment(appointment);
