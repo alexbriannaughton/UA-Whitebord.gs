@@ -68,15 +68,18 @@ function handleInactiveApptOnWaitlist(appointment) {
   if (!existingRow) return;
 
   const notesCell = existingRow.offset(0, 4, 1, 1);
+  
+  const curNotesVal = notesCell.getValue();
+  
+  const newNotePreText = 'This appointment was deleted in ezyVet at';
+  if (curNotesVal.includes(newNotePreText)) return;
 
-  const { modified_at, cancellation_reason, cancellation_reason_text } = appointment;
-
-  const timeString = convertEpochToUserTimezone(modified_at);
+  const timeString = convertEpochToUserTimezone(appointment.modified_at);
+  
+  const { cancellation_reason, cancellation_reason_text } = appointment;
 
   const cancelText = cancellation_reason_text ?? getCancellationReason(cancellation_reason) ?? '';
-
-  const curNotesVal = notesCell.getValue();
-  const newNotesCellVal = `${curNotesVal}\n[This appointment was deleted in ezyVet at ${timeString}. "${cancelText}"]`;
+  const newNotesCellVal = `${curNotesVal}\n[${newNotePreText} ${timeString}. "${cancelText}"]`;
 
   notesCell.setValue(newNotesCellVal);
   notesCell.setBackground('yellow');
