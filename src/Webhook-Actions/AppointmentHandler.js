@@ -71,29 +71,16 @@ function handleCreatedAppointment(appointment) {
 };
 
 function handleUpdatedAppointment(appointment) {
-    const apptStatusID = appointment.status_id;
-
-    // status id 17 is 'on wait list'
-    if (apptStatusID === 17) {
-        return addToWaitlist(appointment);
-    }
-    // status id 19 is 'ok to check out'
-    else if (apptStatusID === 19) {
-        return okToCheckOut(appointment);
-    }
-    // status 22 is 'ready' appointment status
-    else if (apptStatusID === 22) {
-        return handleReadyStatus(appointment);
-    }
-    // status 23 is 'add to tech column' appointment status
-    else if (apptStatusID === 23) {
-        return addTechAppt(appointment);
-    }
-    // status id 34 is 'inpatient' status
-    else if (apptStatusID === 34) {
-        return addInPatient(appointment);
+    const statusHandlers = {
+        17: addToWaitlist, // 'on wait list'
+        19: okToCheckOut, // 'ok to check out'
+        20: addTextedTimestamp, // 'texted'
+        22: handleReadyStatus, // 'ready'
+        23: addTechAppt, // 'add to tech column'
+        34: addInPatient // 'inpatient'
     }
 
-    return;
+    const handler = statusHandlers[appointment.status_id];
 
+    return handler ? handler(appointment) : null;
 };

@@ -68,21 +68,44 @@ function handleInactiveApptOnWaitlist(appointment) {
   if (!existingRow) return;
 
   const notesCell = existingRow.offset(0, 4, 1, 1);
-  
+
   const curNotesVal = notesCell.getValue();
-  
+
   const newNotePreText = 'This appointment was deleted in ezyVet at';
   if (curNotesVal.includes(newNotePreText)) return;
 
   const timeString = convertEpochToUserTimezone(appointment.modified_at);
-  
-  const { cancellation_reason, cancellation_reason_text } = appointment;
 
+  const { cancellation_reason, cancellation_reason_text } = appointment;
   const cancelText = cancellation_reason_text ?? getCancellationReason(cancellation_reason) ?? '';
+
   const newNotesCellVal = `${curNotesVal}\n[${newNotePreText} ${timeString}. "${cancelText}"]`;
 
   notesCell.setValue(newNotesCellVal);
-  notesCell.setBackground('yellow');
+  notesCell.setBackground('red');
 
   return;
+}
+
+function addTextedTimestamp(appointment) {
+  const { existingRow } = getWaitlistRowRange(appointment);
+  if (!existingRow) return;
+
+  const notesCell = existingRow.offset(0, 4, 1, 1);
+
+  const curNotesVal = notesCell.getValue();
+
+  const newNotePreText = 'Texted @';
+  if (curNotesVal.includes(newNotePreText)) return;
+
+  const timeString = convertEpochToUserTimezone(appointment.modified_at);
+  
+  const newNotesCellVal = `${curNotesVal}\n${newNotePreText} ${timeString}`;
+  
+  const bgColor = locationTextedColorMap.get(
+    whichLocation(appointment.resources[0].id)
+  );
+
+  notesCell.setValue(newNotesCellVal)
+  notesCell.setBackground(bgColor);
 }

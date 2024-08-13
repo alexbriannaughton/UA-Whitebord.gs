@@ -64,6 +64,11 @@ const inpatientDefaultColorMap = new Map([
     ['WC', '#ead1dc']  // magenta for white center
 ]);
 
+const locationTextedColorMap = new Map([
+    ['CH', '#ff9fbd'],
+    ['WC', 'yellow']
+]);
+
 // const statusIDToNameMap = new Map([
 //     [1, 'no status'],
 //     [2, 'confirmed'],
