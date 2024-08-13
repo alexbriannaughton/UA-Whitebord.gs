@@ -11,7 +11,7 @@ function addToWaitlist(appointment) {
   const timeCellRichText = simpleTextToRichText(timeCellText);
 
   const patientText = `${animalName} ${contactLastName}`;
-  const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`
+  const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`;
   const link = makeLink(patientText, webAddress);
 
   const speciesCellRichText = animalSpecies ? simpleTextToRichText(animalSpecies) : null;
@@ -87,7 +87,7 @@ function handleInactiveApptOnWaitlist(appointment) {
   return;
 }
 
-function addTextedTimestamp(appointment) {
+function addTextedTimestampOnWaitlist(appointment) {
   const { existingRow } = getWaitlistRowRange(appointment);
   if (!existingRow) return;
 
@@ -100,7 +100,7 @@ function addTextedTimestamp(appointment) {
 
   const timeString = convertEpochToUserTimezone(appointment.modified_at);
   
-  const newNotesCellVal = `${curNotesVal}\n${newNotePreText} ${timeString}`;
+  const newNotesCellVal = `[${curNotesVal}\n${newNotePreText} ${timeString}]`;
   
   const bgColor = locationTextedColorMap.get(
     whichLocation(appointment.resources[0].id)

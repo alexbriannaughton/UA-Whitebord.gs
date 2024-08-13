@@ -74,7 +74,7 @@ function handleUpdatedAppointment(appointment) {
     const statusHandlers = {
         17: addToWaitlist, // 'on wait list'
         19: okToCheckOut, // 'ok to check out'
-        20: addTextedTimestamp, // 'texted'
+        20: addTextedTimestampOnWaitlist, // 'texted'
         22: handleReadyStatus, // 'ready'
         23: addTechAppt, // 'add to tech column'
         34: addInPatient // 'inpatient'
