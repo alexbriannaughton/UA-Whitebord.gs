@@ -15,8 +15,11 @@ function handleAppointment(webhookType, appointment) {
         return handleNextDayDtAppt(appointment);
     }
 
-    const isToday = isTodayInUserTimezone(timestampDate);
-    if (!isToday || !appointment.active) return;
+    if (!isTodayInUserTimezone(timestampDate)) return;
+
+    if (!appointment.active) {
+        return handleInactiveApptOnWaitlist(appointment);
+    }
 
     appointment.description = removeVetstoriaDescriptionText(appointment.description);
 
