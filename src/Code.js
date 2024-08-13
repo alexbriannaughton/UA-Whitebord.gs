@@ -5,7 +5,6 @@ function doPost(e) {
     
     const startTime = new Date(); // this is for logging executions that hang exessively 
     const params = JSON.parse(e.postData.contents);
-    console.log(params)
     const apptItems = params.items;
 
     for (const { appointment } of apptItems) {
