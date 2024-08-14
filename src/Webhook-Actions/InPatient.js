@@ -1,6 +1,5 @@
 // for manually adding to inpatient column based on changing an appointment to inpatient status in ezyvet
-function addInPatient(appointment) {
-  const location = whichLocation(appointment.resources[0].id);
+function addInPatient(appointment, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
   const inpatientBoxRange = sheet.getRange(
     inpatientBoxCoords(location)

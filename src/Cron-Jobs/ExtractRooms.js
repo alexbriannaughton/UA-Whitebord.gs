@@ -28,7 +28,7 @@ function extractWhoIsInAllLocationRooms(ssApp) {
     return { roomsWithLinks, numOfRoomsInUse };
 }
 
-// this is called from doGet(), which is triggered by supabase edge function that runs every 15 minutes during open hours
+// this is called from doGet(), which is triggered by supabase edge function that runs every 10 minutes during open hours
 function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse) {
     const sheet = ssApp.getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);

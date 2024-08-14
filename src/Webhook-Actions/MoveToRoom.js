@@ -11,57 +11,42 @@
 // appointment.status_id 36 = room11 = CH cells: H13, H14, H15
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
-function moveToRoom(appointment) {
-  const location = whichLocation(appointment.resources[0].id);
-
+function moveToRoom(appointment, location) {
   // if we're moving into a room that doesn't exist... don't do that
   if ((appointment.status_id >= 31 && location === 'DT') || (appointment.status_id >= 29 && location === 'WC')) {
-    return stopMovingToRoom(appointment);
+    return stopMovingToRoom(appointment, location);
   }
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
-  const [roomRange, incomingAnimalText, ptCell] = parseTheRoom(sheet, appointment, location) || [];
+  const [roomRange, incomingAnimalText] = parseTheRoom(sheet, appointment, location) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, ptCell);
+  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location);
 
   return;
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, ptCell) {
+function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location) {
   // set bg color of room
   roomRange.offset(0, 0, 8, 1).setBackground(
     getRoomColor(appointment.type_id, appointment.resources[0].id)
   );
 
-  // time cell
-  // roomRange.offset(0, 0, 1, 1)
-  //   .setValue(
-  //     convertEpochToUserTimezone(appointment.modified_at)
-  //   );
   const timeText = convertEpochToUserTimezone(appointment.modified_at);
   const timeRichText = simpleTextToRichText(timeText);
 
-  // name/species/link cell
   const link = makeLink(
     incomingAnimalText,
     `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`
   );
-  // ptCell.setRichTextValue(link);
 
-  // reason cell
-  // roomRange.offset(2, 0, 1, 1)
-  //   .setValue(`${appointment.description}${techText(appointment.type_id)}`);
   const reasonText = `${appointment.description}${techText(appointment.type_id)}`;
   const reasonRichText = simpleTextToRichText(reasonText);
 
   const emptyRichText = simpleTextToRichText('');
 
-  // mark room as dirty
-  // roomRange.offset(8, 0, 1, 1)
-  //   .setValue('d');
   const richTextVals = [
     [timeRichText],
     [link],
@@ -124,7 +109,7 @@ function parseTheRoom(
 
     // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
     if (roomValues[1][0].includes(incomingAnimalText)) {
-      stopMovingToRoom(appointment);
+      stopMovingToRoom(appointment, location);
       return;
     }
 
@@ -137,7 +122,7 @@ function parseTheRoom(
           roomRange.offset(0, 1) // this is the range for the second cat lobby column
         )
       }
-      else stopMovingToRoom(appointment); // otherwise we're done here bc we dont want to overwrite whatever is in the column
+      else stopMovingToRoom(appointment, location); // otherwise we're done here bc we dont want to overwrite whatever is in the column
       return;
     }
 
@@ -185,12 +170,12 @@ function parseTheRoom(
     }
 
     // otherwise dont move to room because the room is not empty
-    stopMovingToRoom(appointment);
+    stopMovingToRoom(appointment, location);
     return;
   }
 
   // otherwise, this is a normal empty room
-  return [roomRange, incomingAnimalText, ptCell];
+  return [roomRange, incomingAnimalText];
 }
 
 // note that we have already weeded out status ids >= 31 at DT and status ids >= 29 at WC earlier in moveToRoom()
@@ -259,10 +244,10 @@ function techText(typeID) {
     : "";
 }
 
-function stopMovingToRoom(appointment) {
+function stopMovingToRoom(appointment, location) {
   // add it to the waitlist if it was just created
   if (appointment.created_at === appointment.modified_at) {
-    addToWaitlist(appointment);
+    addToWaitlist(appointment, location);
   }
   return;
 }

@@ -206,10 +206,10 @@ function getAttDLErrorDetails(fileNameInEzyVet, errorMessage = undefined) {
         return 'We are unable to download .HEIC files through the ezyvet API.';
     }
     if (fileNameInEzyVet.includes('/')) {
-        return `Can't programatically download files with slashes(/) in the name.`
+        return `Can't programatically download files with slashes(/) in the name.`;
     }
     if (errorMessage?.includes('encrypt')) {
-        return 'This file is encrypted, so we are unable to programatically download it.'
+        return 'This file is encrypted, so we are unable to programatically download it.';
     }
 }
 

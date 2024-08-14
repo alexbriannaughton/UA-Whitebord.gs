@@ -1,5 +1,4 @@
-function okToCheckOut(appointment) {
-  const location = whichLocation(appointment.resources[0].id);
+function okToCheckOut(appointment, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
   const okCheckbox = findTargetCell(
