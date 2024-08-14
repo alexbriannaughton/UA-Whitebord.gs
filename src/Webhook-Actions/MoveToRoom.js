@@ -178,28 +178,6 @@ function parseTheRoom(
   return [roomRange, incomingAnimalText];
 }
 
-function getRoomRange(locationStatusCode, sheet) {
-  const otherRowsToGrab = 5;
-  const topRoomsRowStart = 3;
-  const topRoomsRowEnd = topRoomsRowStart + otherRowsToGrab;
-  const bottomRoomsRowStart = 13;
-  const bottomRoomsRowEnd = bottomRoomsRowStart + otherRowsToGrab
-  const codeToRangeA1 = new Map([
-    ['CH18', `C${topRoomsRowStart}:C${topRoomsRowEnd}`], // 1
-    ['CH25', `D${topRoomsRowStart}:D${topRoomsRowEnd}`], // 2
-    ['CH26', `E${topRoomsRowStart}:E${topRoomsRowEnd}`], // 3
-    ['CH27', `F${topRoomsRowStart}:F${topRoomsRowEnd}`], // 4
-    ['CH28', `G${topRoomsRowStart}:G${topRoomsRowEnd}`], // 5
-    ['CH29', `C${bottomRoomsRowStart}:C${bottomRoomsRowEnd}`], // 6
-    ['CH30', ``], // 7
-    ['CH31', ``], // 8
-    ['CH32', ``], // 9
-    ['CH33', ``], // 10
-    ['CH36', ``], // 11
-    ['CH40', `H${topRoomsRowStart}:H${topRoomsRowEnd}`], // cat lobby
-  ])
-}
-
 // note that we have already weeded out status ids >= 31 at DT and status ids >= 29 at WC earlier in moveToRoom()
 function findRoomRange(sheet, statusID, location) {
   // we're finding the time cell to use as a starting place

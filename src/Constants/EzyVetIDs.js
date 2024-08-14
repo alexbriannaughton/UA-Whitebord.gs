@@ -106,6 +106,42 @@ const typeIDToCategoryMap = new Map([
 
 const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
+// getRoomRange() is alternative to find room range which is in ./Webhook-Actions/MoveToRoom.js
+// function getRoomRange(location, statusID, sheet) {
+//     const otherRowsToGrab = 5;
+//     const trrs = 3; // top rooms row start
+//     const trre = trrs + otherRowsToGrab; // top rooms row end
+  
+//     if (location === 'CH') {
+//       const brrs = 13; // bottom rooms row start
+//       const brre = brrs + otherRowsToGrab; // bottom rooms row end
+  
+//       const chStatusIDToRangeA1 = new Map([
+//         [18, `C${trrs}:C${trre}`], // 1
+//         [25, `D${trrs}:D${trre}`], // 2
+//         [26, `E${trrs}:E${trre}`], // 3
+//         [27, `F${trrs}:F${trre}`], // 4
+//         [28, `G${trrs}:G${trre}`], // 5
+//         [29, `C${brrs}:C${brre}`], // 6
+//         [30, `D${brrs}:D${brre}`], // 7
+//         [31, `E${brrs}:E${brre}`], // 8
+//         [32, `F${brrs}:F${brre}`], // 9
+//         [33, `G${brrs}:G${brre}`], // 10
+//         [36, `H${brrs}:H${brre}`], // 11
+//         [39, `I${brrs}:I${brre}`], // dog lobby
+//         [40, `H${trrs}:H${trre}`], // cat lobby 1
+//         // ['CHxx', `I${trrs}:I${trre}`], // cat lobby 2 -- there is no unique status for the second cat lobby column
+//       ]);
+  
+//       const coords = chStatusIDToRangeA1.get(statusID);
+//       return sheet.getRange(coords);
+//     }
+  
+//     else if (location === 'DT') {
+  
+//     }
+//   }
+
 // const statusIDToNameMap = new Map([
 //     [1, 'no status'],
 //     [2, 'confirmed'],
