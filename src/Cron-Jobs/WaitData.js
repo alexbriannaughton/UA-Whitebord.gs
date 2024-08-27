@@ -6,7 +6,7 @@ function getWaitData(ssApp, numOfRoomsInUse, sheets) {
     return waitData;
 }
 
-function getWaitValsForLocation(ssApp, location, numOfRoomsInUse) {
+function getWaitValsForLocation(ssApp, location, numOfRoomsInUse, sheets) {
     const waitlistSheet = sheets.find(sheet => sheet.getName() === `${location} Wait List`);
     // const waitlistSheet = ssApp.getSheetByName(`${location} Wait List`);
     const vals = waitlistSheet.getRange('C2:D4').getValues();
