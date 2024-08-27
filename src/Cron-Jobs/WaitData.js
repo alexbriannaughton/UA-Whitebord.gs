@@ -13,7 +13,7 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
     const { soft_cap, hard_cap } = checkForCap(capText);
 
     const mainSheet = sheets.find(sheet => sheet.getName() === location);
-    let max_dvm_rooms;
+    let max_dvm_rooms = 0;
     if (location === 'CH') {
         const cellVal = String(mainSheet.getRange('O4').getValue()).slice(0, 2);
         max_dvm_rooms = Number(cellVal);
@@ -31,12 +31,9 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
         num_of_dvms_on_floor: Number(waitlistVals[1][0]) || 0,
         wb_wait_time: waitlistVals[2][0],
         num_of_pts_waiting: waitlistVals[0][0],
-        rooms_in_use: numOfRoomsInUse[location]
+        rooms_in_use: numOfRoomsInUse[location],
+        max_dvm_rooms
     };
-}
-
-function extractMaxRooms(sheet, rangeCoords) {
-
 }
 
 function checkForCap(capText) {
