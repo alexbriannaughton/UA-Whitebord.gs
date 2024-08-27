@@ -17,12 +17,12 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
     if (location === 'CH') {
         const cellVal = String(mainSheet.getRange('O4').getValue());
         console.log(cellVal, 'cell val');
-        max_dvm_rooms = cellVal.slice(0,2);
+        max_dvm_rooms = Number(cellVal.slice(0,2));
     }
     else if (location === 'WC') {
         const cellVal = String(mainSheet.getRange('I3').getValue());
         console.log(cellVal, 'cel val')
-        max_dvm_rooms = cellVal.substring(0,2);
+        max_dvm_rooms = Number(cellVal.slice(0,2));
     }
     console.log(location, max_dvm_rooms);
 
