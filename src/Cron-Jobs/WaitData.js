@@ -1,13 +1,14 @@
-function getWaitData(ssApp, numOfRoomsInUse) {
+function getWaitData(ssApp, numOfRoomsInUse, sheets) {
     const waitData = [
-        getWaitValsForLocation(ssApp, 'CH', numOfRoomsInUse),
-        getWaitValsForLocation(ssApp, 'WC', numOfRoomsInUse)
+        getWaitValsForLocation(ssApp, 'CH', numOfRoomsInUse, sheets),
+        getWaitValsForLocation(ssApp, 'WC', numOfRoomsInUse, sheets)
     ];
     return waitData;
 }
 
 function getWaitValsForLocation(ssApp, location, numOfRoomsInUse) {
-    const waitlistSheet = ssApp.getSheetByName(`${location} Wait List`);
+    const waitlistSheet = sheets.find(sheet => sheet.getName() === `${location} Wait List`);
+    // const waitlistSheet = ssApp.getSheetByName(`${location} Wait List`);
     const vals = waitlistSheet.getRange('C2:D4').getValues();
     const capText = vals[0][1];
     const { soft_cap, hard_cap } = checkForCap(capText);
