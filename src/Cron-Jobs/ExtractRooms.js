@@ -1,4 +1,4 @@
-function extractWhoIsInAllLocationRooms(ssApp) {
+function extractWhoIsInAllLocationRooms(ssApp, sheets) {
     const chRowFourIndexToStatusIDMap = new Map([
         [0, '18'],//Room 1
         [1, '25'],//Room 2
@@ -22,15 +22,16 @@ function extractWhoIsInAllLocationRooms(ssApp) {
 
     const roomsWithLinks = {};
     const numOfRoomsInUse = {};
-    extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse);
-    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse);
-    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse);
+    extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse, sheets);
+    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse, sheets);
+    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse, sheets);
     return { roomsWithLinks, numOfRoomsInUse };
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 10 minutes during open hours
-function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse) {
-    const sheet = ssApp.getSheetByName(sheetName);
+function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, ssApp, numOfRoomsInUse, sheets) {
+    const sheet = sheets.find(sheet => sheet.getName() === sheetName);
+    // const sheet = ssApp.getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
 
     const rtVals = range.getRichTextValues();
