@@ -15,10 +15,14 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
     const mainSheet = sheets.find(sheet => sheet.getName() === location);
     let max_dvm_rooms;
     if (location === 'CH') {
-        max_dvm_rooms = mainSheet.getRange('O4').getValue().substring(0,2);
+        const cellVal = mainSheet.getRange('O4').getValue();
+        console.log(cellVal, 'cell val');
+        max_dvm_rooms = cellVal.slice(0,2);
     }
     else if (location === 'WC') {
-        max_dvm_rooms = mainSheet.getRange('I3').getValue().substring(0,2);
+        const cellVal = mainSheet.getRange('I3').getValue();
+        console.log(cellVal, 'cel val')
+        max_dvm_rooms = cellVal.substring(0,2);
     }
     console.log(location, max_dvm_rooms);
 
