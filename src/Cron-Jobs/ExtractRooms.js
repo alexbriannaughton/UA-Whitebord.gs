@@ -83,11 +83,10 @@ function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, shee
     }
 }
 
-function countRoomsInUse(vals, checkForRoom11 = false) {
+function countRoomsInUse([timeRow, nameRow, reasonRow], checkRoom11 = false) {
     let roomsInUse = 0;
-    const [timeRow, nameRow, reasonRow] = vals;
-    const n = checkForRoom11 ? 6 : 5;
-    for (let i = 0; i < n; i++) {
+    const numOfRooms = checkRoom11 ? 6 : 5;
+    for (let i = 0; i < numOfRooms; i++) {
         if (!cellIsEmpty(timeRow[i]) && !cellIsEmpty(nameRow[i]) && !cellIsEmpty(reasonRow[i])) {
             roomsInUse++
         }

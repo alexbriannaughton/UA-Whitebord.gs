@@ -22,9 +22,9 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
         const cellVal = String(mainSheet.getRange('I3').getValue()).slice(0, 2);
         max_dvm_rooms = Number(cellVal);
     }
-    console.log(location, max_dvm_rooms);
 
     return {
+        max_dvm_rooms,
         location,
         soft_cap,
         hard_cap,
@@ -32,7 +32,6 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
         wb_wait_time: waitlistVals[2][0],
         num_of_pts_waiting: waitlistVals[0][0],
         rooms_in_use: numOfRoomsInUse[location],
-        max_dvm_rooms
     };
 }
 
