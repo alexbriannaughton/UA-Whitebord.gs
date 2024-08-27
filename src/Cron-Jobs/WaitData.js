@@ -8,16 +8,27 @@ function getWaitData(numOfRoomsInUse, sheets) {
 
 function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
     const waitlistSheet = sheets.find(sheet => sheet.getName() === `${location} Wait List`);
-    const vals = waitlistSheet.getRange('C2:D4').getValues();
-    const capText = vals[0][1];
+    const waitlistVals = waitlistSheet.getRange('C2:D4').getValues();
+    const capText = waitlistVals[0][1];
     const { soft_cap, hard_cap } = checkForCap(capText);
+
+    const mainSheet = sheets.find(sheet => sheet.getName() === location);
+    let max_dvm_rooms;
+    if (location === 'CH') {
+        max_dvm_rooms = mainSheet.getRange('O4').getValue().slice(0,2);
+    }
+    else if (location === 'WC') {
+        max_dvm_rooms = mainSheet.getRange('I3').getValue().slice(0,2);
+    }
+    console.log(location, max_dvm_rooms);
+
     return {
         location,
         soft_cap,
         hard_cap,
-        num_of_dvms_on_floor: Number(vals[1][0]) || 0,
-        wb_wait_time: vals[2][0],
-        num_of_pts_waiting: vals[0][0],
+        num_of_dvms_on_floor: Number(waitlistVals[1][0]) || 0,
+        wb_wait_time: waitlistVals[2][0],
+        num_of_pts_waiting: waitlistVals[0][0],
         rooms_in_use: numOfRoomsInUse[location]
     };
 }
