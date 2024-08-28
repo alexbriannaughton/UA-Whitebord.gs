@@ -40,15 +40,3 @@ function checkForCap(capText) {
     const hard_cap = capText.includes('Not Currently Accepting Walk-ins');
     return { soft_cap, hard_cap };
 }
-
-// function sendWaitData(waitData) {
-//     const url = PropertiesService.getScriptProperties().getProperty('wait_tracker_url');
-//     const options = {
-//         method: "post",
-//         contentType: "application/json",
-//         payload: JSON.stringify(waitData)
-//     };
-//     const response = UrlFetchApp.fetch(url, options);
-//     const content = response.getContentText();
-//     console.log(content);
-// }
