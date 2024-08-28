@@ -13,18 +13,18 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
     const { soft_cap, hard_cap } = checkForCap(capText);
 
     const mainSheet = sheets.find(sheet => sheet.getName() === location);
-    let max_dvm_rooms = 0;
+    let maxDvmRooms = 0;
     if (location === 'CH') {
         const cellVal = String(mainSheet.getRange('O4').getValue()).slice(0, 2);
-        max_dvm_rooms = Number(cellVal);
+        maxDvmRooms = Number(cellVal);
     }
     else if (location === 'WC') {
         const cellVal = String(mainSheet.getRange('I3').getValue()).slice(0, 2);
-        max_dvm_rooms = Number(cellVal);
+        maxDvmRooms = Number(cellVal);
     }
 
     return {
-        max_dvm_rooms,
+        max_dvm_rooms: maxDvmRooms || 0,
         location,
         soft_cap,
         hard_cap,
@@ -40,15 +40,3 @@ function checkForCap(capText) {
     const hard_cap = capText.includes('Not Currently Accepting Walk-ins');
     return { soft_cap, hard_cap };
 }
-
-// function sendWaitData(waitData) {
-//     const url = PropertiesService.getScriptProperties().getProperty('wait_tracker_url');
-//     const options = {
-//         method: "post",
-//         contentType: "application/json",
-//         payload: JSON.stringify(waitData)
-//     };
-//     const response = UrlFetchApp.fetch(url, options);
-//     const content = response.getContentText();
-//     console.log(content);
-// }
