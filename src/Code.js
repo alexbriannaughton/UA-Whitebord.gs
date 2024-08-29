@@ -2,7 +2,7 @@
 function doPost(e) {
   try {
     getCacheVals();
-    
+
     const startTime = new Date(); // this is for logging executions that hang exessively 
     const params = JSON.parse(e.postData.contents);
     const apptItems = params.items;
@@ -72,6 +72,7 @@ function attemptGet() {
   const { roomsWithLinks, numOfRoomsInUse } = extractWhoIsInAllLocationRooms(sheets)
   const wait = getWaitData(numOfRoomsInUse, sheets);
   const output = { roomsWithLinks, wait };
+  console.log('do get output:', output);
   return ContentService.createTextOutput(
     JSON.stringify(output)
   ).setMimeType(ContentService.MimeType.JSON);
