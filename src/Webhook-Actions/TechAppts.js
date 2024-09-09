@@ -29,6 +29,7 @@ function addTechAppt(appointment, location) {
       link
     ]
   ]
+  
   // if (location === 'CH') {
   //   richTextVals = [
   //     [
