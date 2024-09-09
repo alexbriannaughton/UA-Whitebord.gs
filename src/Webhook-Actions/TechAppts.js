@@ -22,14 +22,11 @@ function addTechAppt(appointment, location) {
   const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`;
   const link = makeLink(text, webAddress);
 
-  let richTextVals;
-  richTextVals = [
-    [
-      timeRichText,
-      link
-    ]
+  // let richTextVals;
+  const richTextVals = [
+    [timeRichText, link]
   ]
-  
+
   // if (location === 'CH') {
   //   richTextVals = [
   //     [
@@ -55,8 +52,8 @@ function addTechAppt(appointment, location) {
   if (!richTextVals) {
     throw new Error(`No rich text vals at end of addTechAppt(): ${appointment}`);
   }
-  
-  rowRange.offset(0, 0, 1, 4).setRichTextValues(richTextVals);
+
+  rowRange.offset(0, 0, 1, 2).setRichTextValues(richTextVals);
 
   return;
 
