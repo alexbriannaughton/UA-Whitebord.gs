@@ -36,9 +36,15 @@ const locationTextedColorMap = new Map([
     ['WC', 'yellow']
 ]);
 
+const locationInpatientCoords = new Map([
+    ['CH', 'R3:W36'],
+    ['DT', 'B14:H42'],
+    ['WC', 'C20:I60']
+])
+
 // returns the cell coordinates for the location's inpatient box
-function inpatientBoxCoords(location) {
-    return location === 'CH'
-        ? 'R3:W36' // coords for cap hills inpatient box
-        : 'B14:H42'; // coords for dt and wc inpatient boxes
-};
+// function inpatientBoxCoords(location) {
+//     return location === 'CH'
+//         ? 'R3:W36' // coords for cap hills inpatient box
+//         : 'B14:H42'; // coords for dt and wc inpatient boxes
+// };
