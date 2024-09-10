@@ -39,5 +39,5 @@ const locationTextedColorMap = new Map([
 const locationInpatientCoords = new Map([
     ['CH', 'R3:W36'],
     ['DT', 'B14:H42'],
-    ['WC', 'C20:I60']
+    ['WC', 'B20:I60']
 ]);

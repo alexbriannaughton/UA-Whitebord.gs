@@ -80,7 +80,7 @@ function addScheduledProcedures(oneLocationProcedures, location) {
         if (!procedure.animal_id) continue; // skip the empty object
         const rowRange = inpatientBox.offset(rowOfInpatientBox++, 0, 1, numOfColumnsInBox);
         rowRange.setBackground(procedure.color || defaultColor);
-        populateInpatientRow(procedure, rowRange);
+        populateInpatientRow(procedure, rowRange, location);
     }
     return;
 };

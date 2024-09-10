@@ -7,22 +7,17 @@ function addInPatient(appointment, location) {
   const { highestEmptyRow } = findRow(inpatientBoxRange, appointment.consult_id, 0);
   if (!highestEmptyRow) return;
   highestEmptyRow.setBackground(inpatientDefaultColorMap.get(location));
-  populateInpatientRow(appointment, highestEmptyRow);
+  populateInpatientRow(appointment, highestEmptyRow, location);
   return;
 };
 
-function populateInpatientRow(appointment, highestEmptyRow) {
+function populateInpatientRow(appointment, highestEmptyRow, location) {
   const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
   const text = `${animalName} ${contactLastName} (${animalSpecies})`;
   const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`;
   const link = makeLink(text, webAddress);
-  
-  // const nameCell = highestEmptyRow.offset(0, 0, 1, 1);
-  // nameCell.setRichTextValue(link);
-  // const reasonCell = highestEmptyRow.offset(0, 3, 1, 1);
-  // reasonCell.setValue(appointment.description);
-
-  highestEmptyRow.offset(0, 0, 1, 4).setRichTextValues([
+  const columnOffset = location === 'WC' ? 1 : 0;
+  highestEmptyRow.offset(0, columnOffset, 1, 4).setRichTextValues([
     [
       link,
       link,
