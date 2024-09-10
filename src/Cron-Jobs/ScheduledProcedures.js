@@ -71,7 +71,7 @@ function getColorAndSortValue(procedure, resourceID) {
 
 function addScheduledProcedures(oneLocationProcedures, location) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
-    const inpatientBox = sheet.getRange(inpatientBoxCoords(location));
+    const inpatientBox = sheet.getRange(locationInpatientCoords.get(location));
     const defaultColor = inpatientDefaultColorMap.get(location);
     clearInpatientBox(inpatientBox, defaultColor);
     const numOfColumnsInBox = inpatientBox.getNumColumns();

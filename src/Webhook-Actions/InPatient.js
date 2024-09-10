@@ -2,7 +2,7 @@
 function addInPatient(appointment, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
   const inpatientBoxRange = sheet.getRange(
-    inpatientBoxCoords(location)
+    locationInpatientCoords.get(location)
   );
   const { highestEmptyRow } = findRow(inpatientBoxRange, appointment.consult_id, 0);
   if (!highestEmptyRow) return;
