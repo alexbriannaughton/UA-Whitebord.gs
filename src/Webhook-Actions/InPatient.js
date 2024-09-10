@@ -4,7 +4,11 @@ function addInPatient(appointment, location) {
   const inpatientBoxRange = sheet.getRange(
     locationInpatientCoords.get(location)
   );
-  const { highestEmptyRow } = findRow(inpatientBoxRange, appointment.consult_id, 0);
+  const { highestEmptyRow } = findRow(
+    inpatientBoxRange,
+    appointment.consult_id,
+    location === 'WC' ? 1 : 0
+  );
   if (!highestEmptyRow) return;
   highestEmptyRow.setBackground(inpatientDefaultColorMap.get(location));
   populateInpatientRow(appointment, highestEmptyRow, location);
