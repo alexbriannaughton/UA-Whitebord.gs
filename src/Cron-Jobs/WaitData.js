@@ -14,8 +14,8 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
 
     const mainSheet = sheets.find(sheet => sheet.getName() === location);
     const maxRoomCellCoords = locationNumOfRoomsCellCoords.get(location);
-    const cellVal = String(mainSheet.getRange(maxRoomCellCoords).getValue());
-    const maxDvmRooms = Number(cellVal.slice(0, 2)) || 0;
+    const cellValAsString = String(mainSheet.getRange(maxRoomCellCoords).getValue());
+    const maxDvmRooms = Number(cellValAsString.slice(0, 2)) || 0;
 
     // cur prod code below
     // let maxDvmRooms = 0;
