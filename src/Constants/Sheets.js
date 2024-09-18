@@ -42,3 +42,8 @@ const locationInpatientCoords = new Map([
     ['DT', 'B14:H42'],
     ['WC', 'B20:I60']
 ]);
+
+const locationNumOfRoomsCellCoords = new Map([
+    ['CH', 'N4'],
+    ['WC', 'I3']
+])
