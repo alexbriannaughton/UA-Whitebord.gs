@@ -2,10 +2,12 @@ function addTechAppt(appointment, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
   const techBoxCoordsMap = new Map([
-    ['CH', 'K6:O21'],
+    // ['CH', 'K6:O21'], // current ch prod
+    ['CH', 'K6:N21'],
     // ['DT', 'L3:N11'],
     ['WC', 'K4:N11']
   ]);
+
   const techBoxCoords = techBoxCoordsMap.get(location);
   const techApptRange = sheet.getRange(techBoxCoords);
 
