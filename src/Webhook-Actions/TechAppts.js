@@ -6,6 +6,7 @@ function addTechAppt(appointment, location) {
     // ['DT', 'L3:N11'],
     ['WC', 'K4:N11']
   ]);
+
   const techBoxCoords = techBoxCoordsMap.get(location);
   const techApptRange = sheet.getRange(techBoxCoords);
 

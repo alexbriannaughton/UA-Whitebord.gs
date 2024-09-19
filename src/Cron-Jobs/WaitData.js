@@ -13,15 +13,20 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
     const { soft_cap, hard_cap } = checkForCap(capText);
 
     const mainSheet = sheets.find(sheet => sheet.getName() === location);
-    let maxDvmRooms = 0;
-    if (location === 'CH') {
-        const cellVal = String(mainSheet.getRange('O4').getValue()).slice(0, 2);
-        maxDvmRooms = Number(cellVal);
-    }
-    else if (location === 'WC') {
-        const cellVal = String(mainSheet.getRange('I3').getValue()).slice(0, 2);
-        maxDvmRooms = Number(cellVal);
-    }
+    const maxRoomCellCoords = locationNumOfRoomsCellCoords.get(location);
+    const cellValAsString = String(mainSheet.getRange(maxRoomCellCoords).getValue());
+    const maxDvmRooms = Number(cellValAsString.slice(0, 2)) || 0;
+
+    // cur prod code below
+    // let maxDvmRooms = 0;
+    // if (location === 'CH') {
+    //     const cellVal = String(mainSheet.getRange('O4').getValue()).slice(0, 2);
+    //     maxDvmRooms = Number(cellVal);
+    // }
+    // else if (location === 'WC') {
+    //     const cellVal = String(mainSheet.getRange('I3').getValue()).slice(0, 2);
+    //     maxDvmRooms = Number(cellVal);
+    // }
 
     return {
         max_dvm_rooms: maxDvmRooms || 0,
