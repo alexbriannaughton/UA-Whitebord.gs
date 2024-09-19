@@ -37,13 +37,12 @@ const locationTextedColorMap = new Map([
 ]);
 
 const locationInpatientCoords = new Map([
-    // ['CH', 'R3:W36'], // cur prod 
-    ['CH', 'P3:S36'],
+    ['CH', 'R3:W36'],
     ['DT', 'B14:H42'],
     ['WC', 'B20:I60']
 ]);
 
 const locationNumOfRoomsCellCoords = new Map([
-    ['CH', 'N4'],
+    ['CH', 'O4'],
     ['WC', 'I3']
 ])
