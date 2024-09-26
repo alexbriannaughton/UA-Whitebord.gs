@@ -135,7 +135,7 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         // ch dvm: vals[i][2]
         // ch foh: vals[i][3]
         // ch kennel: vals[i][4] until i is greater than 9
-        if (sheetName === 'ch') {
+        if (sheetName === 'CH') {
             if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
             if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
             if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
@@ -149,7 +149,7 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         // dt dvm: vals[i][2] until i is greater than 4, also vals[6][0] (house doctor cell)
         // dt foh: vals[i][3] until i is greater than 4
         // dt kennel: when i is greater than 5, vals[i][1]
-        else if (sheetName === 'dt') {
+        else if (sheetName === 'DT') {
             if (i <= 4) {
                 if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
                 if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
@@ -167,7 +167,7 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         // wc dvm: vals[i][2] until i is greater than 4, also vals [6][2] (house dvm)
         // wc foh: vals[i][3]
         // wc kennel: vals[6][1]
-        else if (sheetName === 'wc') {
+        else if (sheetName === 'WC') {
             if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
             if (rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
 
