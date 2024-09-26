@@ -33,9 +33,7 @@ function extractMainSheetData(sheets) {
     const locationByOrder = ['CH', 'DT', 'WC'];
     staffingVals.forEach((sv, i) => extractStaffing(sv, locationByOrder[i], locationStaffingCounts));
 
-    console.log('--',locationStaffingCounts)
-
-    return { roomsWithLinks, numOfRoomsInUse };
+    return { roomsWithLinks, numOfRoomsInUse, locationStaffingCounts };
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 10 minutes during open hours
@@ -119,11 +117,11 @@ function countRoomsInUse([timeRow, nameRow, reasonRow], checkRoom11 = false) {
 
 function extractStaffing(vals, sheetName, locationStaffingCounts) {
     locationStaffingCounts[sheetName] = {
-        assts_count: 0,
-        leads_and_sx_count: 0,
-        dvm_count: 0,
-        foh_count: 0,
-        kennel_count: 0
+        assts_on_staff: 0,
+        leads_on_staff: 0,
+        dvms_on_staff: 0,
+        foh_on_staff: 0,
+        kennel_on_staff: 0
     }
 
 
@@ -136,31 +134,31 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         // ch foh: vals[i][3]
         // ch kennel: vals[i][4] until i is greater than 9
         if (sheetName === 'CH') {
-            if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
-            if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
-            if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
-            if (rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
-            if (i <= 9 && rowVals[4]) locationStaffingCounts[sheetName].kennel_count += 1;
+            if (rowVals[0]) locationStaffingCounts[sheetName].assts_on_staff += 1;
+            if (rowVals[1]) locationStaffingCounts[sheetName].leads_on_staff += 1;
+            if (rowVals[2]) locationStaffingCounts[sheetName].dvms_on_staff += 1;
+            if (rowVals[3]) locationStaffingCounts[sheetName].foh_on_staff += 1;
+            if (i <= 9 && rowVals[4]) locationStaffingCounts[sheetName].kennel_on_staff += 1;
         }
 
-
+        // not currently making logs for dt...
         // dt assistants: vals[i][0] until i is greater than 4
         // dt leads/sx: vals[i][1] until i is greater than 4
         // dt dvm: vals[i][2] until i is greater than 4, also vals[6][0] (house doctor cell)
         // dt foh: vals[i][3] until i is greater than 4
         // dt kennel: when i is greater than 5, vals[i][1]
-        else if (sheetName === 'DT') {
-            if (i <= 4) {
-                if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
-                if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
-                if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
-                if (i > 0 && rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
-            }
+        // else if (sheetName === 'DT') {
+        //     if (i <= 4) {
+        //         if (rowVals[0]) locationStaffingCounts[sheetName].assts_on_staff += 1;
+        //         if (rowVals[1]) locationStaffingCounts[sheetName].leads_on_staff += 1;
+        //         if (rowVals[2]) locationStaffingCounts[sheetName].dvms_on_staff += 1;
+        //         if (i > 0 && rowVals[3]) locationStaffingCounts[sheetName].foh_on_staff += 1;
+        //     }
 
-            else if (i > 5 && rowVals[1]) locationStaffingCounts[sheetName].kennel_count += 1;
+        //     else if (i > 5 && rowVals[1]) locationStaffingCounts[sheetName].kennel_on_staff += 1;
 
-            if (i === 6 && rowVals[0]) locationStaffingCounts[sheetName].dvm_count += 1; // House doctor cell
-        }
+        //     if (i === 6 && rowVals[0]) locationStaffingCounts[sheetName].dvms_on_staff += 1; // House doctor cell
+        // }
 
         // wc assistants: vals[i][0]
         // wc leads/sx: vals[i][1] until i is greater than 4
@@ -168,17 +166,17 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         // wc foh: vals[i][3]
         // wc kennel: vals[6][1]
         else if (sheetName === 'WC') {
-            if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
-            if (rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
+            if (rowVals[0]) locationStaffingCounts[sheetName].assts_on_staff += 1;
+            if (rowVals[3]) locationStaffingCounts[sheetName].foh_on_staff += 1;
 
             if (i <= 4) {
-                if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
-                if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
+                if (rowVals[1]) locationStaffingCounts[sheetName].leads_on_staff += 1;
+                if (rowVals[2]) locationStaffingCounts[sheetName].dvms_on_staff += 1;
             }
 
             if (i === 6) {
-                if (rowVals[1]) locationStaffingCounts[sheetName].kennel_count += 1;
-                if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
+                if (rowVals[1]) locationStaffingCounts[sheetName].kennel_on_staff += 1;
+                if (rowVals[2]) locationStaffingCounts[sheetName].dvms_on_staff += 1;
             }
         }
     }

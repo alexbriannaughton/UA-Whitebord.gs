@@ -1,7 +1,7 @@
-function getWaitData(numOfRoomsInUse, sheets) {
+function getWaitData(numOfRoomsInUse, sheets, locationStaffingCounts) {
     const waitData = [
-        getWaitValsForLocation('CH', numOfRoomsInUse, sheets),
-        getWaitValsForLocation('WC', numOfRoomsInUse, sheets)
+        getWaitValsForLocation('CH', numOfRoomsInUse, sheets, locationStaffingCounts),
+        getWaitValsForLocation('WC', numOfRoomsInUse, sheets, locationStaffingCounts)
     ];
     return waitData;
 }
@@ -37,6 +37,7 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
         wb_wait_time: waitlistVals[2][0],
         num_of_pts_waiting: waitlistVals[0][0],
         rooms_in_use: numOfRoomsInUse[location],
+        ...locationStaffingCounts[location]
     };
 }
 
