@@ -70,7 +70,7 @@ function extractRoomsDataAndGetStaffingVals(sheetName, rangeCoords, indexToStatu
     numOfRoomsInUse[sheetName] = roomsInUse;
 
     if (sheetName === 'CH') return vals.slice(22);
-    if (sheetName === 'WC') return vals.slice(17);
+    if (sheetName === 'WC') return vals.slice(17).map(rowVals => rowVals.slice(-4));
 }
 
 function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, sheetName) {
@@ -78,13 +78,14 @@ function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, shee
         'CH': undefined, // dont slice anything
         'DT': 7,
         'WC': 5
-    }
-    const sliceRowRtVals = rowRTVals.slice(0, columnSliceAmount[sheetName]);
+    };
 
-    for (let i = 0; i < sliceRowRtVals.length; i++) {
+    const slicedRowRtVals = rowRTVals.slice(0, columnSliceAmount[sheetName]);
+
+    for (let i = 0; i < slicedRowRtVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
         const roomLocationKey = sheetName + statusID;
-        const runs = sliceRowRtVals[i].getRuns();
+        const runs = slicedRowRtVals[i].getRuns();
         for (const richText of runs) {
             const link = richText.getLinkUrl();
             if (!link) continue;
