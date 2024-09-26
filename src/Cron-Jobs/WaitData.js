@@ -6,7 +6,7 @@ function getWaitData(numOfRoomsInUse, sheets, locationStaffingCounts) {
     return waitData;
 }
 
-function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
+function getWaitValsForLocation(location, numOfRoomsInUse, sheets, locationStaffingCounts) {
     const waitlistSheet = sheets.find(sheet => sheet.getName() === `${location} Wait List`);
     const waitlistVals = waitlistSheet.getRange('C2:D4').getValues();
     const capText = waitlistVals[0][1];
