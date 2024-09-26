@@ -1,4 +1,4 @@
-function extractWhoIsInAllLocationRooms(sheets) {
+function extractMainSheetData(sheets) {
     const chRowFourIndexToStatusIDMap = new Map([
         [0, '18'],//Room 1
         [1, '25'],//Room 2
