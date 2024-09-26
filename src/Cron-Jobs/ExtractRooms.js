@@ -31,7 +31,7 @@ function extractMainSheetData(sheets) {
 
     const locsOrdering = ['CH', 'DT', 'WC'];
     staffingVals.forEach((sv, i) => extractStaffing(sv, locsOrdering[i]));
-    
+
     return { roomsWithLinks, numOfRoomsInUse };
 }
 
@@ -79,6 +79,7 @@ function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, shee
         'DT': 7,
         'WC': 5
     }
+    console.log('rowRTVals', rowRTVals)
 
     for (let i = 0; i < rowRTVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
