@@ -22,15 +22,21 @@ function extractMainSheetData(sheets) {
 
     const roomsWithLinks = {};
     const numOfRoomsInUse = {};
-    // extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets);
-    extractRooms('CH', 'C3:I35', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets);
-    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets);
-    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets);
+
+    const staffingVals = [
+        extractRoomsDataAndGetStaffingVals('CH', 'C3:I35', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
+        extractRoomsDataAndGetStaffingVals('DT', 'C3:N11', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
+        extractRoomsDataAndGetStaffingVals('WC', 'C3:N27', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets)
+    ]
+
+    const locsOrdering = ['CH', 'DT', 'WC'];
+    staffingVals.forEach((sv, i) => extractStaffing(sv, locsOrdering[i]));
+    
     return { roomsWithLinks, numOfRoomsInUse };
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 10 minutes during open hours
-function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets) {
+function extractRoomsDataAndGetStaffingVals(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets) {
     const sheet = sheets.find(sheet => sheet.getName() === sheetName);
     // const sheet = ssApp.getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
@@ -53,21 +59,33 @@ function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks
         parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, roomsWithLinks, sheetName);
     }
 
-    if (sheetName === 'DT') return; // we dont currently make waitlogs for dt, so no need to determine its rooms in use
+    // we dont currently make waitlogs for dt, so no need to determine its rooms in use
+    if (sheetName === 'DT') return range.offset(0, 8, 9, 4).getValues();
 
     const vals = range.getValues();
     const roomsInUse = sheetName === 'CH'
         ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(10, 13), true)
-        : countRoomsInUse(vals);
+        : countRoomsInUse(vals.slice(0, 3));
 
     numOfRoomsInUse[sheetName] = roomsInUse;
+
+    if (sheetName === 'CH') return vals.slice(22);
+    if (sheetName === 'WC') return vals.slice(17);
 }
 
 function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, sheetName) {
+    const columnSliceAmount = {
+        'CH': undefined, // dont slice anything
+        'DT': 7,
+        'WC': 5
+    }
+
     for (let i = 0; i < rowRTVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
         const roomLocationKey = sheetName + statusID;
-        const runs = rowRTVals[i].getRuns();
+        const runs = rowRTVals[i]
+            .slice(0, columnSliceAmount[sheetName])
+            .getRuns();
         for (const richText of runs) {
             const link = richText.getLinkUrl();
             if (!link) continue;
@@ -94,4 +112,8 @@ function countRoomsInUse([timeRow, nameRow, reasonRow], checkRoom11 = false) {
         }
     }
     return roomsInUse;
+}
+
+function extractStaffing(vals, sheetName) {
+    console.log(sheetName, vals);
 }
