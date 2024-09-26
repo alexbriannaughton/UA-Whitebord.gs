@@ -69,7 +69,7 @@ function extractRoomsDataAndGetStaffingVals(sheetName, rangeCoords, indexToStatu
 
     numOfRoomsInUse[sheetName] = roomsInUse;
 
-    if (sheetName === 'CH') return vals.slice(22);
+    if (sheetName === 'CH') return vals.slice(22).map(rowVals => rowVals.slice(1, -1));
     if (sheetName === 'WC') return vals.slice(17).map(rowVals => rowVals.slice(-4));
 }
 
