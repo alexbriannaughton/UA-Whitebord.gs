@@ -154,7 +154,7 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
                 if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
                 if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
                 if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
-                if (rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
+                if (i > 0 && rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
             }
 
             else if (i > 5 && rowVals[1]) locationStaffingCounts[sheetName].kennel_count += 1;
