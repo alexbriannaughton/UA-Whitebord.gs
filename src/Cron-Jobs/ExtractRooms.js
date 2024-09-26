@@ -79,14 +79,12 @@ function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, shee
         'DT': 7,
         'WC': 5
     }
-    console.log('rowRTVals', rowRTVals)
+    const sliceRowRtVals = rowRTVals.slice(0, columnSliceAmount[sheetName]);
 
-    for (let i = 0; i < rowRTVals.length; i++) {
+    for (let i = 0; i < sliceRowRtVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
         const roomLocationKey = sheetName + statusID;
-        const runs = rowRTVals[i]
-            .slice(0, columnSliceAmount[sheetName])
-            .getRuns();
+        const runs = sliceRowRtVals[i].getRuns();
         for (const richText of runs) {
             const link = richText.getLinkUrl();
             if (!link) continue;
