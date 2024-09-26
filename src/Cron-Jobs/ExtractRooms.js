@@ -33,6 +33,8 @@ function extractMainSheetData(sheets) {
     const locationByOrder = ['CH', 'DT', 'WC'];
     staffingVals.forEach((sv, i) => extractStaffing(sv, locationByOrder[i], locationStaffingCounts));
 
+    console.log('--',locationStaffingCounts)
+
     return { roomsWithLinks, numOfRoomsInUse };
 }
 
@@ -116,11 +118,68 @@ function countRoomsInUse([timeRow, nameRow, reasonRow], checkRoom11 = false) {
 }
 
 function extractStaffing(vals, sheetName, locationStaffingCounts) {
+    locationStaffingCounts[sheetName] = {
+        assts_count: 0,
+        leads_and_sx_count: 0,
+        dvm_count: 0,
+        foh_count: 0,
+        kennel_count: 0
+    }
+
+
     for (let i = 0; i < vals.length; i++) {
         const rowVals = vals[i];
-        for (let j = 0; j < rowVals.length; j++) {
-            const cellVal = rowVals[j];
-            console.log(cellVal, Boolean(cellVal));
+
+        // ch assistants: vals[i][0]
+        // ch leads/sx: vals[i][1]
+        // ch dvm: vals[i][2]
+        // ch foh: vals[i][3]
+        // ch kennel: vals[i][4] until i is greater than 9
+        if (sheetName === 'ch') {
+            if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
+            if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
+            if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
+            if (rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
+            if (i <= 9 && rowVals[4]) locationStaffingCounts[sheetName].kennel_count += 1;
+        }
+
+
+        // dt assistants: vals[i][0] until i is greater than 4
+        // dt leads/sx: vals[i][1] until i is greater than 4
+        // dt dvm: vals[i][2] until i is greater than 4, also vals[6][0] (house doctor cell)
+        // dt foh: vals[i][3] until i is greater than 4
+        // dt kennel: when i is greater than 5, vals[i][1]
+        else if (sheetName === 'dt') {
+            if (i <= 4) {
+                if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
+                if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
+                if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
+                if (rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
+            }
+
+            else if (i > 5 && rowVals[1]) locationStaffingCounts[sheetName].kennel_count += 1;
+
+            if (i === 6 && rowVals[0]) locationStaffingCounts[sheetName].dvm_count += 1; // House doctor cell
+        }
+
+        // wc assistants: vals[i][0]
+        // wc leads/sx: vals[i][1] until i is greater than 4
+        // wc dvm: vals[i][2] until i is greater than 4, also vals [6][2] (house dvm)
+        // wc foh: vals[i][3]
+        // wc kennel: vals[6][1]
+        else if (sheetName === 'wc') {
+            if (rowVals[0]) locationStaffingCounts[sheetName].assts_count += 1;
+            if (rowVals[3]) locationStaffingCounts[sheetName].foh_count += 1;
+
+            if (i <= 4) {
+                if (rowVals[1]) locationStaffingCounts[sheetName].leads_and_sx_count += 1;
+                if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
+            }
+
+            if (i === 6) {
+                if (rowVals[1]) locationStaffingCounts[sheetName].kennel_count += 1;
+                if (rowVals[2]) locationStaffingCounts[sheetName].dvm_count += 1;
+            }
         }
     }
 }
