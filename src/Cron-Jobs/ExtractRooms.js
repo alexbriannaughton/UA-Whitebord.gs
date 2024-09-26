@@ -29,8 +29,9 @@ function extractMainSheetData(sheets) {
         extractRoomsDataAndGetStaffingVals('WC', 'C3:N27', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets)
     ]
 
-    const locsOrdering = ['CH', 'DT', 'WC'];
-    staffingVals.forEach((sv, i) => extractStaffing(sv, locsOrdering[i]));
+    const locationStaffingCounts = {};
+    const locationByOrder = ['CH', 'DT', 'WC'];
+    staffingVals.forEach((sv, i) => extractStaffing(sv, locationByOrder[i], locationStaffingCounts));
 
     return { roomsWithLinks, numOfRoomsInUse };
 }
@@ -114,6 +115,12 @@ function countRoomsInUse([timeRow, nameRow, reasonRow], checkRoom11 = false) {
     return roomsInUse;
 }
 
-function extractStaffing(vals, sheetName) {
-    console.log(sheetName, vals);
+function extractStaffing(vals, sheetName, locationStaffingCounts) {
+    for (let i = 0; i < vals.length; i++) {
+        const rowVals = vals[i];
+        for (let j = 0; j < rowVals.length; j++) {
+            const cellVal = rowVals[j];
+            console.log(cellVal, Boolean(cellVal));
+        }
+    }
 }
