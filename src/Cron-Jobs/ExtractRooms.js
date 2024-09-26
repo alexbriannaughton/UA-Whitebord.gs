@@ -1,4 +1,4 @@
-function extractMainSheetData(sheets) {
+function extractWhoIsInAllLocationRooms(sheets) {
     const chRowFourIndexToStatusIDMap = new Map([
         [0, '18'],//Room 1
         [1, '25'],//Room 2
@@ -22,41 +22,15 @@ function extractMainSheetData(sheets) {
 
     const roomsWithLinks = {};
     const numOfRoomsInUse = {};
-
-    const chStaffingRange = extractRoomsDataAndReturnStaffingRange(
-        'CH',
-        'C3:I15',
-        chRowFourIndexToStatusIDMap,
-        roomsWithLinks,
-        numOfRoomsInUse,
-        sheets
-    );
-    const dtStaffingRange = extractRoomsDataAndReturnStaffingRange(
-        'DT',
-        'C3:I5',
-        rowFourIndexToStatusIDMap,
-        roomsWithLinks,
-        numOfRoomsInUse,
-        sheets
-    );
-    const wcStaffingRange = extractRoomsDataAndReturnStaffingRange(
-        'WC',
-        'C3:G5',
-        rowFourIndexToStatusIDMap,
-        roomsWithLinks,
-        numOfRoomsInUse,
-        sheets
-    );
-
-    extractStaffing(chStaffingRange);
-    extractStaffing(dtStaffingRange);
-    extractStaffing(wcStaffingRange);
-
+    // extractRooms('CH', 'C3:I15', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets);
+    extractRooms('CH', 'C3:I35', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets);
+    extractRooms('DT', 'C3:I5', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets);
+    extractRooms('WC', 'C3:G5', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets);
     return { roomsWithLinks, numOfRoomsInUse };
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 10 minutes during open hours
-function extractRoomsDataAndReturnStaffingRange(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets) {
+function extractRooms(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets) {
     const sheet = sheets.find(sheet => sheet.getName() === sheetName);
     // const sheet = ssApp.getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
@@ -65,7 +39,8 @@ function extractRoomsDataAndReturnStaffingRange(sheetName, rangeCoords, indexToS
     const rowFourRTVals = rtVals[1];
     parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, roomsWithLinks, sheetName);
     if (sheetName === 'CH') { // cap hill has 2 lobbies, so we have this extra step
-        const rowFourteenRTVals = rtVals.at(-2);
+        // const rowFourteenRTVals = rtVals.at(-2);
+        const rowFourteenRTVals = rtVals[11];
         const chRowFourteenIndexToSatusIDMap = new Map([
             [0, '29'], // room 6
             [1, '30'], //Room 7
@@ -78,25 +53,14 @@ function extractRoomsDataAndReturnStaffingRange(sheetName, rangeCoords, indexToS
         parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, roomsWithLinks, sheetName);
     }
 
-    // we dont currently make waitlogs for dt, so no need to determine its rooms in use
-    if (sheetName === 'DT') {
-        return range.offset(0, 8, 9, 4);
-    }
+    if (sheetName === 'DT') return; // we dont currently make waitlogs for dt, so no need to determine its rooms in use
 
     const vals = range.getValues();
     const roomsInUse = sheetName === 'CH'
-        ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(-3), true)
+        ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(10, 13), true)
         : countRoomsInUse(vals);
 
     numOfRoomsInUse[sheetName] = roomsInUse;
-
-    if (sheetName === 'CH') return range.offset(22, 1, 10, 5);
-    else if (sheetName === 'WC') return range.offset(17, 8, 8, 4);
-}
-
-function extractStaffing(staffingRange) {
-    const vals = staffingRange.getValues();
-    console.log('staffing range vals', vals);
 }
 
 function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, sheetName) {
