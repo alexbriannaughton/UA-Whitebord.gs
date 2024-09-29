@@ -88,10 +88,7 @@ function parseTheRoom(
   initialRoomRange
 ) {
 
-  const roomRange = rangeForSecondCatLobbyColumn === undefined
-    // ? findRoomRange(sheet, appointment.status_id, location)
-    ? initialRoomRange
-    : rangeForSecondCatLobbyColumn;
+  const roomRange = rangeForSecondCatLobbyColumn ?? initialRoomRange;
   const ptCell = roomRange.offset(1, 0, 1, 1);
   const ptCellRuns = ptCell.getRichTextValue().getRuns();
   const curLink = getLinkFromRuns(ptCellRuns);
