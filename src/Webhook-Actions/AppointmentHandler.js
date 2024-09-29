@@ -13,7 +13,7 @@ function handleAppointment(webhookType, appointment) {
     const location = whichLocation(appointment.resources[0].id);
     const locationToRoomCoordsMap = roomStatusLocationToCoords[appointment.status_id];
 
-    if (location === 'DT') return handleDTAppointment(appointment, location, locationToCoordsMap);
+    if (location === 'DT') return handleDTAppointment(appointment, location, locationToRoomCoordsMap);
 
     const isToday = isTodayInUserTimezone(
         convertEpochToUserTimezoneDate(appointment.start_at)
@@ -78,7 +78,7 @@ function handleEchoOrAUS(appointment, sheetName) {
     return;
 }
 
-function handleDTAppointment(appointment, location = 'DT', locationToRoomCoordsMap) {
+function handleDTAppointment(appointment, location, locationToRoomCoordsMap) {
     const timestampDate = convertEpochToUserTimezoneDate(appointment.start_at);
     const couldBeNextDayDtAppt = isOnNextDayOfDtAppts(timestampDate);
     if (couldBeNextDayDtAppt) {
