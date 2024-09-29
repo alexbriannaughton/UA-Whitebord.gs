@@ -106,6 +106,95 @@ const typeIDToCategoryMap = new Map([
 
 const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
+const roomStatusLocationToCoords = {
+    18: { // room 1
+        CH: 'C3:C8',
+        DT: 'C3:C8',
+        WC: 'C3:C8'
+    },
+    25: { // room 2
+        CH: 'D3:D8',
+        DT: 'D3:D8',
+        WC: 'D3:D8'
+    },
+    26: { // room 3
+        CH: 'E3:E8',
+        DT: 'E3:E8',
+        WC: 'E3:E8'
+    },
+    27: { // room 4
+        CH: 'F3:F8',
+        DT: 'F3:F8',
+        WC: 'F3:F8'
+    },
+    28: { // room 5
+        CH: 'G3:G8',
+        DT: 'G3:G8',
+        WC: 'G3:G8'
+    },
+    29: { // room 6
+        CH: 'C13:C18',
+        DT: 'H3:H8',
+        WC: null
+    },
+    30: { // room 7
+        CH: 'D13:D18',
+        DT: 'I3:I8',
+        WC: null
+    },
+    31: { // room 8
+        CH: 'E13:E18',
+        DT: null,
+        WC: null
+    },
+    32: { // room 9
+        CH: 'F13:F18',
+        DT: null,
+        WC: null
+    },
+    33: { // room 10
+        CH: 'G13:G18',
+        DT: null,
+        WC: null
+    },
+    36: { // room 11
+        CH: 'H13:H18',
+        DT: null,
+        WC: null
+    },
+    39: { // dog lob
+        CH: 'I13:I18',
+        DT: null,
+        WC: null
+    },
+    40: { // cat lob
+        CH: 'H3:H8', // first column
+        DT: null,
+        WC: null
+    },
+    43: { // wc sx 1
+        CH: null,
+        DT: null,
+        WC: 'C13:C16'
+    },
+    42: { // wc sx 2
+        CH: null,
+        DT: null,
+        WC: 'D13:D16'
+    },
+    41: { // wc sx 3
+        CH: null,
+        DT: null,
+        WC: 'E13:E16'
+    },
+    44: { // wc sx lobby
+        CH: null,
+        DT: null,
+        WC: ''
+    }
+    
+  }
+
 // getRoomRange() is alternative to find room range which is in ./Webhook-Actions/MoveToRoom.js
 // function getRoomRange(location, statusID, sheet) {
 //     const otherRowsToGrab = 5;

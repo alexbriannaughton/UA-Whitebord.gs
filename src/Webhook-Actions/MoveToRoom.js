@@ -11,15 +11,19 @@
 // appointment.status_id 36 = room11 = CH cells: H13, H14, H15
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
-function moveToRoom(appointment, location) {
+function moveToRoom(appointment, location, locationToCoordsMap) {
+  const roomCoords = locationToCoordsMap[location];
+
   // if we're moving into a room that doesn't exist... don't do that
-  if ((appointment.status_id >= 31 && location === 'DT') || (appointment.status_id >= 29 && location === 'WC')) {
-    return stopMovingToRoom(appointment, location);
-  }
+  if (!roomCoords) return stopMovingToRoom(appointment, location);
+  // if ((appointment.status_id >= 31 && location === 'DT') || (appointment.status_id >= 29 && location === 'WC')) {
+  //   return stopMovingToRoom(appointment, location);
+  // }
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
-  const [roomRange, incomingAnimalText] = parseTheRoom(sheet, appointment, location) || [];
+  const initialRoomRange = sheet.getRange(roomCoords);
+  const [roomRange, incomingAnimalText] = parseTheRoom(sheet, appointment, location, undefined, initialRoomRange) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
   if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location);
@@ -80,11 +84,13 @@ function parseTheRoom(
   sheet,
   appointment,
   location,
-  rangeForSecondCatLobbyColumn // will be undefined unless the first cat lobby column is unavailable
+  rangeForSecondCatLobbyColumn, // will be undefined unless the first cat lobby column is unavailable
+  initialRoomRange
 ) {
 
   const roomRange = rangeForSecondCatLobbyColumn === undefined
-    ? findRoomRange(sheet, appointment.status_id, location)
+    // ? findRoomRange(sheet, appointment.status_id, location)
+    ? initialRoomRange
     : rangeForSecondCatLobbyColumn;
   const ptCell = roomRange.offset(1, 0, 1, 1);
   const ptCellRuns = ptCell.getRichTextValue().getRuns();
@@ -179,40 +185,40 @@ function parseTheRoom(
 }
 
 // note that we have already weeded out status ids >= 31 at DT and status ids >= 29 at WC earlier in moveToRoom()
-function findRoomRange(sheet, statusID, location) {
-  // we're finding the time cell to use as a starting place
+// function findRoomRange(sheet, statusID, location) {
+//   // we're finding the time cell to use as a starting place
 
-  // all rooms at WC, all rooms at DT and rooms 1-5 at CH are handled similarly:
-  let timeRow = 3;
-  let timeColumn = statusID === 18
-    ? 'C' // for room one (status_id 18) just assign to column C
-    : String.fromCharCode(statusID + 43);  // otherwise, statusID + 43 = char code for the column we're looking for
+//   // all rooms at WC, all rooms at DT and rooms 1-5 at CH are handled similarly:
+//   let timeRow = 3;
+//   let timeColumn = statusID === 18
+//     ? 'C' // for room one (status_id 18) just assign to column C
+//     : String.fromCharCode(statusID + 43);  // otherwise, statusID + 43 = char code for the column we're looking for
 
-  // for the rest of the rooms at CH:
-  // status ids for rooms 6 - 11 and dog/cat lobby statuses are 29 and greater
-  if (location === 'CH' && statusID >= 29) {
-    // handle for cat or dog lobby statuses
-    const isCatLobbyStatus = statusID === 40;
-    if (isCatLobbyStatus || statusID === 39) {
-      timeRow = isCatLobbyStatus
-        ? 3 : 13;
-      timeColumn = isCatLobbyStatus
-        ? 'H' : 'I';
-    }
+//   // for the rest of the rooms at CH:
+//   // status ids for rooms 6 - 11 and dog/cat lobby statuses are 29 and greater
+//   if (location === 'CH' && statusID >= 29) {
+//     // handle for cat or dog lobby statuses
+//     const isCatLobbyStatus = statusID === 40;
+//     if (isCatLobbyStatus || statusID === 39) {
+//       timeRow = isCatLobbyStatus
+//         ? 3 : 13;
+//       timeColumn = isCatLobbyStatus
+//         ? 'H' : 'I';
+//     }
 
-    // else we're handling for rooms 6 - 11
-    else {
-      timeRow = 13;
-      timeColumn = statusID === 36
-        ? 'H' // if room 11 (status id = 36), just assign to column H
-        : String.fromCharCode(statusID + 38); // otherwise, statusID + 38 = char code for the correct column
+//     // else we're handling for rooms 6 - 11
+//     else {
+//       timeRow = 13;
+//       timeColumn = statusID === 36
+//         ? 'H' // if room 11 (status id = 36), just assign to column H
+//         : String.fromCharCode(statusID + 38); // otherwise, statusID + 38 = char code for the correct column
 
-    }
-  }
+//     }
+//   }
 
-  // return the range for the room up through the dvm row
-  return sheet.getRange(`${timeColumn}${timeRow}:${timeColumn}${timeRow + 5}`);
-}
+//   // return the range for the room up through the dvm row
+//   return sheet.getRange(`${timeColumn}${timeRow}:${timeColumn}${timeRow + 5}`);
+// }
 
 function getRoomColor(typeID, resourceID) {
   // if it's IM make the background purple

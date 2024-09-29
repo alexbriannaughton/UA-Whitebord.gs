@@ -7,9 +7,8 @@ function handleAppointment(webhookType, appointment) {
         handleEchoOrAUS(appointment, 'AUS');
     }
 
-    // below here is for this sheet
-
-    if (appointment.type_id === 4) return; // block off
+    // below here is for this sheetty
+    if (appointment.type_id === 4) return; // block off type
 
     const location = whichLocation(appointment.resources[0].id);
 
@@ -25,10 +24,15 @@ function handleAppointment(webhookType, appointment) {
     }
 
     appointment.description = removeVetstoriaDescriptionText(appointment.description);
-
-    if (isRoomStatus(appointment.status_id)) {
-        return moveToRoom(appointment, location);
+    const locationToCoordsMap = roomStatusLocationToCoords[appointment.status_id];
+       
+    if (locationToCoordsMap) {
+        return moveToRoom(appointment, location, locationToCoordsMap);
     }
+    
+    // if (isRoomStatus(appointment.status_id)) {
+    //     return moveToRoom(appointment, location);
+    // }
 
     const nonDtStatusHandlers = {
         17: addToWaitlist, // 'on wait list'
