@@ -63,7 +63,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location)
     [emptyRichText],
     [emptyRichText],
     [emptyRichText],
-    [isWCSxRoom ? [emptyRichText] : simpleTextToRichText('d')]
+    [isWCSxRoom ? emptyRichText : simpleTextToRichText('d')]
   ];
 
   roomRange.offset(0, 0, 9, 1).setRichTextValues(richTextVals);
