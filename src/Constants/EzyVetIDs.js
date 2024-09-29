@@ -187,11 +187,11 @@ const roomStatusLocationToCoords = {
         DT: null,
         WC: 'E13:E16'
     },
-    44: { // wc sx lobby
-        CH: null,
-        DT: null,
-        WC: ''
-    }
+    // 44: { // wc sx lobby
+    //     CH: null,
+    //     DT: null,
+    //     WC: ''
+    // }
     
   }
 

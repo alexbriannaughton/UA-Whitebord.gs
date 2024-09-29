@@ -33,10 +33,13 @@ function moveToRoom(appointment, location, locationToRoomCoordsMap) {
 };
 
 function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location) {
-  // set bg color of room
-  roomRange.offset(0, 0, 8, 1).setBackground(
-    getRoomColor(appointment.type_id, appointment.resources[0].id)
-  );
+  const isWCSxRoom = new Set([41, 42, 43]).has(appointment.status_id);
+  // if not white center surgery room, set bg color of room
+  if (!isWCSxRoom) {
+    roomRange.offset(0, 0, 8, 1).setBackground(
+      getRoomColor(appointment.type_id, appointment.resources[0].id)
+    );
+  }
 
   const timeText = convertEpochToUserTimezone(appointment.modified_at);
   const timeRichText = simpleTextToRichText(timeText);
@@ -60,7 +63,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location)
     [emptyRichText],
     [emptyRichText],
     [emptyRichText],
-    [simpleTextToRichText('d')]
+    [isWCSxRoom ? [emptyRichText] : simpleTextToRichText('d')]
   ];
 
   roomRange.offset(0, 0, 9, 1).setRichTextValues(richTextVals);
