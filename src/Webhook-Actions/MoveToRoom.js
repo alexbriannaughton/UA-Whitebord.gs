@@ -32,7 +32,7 @@ function moveToRoom(appointment, location, locationToRoomCoordsMap) {
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, roomValues) {
+function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals) {
   const isWCSxRoom = new Set([41, 42, 43]).has(appointment.status_id);
   // if not white center surgery room, set bg color of room
   if (!isWCSxRoom) {
@@ -54,7 +54,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
 
   // const emptyRichText = simpleTextToRichText('');
 
-  console.log(roomValues)
+  console.log(allRoomVals)
 
   const richTextVals = [
     [timeRichText],
