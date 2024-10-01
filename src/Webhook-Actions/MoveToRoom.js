@@ -60,12 +60,12 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
     [timeRichText],
     [link],
     [reasonRichText],
-    [simpleTextToRichText(roomValues[3])],
-    [isWCSxRoom ? simpleTextToRichText('d') : roomValues[4]],
-    [simpleTextToRichText(roomValues[5])],
-    [simpleTextToRichText(roomValues[6])],
-    [simpleTextToRichText(roomValues[7])],
-    [isWCSxRoom ? simpleTextToRichText(roomValues[8]) : simpleTextToRichText('d')]
+    [simpleTextToRichText(allRoomVals[3])],
+    [isWCSxRoom ? simpleTextToRichText('d') : allRoomVals[4]],
+    [simpleTextToRichText(allRoomVals[5])],
+    [simpleTextToRichText(allRoomVals[6])],
+    [simpleTextToRichText(allRoomVals[7])],
+    [isWCSxRoom ? simpleTextToRichText(allRoomVals[8]) : simpleTextToRichText('d')]
   ];
 
   roomRange.offset(0, 0, 9, 1).setRichTextValues(richTextVals);
