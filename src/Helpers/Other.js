@@ -80,7 +80,7 @@ function findRow(range, id, keyToID) {
       }
     }
 
-    // if we haven't already found the highest empty row AND
+    // if we haven't already found the highest empty row AND all cells in row are empty
     // this is the highest empty row
     if (!highestEmptyRow && rowContents[i].every(cellIsEmpty)) {
       highestEmptyRow = range.offset(i, 0, 1);

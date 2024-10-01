@@ -18,6 +18,7 @@ function handleAppointment(webhookType, appointment) {
     const isToday = isTodayInUserTimezone(
         convertEpochToUserTimezoneDate(appointment.start_at)
     )
+
     if (!isToday) return;
 
     if (!appointment.active) {
@@ -40,7 +41,8 @@ function handleAppointment(webhookType, appointment) {
         20: addTextedTimestampOnWaitlist, // 'texted'
         22: handleReadyStatus, // 'ready'
         23: addTechAppt, // 'add to tech column'
-        34: addInPatient // 'inpatient'
+        34: addInPatient, // 'inpatient'
+        44: addTechAppt, // in wc sx lobby
     };
 
     const statusHandler = nonDtStatusHandlers[appointment.status_id];
