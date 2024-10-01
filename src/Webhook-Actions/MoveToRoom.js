@@ -34,7 +34,7 @@ function moveToRoom(appointment, location, locationToRoomCoordsMap) {
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals) {
+function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals, isWCSxRoom) {
   // if not white center surgery room, set bg color of room
   if (!isWCSxRoom) {
     roomRange.offset(0, 0, 8, 1).setBackground(
