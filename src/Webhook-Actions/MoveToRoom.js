@@ -54,7 +54,6 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
 
   // const emptyRichText = simpleTextToRichText('');
 
-  
   console.log(allRoomVals)
 
   const richTextVals = [
