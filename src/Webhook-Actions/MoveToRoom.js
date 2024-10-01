@@ -92,7 +92,7 @@ function parseTheRoom(
   rangeForSecondCatLobbyColumn, // will be undefined unless the first cat lobby column is unavailable
   fullRoomRange
 ) {
-
+  
   const roomRange = rangeForSecondCatLobbyColumn ?? fullRoomRange;
   const allRoomVals = roomRange.getValues();
 
@@ -112,7 +112,7 @@ function parseTheRoom(
   const [animalName, animalSpecies] = getAnimalInfo(appointment.animal_id);
   const incomingAnimalText = `${animalName} (${animalSpecies})`;
 
-  const roomValues = allRoomVals.slice(-4);
+  const roomValues = allRoomVals.slice(0, -4);
 
   if (!roomIsOkToPopulateWithData(roomValues, location)) {
     const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
