@@ -190,42 +190,6 @@ function parseTheRoom(
   return [roomRange, incomingAnimalText, allRoomVals];
 }
 
-// note that we have already weeded out status ids >= 31 at DT and status ids >= 29 at WC earlier in moveToRoom()
-// function findRoomRange(sheet, statusID, location) {
-//   // we're finding the time cell to use as a starting place
-
-//   // all rooms at WC, all rooms at DT and rooms 1-5 at CH are handled similarly:
-//   let timeRow = 3;
-//   let timeColumn = statusID === 18
-//     ? 'C' // for room one (status_id 18) just assign to column C
-//     : String.fromCharCode(statusID + 43);  // otherwise, statusID + 43 = char code for the column we're looking for
-
-//   // for the rest of the rooms at CH:
-//   // status ids for rooms 6 - 11 and dog/cat lobby statuses are 29 and greater
-//   if (location === 'CH' && statusID >= 29) {
-//     // handle for cat or dog lobby statuses
-//     const isCatLobbyStatus = statusID === 40;
-//     if (isCatLobbyStatus || statusID === 39) {
-//       timeRow = isCatLobbyStatus
-//         ? 3 : 13;
-//       timeColumn = isCatLobbyStatus
-//         ? 'H' : 'I';
-//     }
-
-//     // else we're handling for rooms 6 - 11
-//     else {
-//       timeRow = 13;
-//       timeColumn = statusID === 36
-//         ? 'H' // if room 11 (status id = 36), just assign to column H
-//         : String.fromCharCode(statusID + 38); // otherwise, statusID + 38 = char code for the correct column
-
-//     }
-//   }
-
-//   // return the range for the room up through the dvm row
-//   return sheet.getRange(`${timeColumn}${timeRow}:${timeColumn}${timeRow + 5}`);
-// }
-
 function getRoomColor(typeID, resourceID) {
   // if it's IM make the background purple
   const typeCategory = typeIDToCategoryMap.get(typeID);
