@@ -23,16 +23,16 @@ function moveToRoom(appointment, location, locationToRoomCoordsMap) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
   const initialRoomRange = sheet.getRange(roomCoords);
-  const [roomRange, incomingAnimalText] = parseTheRoom(sheet, appointment, location, undefined, initialRoomRange) || [];
+  const [roomRange, incomingAnimalText, roomValues] = parseTheRoom(sheet, appointment, location, undefined, initialRoomRange) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location);
+  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, roomValues);
 
   return;
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location) {
+function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, roomValues) {
   const isWCSxRoom = new Set([41, 42, 43]).has(appointment.status_id);
   // if not white center surgery room, set bg color of room
   if (!isWCSxRoom) {
@@ -52,18 +52,18 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location)
   const reasonText = `${appointment.description}${techText(appointment.type_id)}`;
   const reasonRichText = simpleTextToRichText(reasonText);
 
-  const emptyRichText = simpleTextToRichText('');
+  // const emptyRichText = simpleTextToRichText('');
 
   const richTextVals = [
     [timeRichText],
     [link],
     [reasonRichText],
-    [emptyRichText],
-    [isWCSxRoom ? null : emptyRichText],
-    [emptyRichText],
-    [emptyRichText],
-    [emptyRichText],
-    [isWCSxRoom ? emptyRichText : simpleTextToRichText('d')]
+    [simpleTextToRichText(roomValues[3])],
+    [isWCSxRoom ? simpleTextToRichText('d') : roomValues[4]],
+    [simpleTextToRichText(roomValues[5])],
+    [simpleTextToRichText(roomValues[6])],
+    [simpleTextToRichText(roomValues[7])],
+    [isWCSxRoom ? simpleTextToRichText(roomValues[8]) : simpleTextToRichText('d')]
   ];
 
   roomRange.offset(0, 0, 9, 1).setRichTextValues(richTextVals);
@@ -181,7 +181,7 @@ function parseTheRoom(
   }
 
   // otherwise, this is a normal empty room
-  return [roomRange, incomingAnimalText];
+  return [roomRange, incomingAnimalText, roomValues];
 }
 
 // note that we have already weeded out status ids >= 31 at DT and status ids >= 29 at WC earlier in moveToRoom()
