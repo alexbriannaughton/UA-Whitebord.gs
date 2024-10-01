@@ -12,7 +12,7 @@
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
 function moveToRoom(appointment, location, locationToRoomCoordsMap) {
-  const roomCoords = locationToRoomCoordsMap[location];
+  const roomCoords = locationToRoomCoordsMap[location]; // change this so it gets all 9 cells
 
   // if we're moving into a room that doesn't exist... don't do that
   if (!roomCoords) return stopMovingToRoom(appointment, location);
@@ -22,11 +22,11 @@ function moveToRoom(appointment, location, locationToRoomCoordsMap) {
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
-  const initialRoomRange = sheet.getRange(roomCoords);
-  const [roomRange, incomingAnimalText, roomValues] = parseTheRoom(sheet, appointment, location, undefined, initialRoomRange) || [];
+  const fullRoomRange = sheet.getRange(roomCoords);
+  const [roomRange, incomingAnimalText, allRoomVals] = parseTheRoom(sheet, appointment, location, undefined, fullRoomRange) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, roomValues);
+  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals);
 
   return;
 
@@ -90,10 +90,12 @@ function parseTheRoom(
   appointment,
   location,
   rangeForSecondCatLobbyColumn, // will be undefined unless the first cat lobby column is unavailable
-  initialRoomRange
+  fullRoomRange
 ) {
 
-  const roomRange = rangeForSecondCatLobbyColumn ?? initialRoomRange;
+  const roomRange = rangeForSecondCatLobbyColumn ?? fullRoomRange;
+  const allRoomVals = roomRange.getValues();
+
   const ptCell = roomRange.offset(1, 0, 1, 1);
   const ptCellRuns = ptCell.getRichTextValue().getRuns();
   const curLink = getLinkFromRuns(ptCellRuns);
@@ -110,7 +112,7 @@ function parseTheRoom(
   const [animalName, animalSpecies] = getAnimalInfo(appointment.animal_id);
   const incomingAnimalText = `${animalName} (${animalSpecies})`;
 
-  const roomValues = roomRange.getValues();
+  const roomValues = allRoomVals.slice(-4);
 
   if (!roomIsOkToPopulateWithData(roomValues, location)) {
     const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
@@ -183,7 +185,7 @@ function parseTheRoom(
   }
 
   // otherwise, this is a normal empty room
-  return [roomRange, incomingAnimalText, roomValues];
+  return [roomRange, incomingAnimalText, allRoomVals];
 }
 
 // note that we have already weeded out status ids >= 31 at DT and status ids >= 29 at WC earlier in moveToRoom()
