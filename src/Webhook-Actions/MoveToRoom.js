@@ -12,6 +12,8 @@
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
 function moveToRoom(appointment, location, locationToRoomCoordsMap) {
+  const isWCSxRoom = new Set([41, 42, 43]).has(appointment.status_id);
+
   const roomCoords = locationToRoomCoordsMap[location]; // change this so it gets all 9 cells
 
   // if we're moving into a room that doesn't exist... don't do that
@@ -23,17 +25,16 @@ function moveToRoom(appointment, location, locationToRoomCoordsMap) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
   const fullRoomRange = sheet.getRange(roomCoords);
-  const [roomRange, incomingAnimalText, allRoomVals] = parseTheRoom(sheet, appointment, location, undefined, fullRoomRange) || [];
+  const [roomRange, incomingAnimalText, allRoomVals] = parseTheRoom(sheet, appointment, location, fullRoomRange, isWCSxRoom) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals);
+  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals, isWCSxRoom);
 
   return;
 
 };
 
 function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals) {
-  const isWCSxRoom = new Set([41, 42, 43]).has(appointment.status_id);
   // if not white center surgery room, set bg color of room
   if (!isWCSxRoom) {
     roomRange.offset(0, 0, 8, 1).setBackground(
@@ -51,11 +52,6 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
 
   const reasonText = `${appointment.description}${techText(appointment.type_id)}`;
   const reasonRichText = simpleTextToRichText(reasonText);
-
-  // const emptyRichText = simpleTextToRichText('');
-
-
-  console.log(allRoomVals)
 
   const richTextVals = [
     [timeRichText],
@@ -90,10 +86,11 @@ function parseTheRoom(
   sheet,
   appointment,
   location,
+  fullRoomRange,
+  isWCSxRoom,
   rangeForSecondCatLobbyColumn, // will be undefined unless the first cat lobby column is unavailable
-  fullRoomRange
 ) {
-  
+
   const roomRange = rangeForSecondCatLobbyColumn ?? fullRoomRange;
   const allRoomVals = roomRange.getValues();
 
@@ -113,7 +110,7 @@ function parseTheRoom(
   const [animalName, animalSpecies] = getAnimalInfo(appointment.animal_id);
   const incomingAnimalText = `${animalName} (${animalSpecies})`;
 
-  const roomValues = allRoomVals.slice(0, -4);
+  const roomValues = isWCSxRoom ? allRoomVals.slice(0, -6) : allRoomVals.slice(0, -3);
 
   if (!roomIsOkToPopulateWithData(roomValues, location)) {
     const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
@@ -130,6 +127,8 @@ function parseTheRoom(
           sheet,
           appointment,
           location,
+          fullRoomRange,
+          isWCSxRoom,
           roomRange.offset(0, 1) // this is the range for the second cat lobby column
         )
       }
@@ -176,6 +175,8 @@ function parseTheRoom(
         sheet,
         appointment,
         location,
+        fullRoomRange,
+        isWCSxRoom,
         roomRange.offset(0, 1) // this is the range for the second cat lobby column
       );
     }
