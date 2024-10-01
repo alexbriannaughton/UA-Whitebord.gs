@@ -54,7 +54,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
 
   // const emptyRichText = simpleTextToRichText('');
 
-  
+
   console.log(allRoomVals)
 
   const richTextVals = [
@@ -62,7 +62,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
     [link],
     [reasonRichText],
     [simpleTextToRichText(allRoomVals[3])],
-    [isWCSxRoom ? simpleTextToRichText('d') : allRoomVals[4]],
+    [isWCSxRoom ? simpleTextToRichText('d') : simpleTextToRichText(allRoomVals[4])],
     [simpleTextToRichText(allRoomVals[5])],
     [simpleTextToRichText(allRoomVals[6])],
     [simpleTextToRichText(allRoomVals[7])],
