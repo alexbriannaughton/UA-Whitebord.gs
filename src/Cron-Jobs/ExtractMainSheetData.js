@@ -49,7 +49,7 @@ function extractRoomsDataAndGetStaffingVals(
     const range = sheet.getRange(rangeCoords);
     const rtVals = range.getRichTextValues();
     const rowFourRTVals = rtVals[1];
-    
+
     parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, roomsWithLinks, sheetName);
 
     if (sheetName !== 'DT') { // cap hill and white center have 2 locations / lobbies, so there's an extra step
@@ -87,16 +87,18 @@ function extractRoomsDataAndGetStaffingVals(
 }
 
 function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, sheetName) {
-    const columnSliceAmount = {
-        'CH': undefined, // dont slice anything
-        'DT': 7,
-        'WC': 5
-    };
+    // const columnSliceAmount = {
+    //     'CH': undefined, // dont slice anything
+    //     'DT': 7,
+    //     'WC': 5
+    // };
 
-    const slicedRowRtVals = rowRTVals.slice(0, columnSliceAmount[sheetName]);
+    const slicedRowRtVals = rowRTVals
+    // .slice(0, columnSliceAmount[sheetName]);
 
     for (let i = 0; i < slicedRowRtVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
+        if (!statusID) break;
         const roomLocationKey = sheetName + statusID;
         const runs = slicedRowRtVals[i].getRuns();
         for (const richText of runs) {
