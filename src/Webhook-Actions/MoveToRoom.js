@@ -151,14 +151,15 @@ function parseTheRoom(
     else curContactID = getContactIDFromConsultID(curLinkID); // otherwise this is a consult id. use it to get the contact ID
 
     // if that contact id matches the contact id of the appointment we're trying to move to this room, handle a multiple pet room
-    if (parseInt(curContactID) === appointment.contact_id) {
+    if (Number(curContactID) === appointment.contact_id) {
       handleMultiplePetRoom(
         appointment,
         incomingAnimalText,
         ptCell,
         alreadyMultiplePets,
         roomRange,
-        roomValues
+        roomValues,
+        isWCSxRoom
       );
 
       deleteFromWaitlist(location, appointment.consult_id);
@@ -234,7 +235,8 @@ function handleMultiplePetRoom(
   ptCell,
   alreadyMultiplePets,
   roomRange,
-  roomValues
+  roomValues,
+  isWCSxRoom
 ) {
   const curAnimalText = roomValues[1][0];
   const curAnimalReasonText = roomValues[2][0];
@@ -244,8 +246,7 @@ function handleMultiplePetRoom(
     ? `${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
-  // if either of the appointments is not a tech, make it gray
-  if (!reasonText.includes('(TECH)') || !incomingAnimalText.includes('(TECH)')) {
+  if (!isWCSxRoom && (!reasonText.includes('(TECH)') || !incomingAnimalText.includes('(TECH)'))) {
     roomRange.offset(0, 0, 8, 1).setBackground('#f3f3f3');
   }
 
