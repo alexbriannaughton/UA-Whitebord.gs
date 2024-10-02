@@ -53,8 +53,6 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
   const reasonText = `${appointment.description}${techText(appointment.type_id)}`;
   const reasonRichText = simpleTextToRichText(reasonText);
 
-  console.log(allRoomVals)
-
   const richTextVals = [
     [timeRichText],
     [link],
@@ -95,6 +93,7 @@ function parseTheRoom(
 
   const roomRange = rangeForSecondCatLobbyColumn ?? fullRoomRange;
   const allRoomVals = roomRange.getValues();
+  console.log(allRoomVals)
 
   const ptCell = roomRange.offset(1, 0, 1, 1);
   const ptCellRuns = ptCell.getRichTextValue().getRuns();

@@ -45,4 +45,4 @@ const locationInpatientCoords = new Map([
 const locationNumOfRoomsCellCoords = new Map([
     ['CH', 'O4'],
     ['WC', 'I3']
-])
+]);
