@@ -80,7 +80,7 @@ const dtDVMApptTypeIDs = new Set([
 
 // takes appointment.type_id and outputs a string for the procedure type
 const typeIDToCategoryMap = new Map([
-    [7, 'sx'], [76, 'sx'], [89, 'sx'], [90, 'sx'], [101, 'sx']  // Surgery type IDs
+    [7, 'sx'], [76, 'sx'], [89, 'sx'], [90, 'sx'], [100, 'sx'], [101, 'sx'],  // Surgery type IDs
     [29, 'aus'], [91, 'aus'],                             // Ultrasound type IDs
     [30, 'echo'],                                           // Echocardiogram type ID
     [28, 'dental'], [86, 'dental'], [94, 'dental'],     // Dental type IDs
