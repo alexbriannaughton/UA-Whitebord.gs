@@ -30,10 +30,6 @@ function handleAppointment(webhookType, appointment) {
     if (locationToRoomCoordsMap) {
         return moveToRoom(appointment, location, locationToRoomCoordsMap);
     }
-    
-    // if (isRoomStatus(appointment.status_id)) {
-    //     return moveToRoom(appointment, location);
-    // }
 
     const nonDtStatusHandlers = {
         17: addToWaitlist, // 'on wait list'
@@ -89,7 +85,7 @@ function handleDTAppointment(appointment, location, locationToRoomCoordsMap) {
 
     if (!isTodayInUserTimezone(timestampDate)) return null;
 
-    if (isRoomStatus(appointment.status_id)) {
+    if (locationToRoomCoordsMap) { // this would mean that its a room status
         return moveToRoom(appointment, location, locationToRoomCoordsMap);
     }
 
