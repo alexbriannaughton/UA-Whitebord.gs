@@ -11,28 +11,36 @@
 // appointment.status_id 36 = room11 = CH cells: H13, H14, H15
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
-function moveToRoom(appointment, location) {
+function moveToRoom(appointment, location, locationToRoomCoordsMap) {
+  const isWCSxRoom = new Set([41, 42, 43]).has(appointment.status_id);
+
+  const roomCoords = locationToRoomCoordsMap[location]; // change this so it gets all 9 cells
+
   // if we're moving into a room that doesn't exist... don't do that
-  if ((appointment.status_id >= 31 && location === 'DT') || (appointment.status_id >= 29 && location === 'WC')) {
-    return stopMovingToRoom(appointment, location);
-  }
+  if (!roomCoords) return stopMovingToRoom(appointment, location);
+  // if ((appointment.status_id >= 31 && location === 'DT') || (appointment.status_id >= 29 && location === 'WC')) {
+  //   return stopMovingToRoom(appointment, location);
+  // }
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
 
-  const [roomRange, incomingAnimalText] = parseTheRoom(sheet, appointment, location) || [];
+  const fullRoomRange = sheet.getRange(roomCoords);
+  const [roomRange, incomingAnimalText, allRoomVals] = parseTheRoom(sheet, appointment, location, fullRoomRange, isWCSxRoom) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location);
+  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals, isWCSxRoom);
 
   return;
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location) {
-  // set bg color of room
-  roomRange.offset(0, 0, 8, 1).setBackground(
-    getRoomColor(appointment.type_id, appointment.resources[0].id)
-  );
+function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals, isWCSxRoom) {
+  // if not white center surgery room, set bg color of room
+  if (!isWCSxRoom) {
+    roomRange.offset(0, 0, 8, 1).setBackground(
+      getRoomColor(appointment.type_id, appointment.resources[0].id)
+    );
+  }
 
   const timeText = convertEpochToUserTimezone(appointment.modified_at);
   const timeRichText = simpleTextToRichText(timeText);
@@ -45,18 +53,16 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location)
   const reasonText = `${appointment.description}${techText(appointment.type_id)}`;
   const reasonRichText = simpleTextToRichText(reasonText);
 
-  const emptyRichText = simpleTextToRichText('');
-
   const richTextVals = [
     [timeRichText],
     [link],
     [reasonRichText],
-    [emptyRichText],
-    [emptyRichText],
-    [emptyRichText],
-    [emptyRichText],
-    [emptyRichText],
-    [simpleTextToRichText('d')]
+    [simpleTextToRichText(allRoomVals[3])],
+    [isWCSxRoom ? simpleTextToRichText('d') : simpleTextToRichText(allRoomVals[4])],
+    [simpleTextToRichText(allRoomVals[5])],
+    [simpleTextToRichText(allRoomVals[6])],
+    [simpleTextToRichText(allRoomVals[7])],
+    [isWCSxRoom ? simpleTextToRichText(allRoomVals[8]) : simpleTextToRichText('d')]
   ];
 
   roomRange.offset(0, 0, 9, 1).setRichTextValues(richTextVals);
@@ -80,12 +86,14 @@ function parseTheRoom(
   sheet,
   appointment,
   location,
-  rangeForSecondCatLobbyColumn // will be undefined unless the first cat lobby column is unavailable
+  fullRoomRange,
+  isWCSxRoom,
+  rangeForSecondCatLobbyColumn, // will be undefined unless the first cat lobby column is unavailable
 ) {
 
-  const roomRange = rangeForSecondCatLobbyColumn === undefined
-    ? findRoomRange(sheet, appointment.status_id, location)
-    : rangeForSecondCatLobbyColumn;
+  const roomRange = rangeForSecondCatLobbyColumn ?? fullRoomRange;
+  const allRoomVals = roomRange.getValues();
+
   const ptCell = roomRange.offset(1, 0, 1, 1);
   const ptCellRuns = ptCell.getRichTextValue().getRuns();
   const curLink = getLinkFromRuns(ptCellRuns);
@@ -102,7 +110,7 @@ function parseTheRoom(
   const [animalName, animalSpecies] = getAnimalInfo(appointment.animal_id);
   const incomingAnimalText = `${animalName} (${animalSpecies})`;
 
-  const roomValues = roomRange.getValues();
+  const roomValues = isWCSxRoom ? allRoomVals.slice(0, -6) : allRoomVals.slice(0, -3);
 
   if (!roomIsOkToPopulateWithData(roomValues, location)) {
     const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
@@ -119,6 +127,8 @@ function parseTheRoom(
           sheet,
           appointment,
           location,
+          fullRoomRange,
+          isWCSxRoom,
           roomRange.offset(0, 1) // this is the range for the second cat lobby column
         )
       }
@@ -141,14 +151,15 @@ function parseTheRoom(
     else curContactID = getContactIDFromConsultID(curLinkID); // otherwise this is a consult id. use it to get the contact ID
 
     // if that contact id matches the contact id of the appointment we're trying to move to this room, handle a multiple pet room
-    if (parseInt(curContactID) === appointment.contact_id) {
+    if (Number(curContactID) === appointment.contact_id) {
       handleMultiplePetRoom(
         appointment,
         incomingAnimalText,
         ptCell,
         alreadyMultiplePets,
         roomRange,
-        roomValues
+        roomValues,
+        isWCSxRoom
       );
 
       deleteFromWaitlist(location, appointment.consult_id);
@@ -165,6 +176,8 @@ function parseTheRoom(
         sheet,
         appointment,
         location,
+        fullRoomRange,
+        isWCSxRoom,
         roomRange.offset(0, 1) // this is the range for the second cat lobby column
       );
     }
@@ -175,43 +188,7 @@ function parseTheRoom(
   }
 
   // otherwise, this is a normal empty room
-  return [roomRange, incomingAnimalText];
-}
-
-// note that we have already weeded out status ids >= 31 at DT and status ids >= 29 at WC earlier in moveToRoom()
-function findRoomRange(sheet, statusID, location) {
-  // we're finding the time cell to use as a starting place
-
-  // all rooms at WC, all rooms at DT and rooms 1-5 at CH are handled similarly:
-  let timeRow = 3;
-  let timeColumn = statusID === 18
-    ? 'C' // for room one (status_id 18) just assign to column C
-    : String.fromCharCode(statusID + 43);  // otherwise, statusID + 43 = char code for the column we're looking for
-
-  // for the rest of the rooms at CH:
-  // status ids for rooms 6 - 11 and dog/cat lobby statuses are 29 and greater
-  if (location === 'CH' && statusID >= 29) {
-    // handle for cat or dog lobby statuses
-    const isCatLobbyStatus = statusID === 40;
-    if (isCatLobbyStatus || statusID === 39) {
-      timeRow = isCatLobbyStatus
-        ? 3 : 13;
-      timeColumn = isCatLobbyStatus
-        ? 'H' : 'I';
-    }
-
-    // else we're handling for rooms 6 - 11
-    else {
-      timeRow = 13;
-      timeColumn = statusID === 36
-        ? 'H' // if room 11 (status id = 36), just assign to column H
-        : String.fromCharCode(statusID + 38); // otherwise, statusID + 38 = char code for the correct column
-
-    }
-  }
-
-  // return the range for the room up through the dvm row
-  return sheet.getRange(`${timeColumn}${timeRow}:${timeColumn}${timeRow + 5}`);
+  return [roomRange, incomingAnimalText, allRoomVals];
 }
 
 function getRoomColor(typeID, resourceID) {
@@ -258,7 +235,8 @@ function handleMultiplePetRoom(
   ptCell,
   alreadyMultiplePets,
   roomRange,
-  roomValues
+  roomValues,
+  isWCSxRoom
 ) {
   const curAnimalText = roomValues[1][0];
   const curAnimalReasonText = roomValues[2][0];
@@ -268,8 +246,7 @@ function handleMultiplePetRoom(
     ? `${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
-  // if either of the appointments is not a tech, make it gray
-  if (!reasonText.includes('(TECH)') || !incomingAnimalText.includes('(TECH)')) {
+  if (!isWCSxRoom && (!reasonText.includes('(TECH)') || !incomingAnimalText.includes('(TECH)'))) {
     roomRange.offset(0, 0, 8, 1).setBackground('#f3f3f3');
   }
 

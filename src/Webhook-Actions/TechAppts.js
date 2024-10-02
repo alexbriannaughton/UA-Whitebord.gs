@@ -4,10 +4,12 @@ function addTechAppt(appointment, location) {
   const techBoxCoordsMap = new Map([
     ['CH', 'K6:O21'],
     // ['DT', 'L3:N11'],
-    ['WC', 'K4:N11']
+    ['WC', 'K4:N11'],
+    ['WCSx', 'G14:I17']
   ]);
 
-  const techBoxCoords = techBoxCoordsMap.get(location);
+  const locKey = appointment.status_id === 44 ? 'WCSx' : location;
+  const techBoxCoords = techBoxCoordsMap.get(locKey);
   const techApptRange = sheet.getRange(techBoxCoords);
 
   const { highestEmptyRow: rowRange } = findRow(techApptRange, appointment.consult_id, 1);
