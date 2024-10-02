@@ -49,6 +49,7 @@ function extractRoomsDataAndGetStaffingVals(
     const range = sheet.getRange(rangeCoords);
     const rtVals = range.getRichTextValues();
     const rowFourRTVals = rtVals[1];
+    
     parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, roomsWithLinks, sheetName);
 
     if (sheetName !== 'DT') { // cap hill and white center have 2 locations / lobbies, so there's an extra step
