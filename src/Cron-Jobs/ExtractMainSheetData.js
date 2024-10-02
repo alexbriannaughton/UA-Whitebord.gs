@@ -87,20 +87,12 @@ function extractRoomsDataAndGetStaffingVals(
 }
 
 function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, sheetName) {
-    // const columnSliceAmount = {
-    //     'CH': undefined, // dont slice anything
-    //     'DT': 7,
-    //     'WC': 5
-    // };
-
-    const slicedRowRtVals = rowRTVals
-    // .slice(0, columnSliceAmount[sheetName]);
-
-    for (let i = 0; i < slicedRowRtVals.length; i++) {
+    for (let i = 0; i < rowRTVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
         if (!statusID) break;
+        
         const roomLocationKey = sheetName + statusID;
-        const runs = slicedRowRtVals[i].getRuns();
+        const runs = rowRTVals[i].getRuns();
         for (const richText of runs) {
             const link = richText.getLinkUrl();
             if (!link) continue;
