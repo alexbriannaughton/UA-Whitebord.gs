@@ -175,12 +175,12 @@ const roomStatusLocationToCoords = {
     43: { // wc sx 1
         CH: null,
         DT: null,
-        WC: 'C13:C16'
+        WC: 'C13:C21'
     },
     42: { // wc sx 2
         CH: null,
         DT: null,
-        WC: 'D13:D16'
+        WC: 'D13:D21'
     },
     41: { // wc sx 3
         CH: null,
