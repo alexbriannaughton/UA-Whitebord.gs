@@ -37,31 +37,42 @@ function extractMainSheetData(sheets) {
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 10 minutes during open hours
-function extractRoomsDataAndGetStaffingVals(sheetName, rangeCoords, indexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets) {
+function extractRoomsDataAndGetStaffingVals(
+    sheetName,
+    rangeCoords,
+    indexToStatusIDMap,
+    roomsWithLinks,
+    numOfRoomsInUse,
+    sheets
+) {
     const sheet = sheets.find(sheet => sheet.getName() === sheetName);
-    // const sheet = ssApp.getSheetByName(sheetName);
     const range = sheet.getRange(rangeCoords);
-
     const rtVals = range.getRichTextValues();
     const rowFourRTVals = rtVals[1];
     parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, roomsWithLinks, sheetName);
-    if (sheetName === 'CH') { // cap hill has 2 lobbies, so we have this extra step
-        // const rowFourteenRTVals = rtVals.at(-2);
-        const rowFourteenRTVals = rtVals[11];
-        const chRowFourteenIndexToSatusIDMap = new Map([
-            [0, '29'], // room 6
-            [1, '30'], //Room 7
-            [2, '31'], //Room 8
-            [3, '32'], //Room 9
-            [4, '33'], //Room 10
-            [5, '36'], //Room 11
-            [6, '39'], //Dog Lobby
-        ]);
-        parseOneRowForLinks(rowFourteenRTVals, chRowFourteenIndexToSatusIDMap, roomsWithLinks, sheetName);
-    }
 
+    if (sheetName !== 'DT') { // cap hill and white center have 2 locations / lobbies, so there's an extra step
+        const rowFourteenRTVals = rtVals[11];
+        const rowFourteenIndexToSatusIDMap = sheetName === 'CH'
+            ? new Map([ // cap hill dog lobby
+                [0, '29'], // room 6
+                [1, '30'], //Room 7
+                [2, '31'], //Room 8
+                [3, '32'], //Room 9
+                [4, '33'], //Room 10
+                [5, '36'], //Room 11
+                [6, '39'], //Dog Lobby
+            ])
+            : new Map([ // white center surgery building
+                [0, '43'], // sx room 1
+                [1, '42'], // sx room 2
+                [2, '41'], // sx room 3
+            ]);
+        parseOneRowForLinks(rowFourteenRTVals, rowFourteenIndexToSatusIDMap, roomsWithLinks, sheetName);
+    }
+    // else it is DT...
     // we dont currently make waitlogs for dt, so no need to determine its rooms in use
-    if (sheetName === 'DT') return range.offset(0, 8, 9, 4).getValues();
+    else return range.offset(0, 8, 9, 4).getValues();
 
     const vals = range.getValues();
     const roomsInUse = sheetName === 'CH'
