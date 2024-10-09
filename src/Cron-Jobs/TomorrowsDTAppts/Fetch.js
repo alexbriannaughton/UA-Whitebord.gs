@@ -233,8 +233,8 @@ function bodyForEzyVetGet(url) {
 function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
     let outputItems = [];
 
-    let responses = tryFetchAll(requests, resourceName, dtAppts, urlBase, keyToIds);
-    if (Array.isArray(responses)) return responses;
+    let responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);
+    if (outputItems.length) return outputItems;
 
     try {
         handleRespsForFetchAll(responses, outputItems, resourceName, requests);
@@ -245,7 +245,8 @@ function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
             console.log('Rate limit error detected. Going to wait 1 minute.');
             Utilities.sleep(60000);
             outputItems = [];
-            responses = tryFetchAll(requests, resourceName, dtAppts, urlBase, keyToIds);
+            responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);
+            if (outputItems.length) return outputItems;
             handleRespsForFetchAll(responses, outputItems, resourceName);
         }
         else throw (error);
@@ -275,7 +276,7 @@ function handleRespsForFetchAll(
 }
 
 
-function tryFetchAll(requests, resourceName, dtAppts, urlBase, keyToIds) {
+function tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds) {
     try {
         console.log(`getting all ${resourceName} data...`);
         const responses1 = UrlFetchApp.fetchAll(requests);
@@ -285,7 +286,7 @@ function tryFetchAll(requests, resourceName, dtAppts, urlBase, keyToIds) {
         console.error(error.message);
         // if error.message indicates url length is too long
         if (error.message.includes('URL Length')) {
-            return splitUpFetches(resourceName, dtAppts, urlBase, keyToIds);
+            return splitUpFetches(resourceName, dtAppts, urlBase, keyToIds, outputItems);
         }
 
         console.error(`trying again to get all ${resourceName} data...`);
@@ -294,9 +295,8 @@ function tryFetchAll(requests, resourceName, dtAppts, urlBase, keyToIds) {
     }
 }
 
-function splitUpFetches(resourceName, dtAppts, urlBase, keyToIds) {
+function splitUpFetches(resourceName, dtAppts, urlBase, keyToIds, outputItems) {
     console.log(`splitting up fetches for requesting ${resourceName}...`);
-    const outputItems = [];
     for (const appt of dtAppts) {
         console.log(`attempting to get ${resourceName} for ${appt.animal.name} ${appt.contact.last_name}`);
         const idsArray = appt[keyToIds];
@@ -309,7 +309,6 @@ function splitUpFetches(resourceName, dtAppts, urlBase, keyToIds) {
         }
         outputItems.push(itemsForOneAppt);
     }
-    return outputItems;
 }
 
 function jsonParser(input) {
