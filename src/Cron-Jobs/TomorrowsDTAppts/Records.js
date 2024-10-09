@@ -218,14 +218,14 @@ function driveFolderProcessing(targetDateStr) {
     console.log('getting drive folders...');
     const rootFolders = DriveApp.getFolders();
 
-    console.log('trashing old ezyvet folders...');
-    while (rootFolders.hasNext()) {
-        const folder = rootFolders.next();
-        const folderName = folder.getName();
-        if (folderName.includes(folderNamePrefix)) {
-            folder.setTrashed(true);
-        }
-    }
+    // console.log('trashing old ezyvet folders...');
+    // while (rootFolders.hasNext()) {
+    //     const folder = rootFolders.next();
+    //     const folderName = folder.getName();
+    //     if (folderName.includes(folderNamePrefix)) {
+    //         folder.setTrashed(true);
+    //     }
+    // }
 
     console.log(`creating new drive folder for ${targetDateStr}...`);
     const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + targetDateStr);

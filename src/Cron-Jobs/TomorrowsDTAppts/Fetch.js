@@ -183,13 +183,14 @@ function secondRoundOfFetches(dtAppts) {
     const prescriptionItemRequests = [];
     const animalsOfContactRequests = [];
 
+    const rxItemUrlBase = `${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=`;
+
     for (const appt of dtAppts) {
         consultAttachmentRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
         );
 
         const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
-        const rxItemUrlBase = `${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=`;
         prescriptionItemRequests.push(
             bodyForEzyVetGet(`${rxItemUrlBase}${encodedPrescriptionIDs}`)
         );
