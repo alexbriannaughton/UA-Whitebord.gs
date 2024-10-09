@@ -1,5 +1,3 @@
-const sliceAmountForLongURLDev = 200;
-
 // Fetch.js
 function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
     const targetDate = new Date(targetDateStr.split(' ')[1]);
@@ -122,7 +120,7 @@ function parseOtherAnimalConsults(
     }
     const animalsWhoHaveBeenHere = new Set();
     const allOtherAnimalConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
-    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs.slice(0, sliceAmountForLongURLDev) }));
+    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs }));
     console.log(`getting consults for siblings of ${animalName}...`);
     const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
     for (const { consult } of otherAnimalConsults) {
@@ -180,6 +178,49 @@ function firstRoundOfFetches(dtAppts) {
     return animalAttachmentData;
 }
 
+function secondRoundOfFetches(dtAppts) {
+    const consultAttachmentRequests = [];
+    const prescriptionItemRequests = [];
+    const animalsOfContactRequests = [];
+
+    for (const appt of dtAppts) {
+        consultAttachmentRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
+        );
+
+        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
+        const rxItemUrlBase = `${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=`;
+        prescriptionItemRequests.push(
+            bodyForEzyVetGet(`${rxItemUrlBase}${encodedPrescriptionIDs}`)
+        );
+        animalsOfContactRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
+        );
+    }
+
+    const prescriptionItemData = fetchAllResponses(
+        prescriptionItemRequests,
+        'prescription item',
+        dtAppts,
+        rxItemUrlBase,
+        'prescriptionIDs'
+    );
+    const animalsOfContactData = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
+
+    for (let i = 0; i < dtAppts.length; i++) {
+        const prescriptionItems = prescriptionItemData[i];
+        const animalsOfContact = animalsOfContactData[i];
+        const otherAnimalsOfContact = animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id);
+
+        const newApptData = { prescriptionItems, otherAnimalsOfContact };
+
+        dtAppts[i] = { ...dtAppts[i], ...newApptData };
+    }
+
+    const consultAttachmentData = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
+    return consultAttachmentData;
+};
+
 function bodyForEzyVetGet(url) {
     return {
         muteHttpExceptions: true,
@@ -189,10 +230,11 @@ function bodyForEzyVetGet(url) {
     }
 };
 
-function fetchAllResponses(requests, resourceName) {
+function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
     let outputItems = [];
 
-    let responses = tryFetchAll(requests, resourceName);
+    let responses = tryFetchAll(requests, resourceName, dtAppts, urlBase, keyToIds);
+    if (Array.isArray(responses)) return responses;
 
     try {
         handleRespsForFetchAll(responses, outputItems, resourceName, requests);
@@ -203,7 +245,7 @@ function fetchAllResponses(requests, resourceName) {
             console.log('Rate limit error detected. Going to wait 1 minute.');
             Utilities.sleep(60000);
             outputItems = [];
-            responses = tryFetchAll(requests, resourceName);
+            responses = tryFetchAll(requests, resourceName, dtAppts, urlBase, keyToIds);
             handleRespsForFetchAll(responses, outputItems, resourceName);
         }
         else throw (error);
@@ -233,55 +275,42 @@ function handleRespsForFetchAll(
 }
 
 
-function tryFetchAll(requests, resourceName) {
+function tryFetchAll(requests, resourceName, dtAppts, urlBase, keyToIds) {
     try {
         console.log(`getting all ${resourceName} data...`);
         const responses1 = UrlFetchApp.fetchAll(requests);
         return responses1;
     }
     catch (error) {
-        console.error(error);
+        console.error(error.message);
+        // if error.message indicates url length is too long
+        if (error.message.includes('URL Length')) {
+            return splitUpFetches(resourceName, dtAppts, urlBase, keyToIds);
+        }
+
         console.error(`trying again to get all ${resourceName} data...`);
         const responses2 = UrlFetchApp.fetchAll(requests);
         return responses2;
     }
 }
 
-function secondRoundOfFetches(dtAppts) {
-    const consultAttachmentRequests = [];
-    const prescriptionItemRequests = [];
-    const animalsOfContactRequests = [];
-
+function splitUpFetches(resourceName, dtAppts, urlBase, keyToIds) {
+    console.log(`splitting up fetches for requesting ${resourceName}...`);
+    const outputItems = [];
     for (const appt of dtAppts) {
-        consultAttachmentRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
-        );
-
-        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs.slice(0, sliceAmountForLongURLDev) }));
-        prescriptionItemRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
-        );
-        animalsOfContactRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
-        );
+        console.log(`attempting to get ${resourceName} for ${appt.animal.name} ${appt.contact.last_name}`);
+        const idsArray = appt[keyToIds];
+        const itemsForOneAppt = [];
+        for (let i = 0; i < idsArray.length; i += 30) {
+            const curIds = idsArray.slice(i, i + 30 + 1);
+            const encodedIds = encodeURIComponent(JSON.stringify({ "in": curIds }));
+            const { items } = fetchAndParse(urlBase + encodedIds);
+            itemsForOneAppt.push(...items);
+        }
+        outputItems.push(itemsForOneAppt);
     }
-
-    const prescriptionItemData = fetchAllResponses(prescriptionItemRequests, 'prescription item');
-    const animalsOfContactData = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
-
-    for (let i = 0; i < dtAppts.length; i++) {
-        const prescriptionItems = prescriptionItemData[i];
-        const animalsOfContact = animalsOfContactData[i];
-        const otherAnimalsOfContact = animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id);
-
-        const newApptData = { prescriptionItems, otherAnimalsOfContact };
-
-        dtAppts[i] = { ...dtAppts[i], ...newApptData };
-    }
-
-    const consultAttachmentData = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
-    return consultAttachmentData;
-};
+    return outputItems;
+}
 
 function jsonParser(input) {
     try {
