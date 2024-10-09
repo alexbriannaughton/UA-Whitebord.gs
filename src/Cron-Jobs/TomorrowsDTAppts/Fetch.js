@@ -1,3 +1,5 @@
+const sliceAmountForLongURLDev = 200;
+
 // Fetch.js
 function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
     const targetDate = new Date(targetDateStr.split(' ')[1]);
@@ -120,7 +122,7 @@ function parseOtherAnimalConsults(
     }
     const animalsWhoHaveBeenHere = new Set();
     const allOtherAnimalConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
-    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs }));
+    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs.slice(0, sliceAmountForLongURLDev) }));
     console.log(`getting consults for siblings of ${animalName}...`);
     const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
     for (const { consult } of otherAnimalConsults) {
@@ -255,7 +257,7 @@ function secondRoundOfFetches(dtAppts) {
             bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
         );
 
-        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
+        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs.slice(0, sliceAmountForLongURLDev) }));
         prescriptionItemRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
         );
