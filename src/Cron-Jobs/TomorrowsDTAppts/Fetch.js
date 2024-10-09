@@ -189,6 +189,7 @@ function bodyForEzyVetGet(url) {
 
 function fetchAllResponses(requests, resourceName) {
     let outputItems = [];
+    requests = requests.slice(0, 100);
 
     let responses = tryFetchAll(requests, resourceName);
 
@@ -255,7 +256,7 @@ function secondRoundOfFetches(dtAppts) {
             bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
         );
 
-        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs.slice(0, 50) }));
+        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
         prescriptionItemRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
         );
