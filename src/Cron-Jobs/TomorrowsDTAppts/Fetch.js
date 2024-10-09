@@ -189,20 +189,20 @@ function bodyForEzyVetGet(url) {
 
 function fetchAllResponses(requests, resourceName) {
     let outputItems = [];
-    requests = requests.slice(0, 100);
+    const slicedRequests = requests.slice(0, 100);
 
-    let responses = tryFetchAll(requests, resourceName);
+    let responses = tryFetchAll(slicedRequests, resourceName);
 
     try {
-        handleRespsForFetchAll(responses, outputItems, resourceName, requests);
+        handleRespsForFetchAll(responses, outputItems, resourceName, slicedRequests);
     }
     catch (error) {
         console.error(error);
         if (error.message.includes('too many requests recently')) {
-            console.log('Rate limit error detected. Going to wait 1 minute.');
+            console.log('Rate limit error detected. Waiting 1 minute and then will try again.');
             Utilities.sleep(60000);
             outputItems = [];
-            responses = tryFetchAll(requests, resourceName);
+            responses = tryFetchAll(slicedRequests, resourceName);
             handleRespsForFetchAll(responses, outputItems, resourceName);
         }
         else throw (error);
