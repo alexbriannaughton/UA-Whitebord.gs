@@ -165,6 +165,7 @@ function firstRoundOfFetches(dtAppts) {
         const newApptData = {
             consults,
             encodedConsultIDs,
+            consultIDs,
             prescriptions,
             prescriptionIDs,
             animal: animalData[i].at(-1).animal,
@@ -184,15 +185,16 @@ function secondRoundOfFetches(dtAppts) {
     const animalsOfContactRequests = [];
 
     const rxItemUrlBase = `${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=`;
+    const consultAttachmentUrlBase = `${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=`;
 
     for (const appt of dtAppts) {
         consultAttachmentRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
+            bodyForEzyVetGet(consultAttachmentUrlBase + appt.encodedConsultIDs)
         );
 
         const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
         prescriptionItemRequests.push(
-            bodyForEzyVetGet(`${rxItemUrlBase}${encodedPrescriptionIDs}`)
+            bodyForEzyVetGet(rxItemUrlBase + encodedPrescriptionIDs)
         );
         animalsOfContactRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
@@ -218,7 +220,14 @@ function secondRoundOfFetches(dtAppts) {
         dtAppts[i] = { ...dtAppts[i], ...newApptData };
     }
 
-    const consultAttachmentData = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
+    const consultAttachmentData = fetchAllResponses(
+        consultAttachmentRequests,
+        'consult attachment',
+        dtAppts,
+        consultAttachmentUrlBase,
+        'consultIDs'
+    );
+
     return consultAttachmentData;
 };
 
