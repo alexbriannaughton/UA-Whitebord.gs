@@ -254,8 +254,8 @@ function secondRoundOfFetches(dtAppts) {
         consultAttachmentRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
         );
-        console.log('rx ids len-', appt.prescriptionIDs.length)
-        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
+
+        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs.slice(0, 100) }));
         prescriptionItemRequests.push(
             bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
         );
