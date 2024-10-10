@@ -172,34 +172,38 @@ function firstRoundOfFetches(dtAppts) {
     const prescriptionData = fetchAllResponses(prescriptionRequests, "prescription");
 
     const encodedAllApptAnimalIds = encodeURIComponent(JSON.stringify({ "in": allApptAnimalIds }));
-    const animalData = fetchAndParse(`${proxy}/v1/animal?id=${encodedAllApptAnimalIds}`);
+    const { items: apptAnimals } = fetchAndParse(`${proxy}/v1/animal?active=1&limit=200&id=${encodedAllApptAnimalIds}`);
 
     const encodedAllApptContactIds = encodeURIComponent(JSON.stringify({ "in": allApptContactIds }));
-    const contactData = fetchAndParse(`${proxy}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
+    const { items: apptContacts } = fetchAndParse(`${proxy}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
 
-    console.log('dt apps len=',dtAppts.length);
-    console.log('animal data.len=', animalData.length);
-    console.log('contact data len=', contactData.length);
-    if (dtAppts.length !== animalData.length || dtAppts.length !== contactData.length) {
+    console.log('dt apps len=', dtAppts.length);
+    console.log('animal data.len=', apptAnimals.length);
+    console.log('contact data len=', apptContacts.length);
+    if (dtAppts.length !== apptAnimals.length || dtAppts.length !== apptContacts.length) {
         throw new Error('incorrect amount of animals or contacts returned for these appointments.');
     }
 
     for (let i = 0; i < dtAppts.length; i++) {
+        const { appointment } = dtAppts[i];
+        const { animal } = apptAnimals.find(({ animal }) => Number(animal.id) === appointment.details.animal_id);
+        const { contact } = apptContacts.find(({ contact }) => Number(contact.id) === appointment.details.contact_id);
+
         const consults = allConsultsForAnimalData[i];
         const consultIDs = consults.map(({ consult }) => consult.id);
-        // const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
 
         const prescriptions = prescriptionData[i];
         const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
 
         const newApptData = {
+            animal,
+            contact,
             consults,
-            // encodedConsultIDs,
             consultIDs,
             prescriptions,
             prescriptionIDs,
-            animal: animalData[i].at(-1).animal,
-            contact: contactData[i].at(-1).contact,
+            // animal: animalData[i].at(-1).animal,
+            // contact: contactData[i].at(-1).contact,
 
         }
         dtAppts[i] = { ...dtAppts[i], ...newApptData };
