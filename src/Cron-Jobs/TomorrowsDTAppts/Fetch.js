@@ -165,9 +165,11 @@ function firstRoundOfFetches(dtAppts) {
     const prescriptionData = fetchAllResponses(prescriptionRequests, "prescription");
 
     const encodedAllApptAnimalIds = encodeURIComponent(JSON.stringify({ "in": allApptAnimalIds }));
+    console.log('getting appointment animal data...');
     const { items: apptAnimals } = fetchAndParse(`${proxy}/v1/animal?active=1&limit=200&id=${encodedAllApptAnimalIds}`);
 
     const encodedAllApptContactIds = encodeURIComponent(JSON.stringify({ "in": allApptContactIds }));
+    console.log('getting appointment contact data...');
     const { items: apptContacts } = fetchAndParse(`${proxy}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
 
     if (dtAppts.length !== apptAnimals.length || dtAppts.length !== apptContacts.length) {
@@ -193,7 +195,7 @@ function firstRoundOfFetches(dtAppts) {
             prescriptions,
             prescriptionIDs,
         }
-        
+
         dtAppts[i] = { ...dtAppts[i], ...newApptData };
     }
 

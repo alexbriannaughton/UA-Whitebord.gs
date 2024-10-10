@@ -111,7 +111,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
 
         const blob = response.getBlob();
         const contentType = blob.getContentType();
-        console.log(`${fileNameInEzyVet} file type: ${contentType}`);
+        // console.log(`${fileNameInEzyVet} file type: ${contentType}`);
         const blobByes = new Uint8Array(blob.getBytes());
 
         if (contentType === 'application/pdf') {
