@@ -48,10 +48,9 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
     // fetchedForOtherAnimalConsultsMap = is a map array where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
     // first check if this patient has previous valid consults
     // if so, were just going to put that last date of this patients visit, and we're not going to check if they have other animals who have had consults
-    const consultsForOtherContactAnimalsRequestBaseUrl = `${proxy}/v1/consult?active=1&animal_id=`;
+    const consultsForOtherContactAnimalsRequestBaseUrl = `${proxy}/v1/consult?active=1&animal_id=`
     for (let i = 0; i < dtAppts.length; i++) {
         const { appointment, consults, otherAnimalsOfContact, consultIDs } = dtAppts[i];
-        const otherAnimalIDsOfContact = otherAnimalsOfContact.map(({ animal }) => animal.id);
         // note: appointments created through vetstoria do not have an consult, but we want to count it for this
         const apptHasConsult = appointment.details.consult_id; // check for existence of appointment's consult
         const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
@@ -85,6 +84,8 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
             // if its a rescue i dont want to get consultsforothercontactanimals
             // i just want to put in the cell that its this animals first time and the contact is a rescue
 
+            const otherAnimalIDsOfContact = otherAnimalsOfContact.map(({ animal }) => animal.id);
+            dtAppts[i].otherAnimalIDsOfContact = otherAnimalIDsOfContact;
             const encodedOtherAnimalIDs = encodeURIComponent(JSON.stringify({ "in": otherAnimalIDsOfContact }));
             consultsForOtherContactAnimalsRequests.push(
                 bodyForEzyVetGet(consultsForOtherContactAnimalsRequestBaseUrl + encodedOtherAnimalIDs)
@@ -102,7 +103,7 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
         `contact's other animals' consults where needed`,
         dtAppts,
         consultsForOtherContactAnimalsRequestBaseUrl,
-        otherAnimalIDsOfContact
+        'otherAnimalIDsOfContact'
     );
 
     // attach the other animal consults to the appropriate appointment
