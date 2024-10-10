@@ -48,14 +48,17 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
     // fetchedForOtherAnimalConsultsMap = is a map array where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
     // first check if this patient has previous valid consults
     // if so, were just going to put that last date of this patients visit, and we're not going to check if they have other animals who have had consults
+    const consultsForOtherContactAnimalsRequestBaseUrl = `${proxy}/v1/consult?active=1&animal_id=`
     for (let i = 0; i < dtAppts.length; i++) {
-        const { appointment, consults, otherAnimalsOfContact, encodedConsultIDs } = dtAppts[i];
+        const { appointment, consults, otherAnimalsOfContact, consultIDs } = dtAppts[i];
         // note: appointments created through vetstoria do not have an consult, but we want to count it for this
         const apptHasConsult = appointment.details.consult_id; // check for existence of appointment's consult
         const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
         if (numberOfConsults > 1) { // if the animal has potentially been here before..
             consults.sort((a, b) => b.consult.date - a.consult.date);
-            const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
+            // const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
+            const appts = getit(`${proxy}/v1/appointment?active=1&limit=200&consult_id=`, consultIDs);
+            // const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
             for (const { consult } of consults) {
                 // if the consult does not have an appointment, it is probably not an actual visit
                 // e.g. a fecal drop off will sometimes have a consult and not a visit, and we dont want to count that as a visit.
@@ -78,11 +81,16 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
         // if we were unable to find a valid previous visit for this animal, and the owner has other pets,
         // we're going to fetch for those animals' consults
         if (isAnimalsFirstTime && otherAnimalsOfContact.length) {
+            // if its a rescue i dont want to get consultsforothercontactanimals
+            // i just want to put in the cell that its this animals first time and the contact is a rescue
+
             const otherAnimalIDsOfContact = otherAnimalsOfContact.map(({ animal }) => animal.id);
+            dtAppts[i].otherAnimalIDsOfContact = otherAnimalIDsOfContact;
             const encodedOtherAnimalIDs = encodeURIComponent(JSON.stringify({ "in": otherAnimalIDsOfContact }));
             consultsForOtherContactAnimalsRequests.push(
-                bodyForEzyVetGet(`${proxy}/v1/consult?active=1&animal_id=${encodedOtherAnimalIDs}`)
+                bodyForEzyVetGet(consultsForOtherContactAnimalsRequestBaseUrl + encodedOtherAnimalIDs)
             );
+
             fetchedForOtherAnimalConsultsMap.push(true);
 
         }
@@ -92,7 +100,10 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
     // send the fetch all for the other animals's consults
     const contactOtherAnimalsConsultData = fetchAllResponses(
         consultsForOtherContactAnimalsRequests,
-        `contact's other animals' consults where needed`
+        `contact's other animals' consults where needed`,
+        dtAppts,
+        consultsForOtherContactAnimalsRequestBaseUrl,
+        'otherAnimalIDsOfContact'
     );
 
     // attach the other animal consults to the appropriate appointment
@@ -120,9 +131,9 @@ function parseOtherAnimalConsults(
     }
     const animalsWhoHaveBeenHere = new Set();
     const allOtherAnimalConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
-    const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs }));
+    const encodedConsultIDsOfOtherAnimals = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs }));
     console.log(`getting consults for siblings of ${animalName}...`);
-    const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
+    const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDsOfOtherAnimals}`);
     for (const { consult } of otherAnimalConsults) {
         const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
         const consultDate = getDateAtMidnight(consult.date);
@@ -157,14 +168,15 @@ function firstRoundOfFetches(dtAppts) {
     for (let i = 0; i < dtAppts.length; i++) {
         const consults = allConsultsForAnimalData[i];
         const consultIDs = consults.map(({ consult }) => consult.id);
-        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
+        // const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
 
         const prescriptions = prescriptionData[i];
         const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
 
         const newApptData = {
             consults,
-            encodedConsultIDs,
+            // encodedConsultIDs,
+            consultIDs,
             prescriptions,
             prescriptionIDs,
             animal: animalData[i].at(-1).animal,
@@ -178,6 +190,60 @@ function firstRoundOfFetches(dtAppts) {
     return animalAttachmentData;
 }
 
+function secondRoundOfFetches(dtAppts) {
+    const consultAttachmentRequests = [];
+    const prescriptionItemRequests = [];
+    const animalsOfContactRequests = [];
+
+    const rxItemUrlBase = `${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=`;
+    const consultAttachmentUrlBase = `${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=`;
+
+    for (const appt of dtAppts) {
+        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
+        consultAttachmentRequests.push(
+            bodyForEzyVetGet(consultAttachmentUrlBase + encodedConsultIDs)
+        );
+
+        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
+        prescriptionItemRequests.push(
+            bodyForEzyVetGet(rxItemUrlBase + encodedPrescriptionIDs)
+        );
+        animalsOfContactRequests.push(
+            bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
+        );
+    }
+
+    const prescriptionItemData = fetchAllResponses(
+        prescriptionItemRequests,
+        'prescription item',
+        dtAppts,
+        rxItemUrlBase,
+        'prescriptionIDs'
+    );
+
+    const animalsOfContactData = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
+
+    for (let i = 0; i < dtAppts.length; i++) {
+        const prescriptionItems = prescriptionItemData[i];
+        const animalsOfContact = animalsOfContactData[i];
+        const otherAnimalsOfContact = animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id);
+
+        const newApptData = { prescriptionItems, otherAnimalsOfContact };
+
+        dtAppts[i] = { ...dtAppts[i], ...newApptData };
+    }
+
+    const consultAttachmentData = fetchAllResponses(
+        consultAttachmentRequests,
+        'consult attachment',
+        dtAppts,
+        consultAttachmentUrlBase,
+        'consultIDs'
+    );
+
+    return consultAttachmentData;
+};
+
 function bodyForEzyVetGet(url) {
     return {
         muteHttpExceptions: true,
@@ -187,10 +253,11 @@ function bodyForEzyVetGet(url) {
     }
 };
 
-function fetchAllResponses(requests, resourceName) {
+function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
     let outputItems = [];
 
-    let responses = tryFetchAll(requests, resourceName);
+    let responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);
+    if (outputItems.length) return outputItems;
 
     try {
         handleRespsForFetchAll(responses, outputItems, resourceName, requests);
@@ -201,7 +268,8 @@ function fetchAllResponses(requests, resourceName) {
             console.log('Rate limit error detected. Going to wait 1 minute.');
             Utilities.sleep(60000);
             outputItems = [];
-            responses = tryFetchAll(requests, resourceName);
+            responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);
+            if (outputItems.length) return outputItems;
             handleRespsForFetchAll(responses, outputItems, resourceName);
         }
         else throw (error);
@@ -231,54 +299,52 @@ function handleRespsForFetchAll(
 }
 
 
-function tryFetchAll(requests, resourceName) {
+function tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds) {
     try {
         console.log(`getting all ${resourceName} data...`);
         const responses1 = UrlFetchApp.fetchAll(requests);
         return responses1;
     }
     catch (error) {
-        console.error(error);
+        console.error(error.message);
+        // if error.message indicates url length is too long
+        if (error.message.includes('URL Length')) {
+            return splitUpFetches(resourceName, dtAppts, urlBase, keyToIds, outputItems);
+        }
+
         console.error(`trying again to get all ${resourceName} data...`);
         const responses2 = UrlFetchApp.fetchAll(requests);
         return responses2;
     }
 }
 
-function secondRoundOfFetches(dtAppts) {
-    const consultAttachmentRequests = [];
-    const prescriptionItemRequests = [];
-    const animalsOfContactRequests = [];
-
+function splitUpFetches(resourceName, dtAppts, urlBase, keyToIds, outputItems) {
+    console.log(`splitting up fetches for requesting ${resourceName}...`);
     for (const appt of dtAppts) {
-        consultAttachmentRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=${appt.encodedConsultIDs}`)
-        );
-        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
-        prescriptionItemRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=${encodedPrescriptionIDs}`)
-        );
-        animalsOfContactRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
-        );
+        console.log(`attempting to get ${resourceName} for ${appt.animal.name} ${appt.contact.last_name}`);
+        const idsArray = appt[keyToIds];
+        // const itemsForOneAppt = [];
+        // for (let i = 0; i < idsArray.length; i += 30) {
+        //     const curIds = idsArray.slice(i, i + 30 + 1);
+        //     const encodedIds = encodeURIComponent(JSON.stringify({ "in": curIds }));
+        //     const { items } = fetchAndParse(urlBase + encodedIds);
+        //     itemsForOneAppt.push(...items);
+        // }
+        const itemsForOneAppt = getit(urlBase, idsArray);
+        outputItems.push(itemsForOneAppt);
     }
+}
 
-    const prescriptionItemData = fetchAllResponses(prescriptionItemRequests, 'prescription item');
-    const animalsOfContactData = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
-
-    for (let i = 0; i < dtAppts.length; i++) {
-        const prescriptionItems = prescriptionItemData[i];
-        const animalsOfContact = animalsOfContactData[i];
-        const otherAnimalsOfContact = animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id);
-
-        const newApptData = { prescriptionItems, otherAnimalsOfContact };
-
-        dtAppts[i] = { ...dtAppts[i], ...newApptData };
+function getit(urlBase, idsArray = []) {
+    const itemsForOneAppt = [];
+    for (let i = 0; i < idsArray.length; i += 30) {
+        const curIds = idsArray.slice(i, i + 30 + 1);
+        const encodedIds = encodeURIComponent(JSON.stringify({ "in": curIds }));
+        const { items } = fetchAndParse(urlBase + encodedIds);
+        itemsForOneAppt.push(...items);
     }
-
-    const consultAttachmentData = fetchAllResponses(consultAttachmentRequests, 'consult attachment');
-    return consultAttachmentData;
-};
+    return itemsForOneAppt;
+}
 
 function jsonParser(input) {
     try {
