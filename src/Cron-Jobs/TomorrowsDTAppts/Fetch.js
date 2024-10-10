@@ -56,9 +56,7 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
         const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
         if (numberOfConsults > 1) { // if the animal has potentially been here before..
             consults.sort((a, b) => b.consult.date - a.consult.date);
-            // const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
-            const appts = getit(`${proxy}/v1/appointment?active=1&limit=200&consult_id=`, consultIDs);
-            // const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDs}`);
+            const appts = fetchAndParseInChunks(`${proxy}/v1/appointment?active=1&limit=200&consult_id=`, consultIDs);
             for (const { consult } of consults) {
                 // if the consult does not have an appointment, it is probably not an actual visit
                 // e.g. a fecal drop off will sometimes have a consult and not a visit, and we dont want to count that as a visit.
@@ -145,44 +143,59 @@ function parseOtherAnimalConsults(
 }
 
 function firstRoundOfFetches(dtAppts) {
-    const animalRequests = [];
-    const contactRequests = [];
     const allConsultsForAnimalRequests = [];
     const prescriptionRequests = [];
     const animalAttachmentRequests = [];
 
+    const allApptAnimalIds = [];
+    const allApptContactIds = [];
+
     dtAppts.forEach(({ appointment }) => {
         const animalID = appointment.details.animal_id;
-        animalRequests.push(bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`));
-        contactRequests.push(bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`));
+
+        allApptAnimalIds.push(animalID);
+        allApptContactIds.push(appointment.details.contact_id);
+
         allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
         prescriptionRequests.push(bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
         animalAttachmentRequests.push(bodyForEzyVetGet(`${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
     });
 
-    const animalData = fetchAllResponses(animalRequests, "animal");
-    const contactData = fetchAllResponses(contactRequests, "contact");
     const allConsultsForAnimalData = fetchAllResponses(allConsultsForAnimalRequests, "consult");
     const prescriptionData = fetchAllResponses(prescriptionRequests, "prescription");
 
+    const encodedAllApptAnimalIds = encodeURIComponent(JSON.stringify({ "in": allApptAnimalIds }));
+    console.log('getting appointment animal data...');
+    const { items: apptAnimals } = fetchAndParse(`${proxy}/v1/animal?active=1&limit=200&id=${encodedAllApptAnimalIds}`);
+
+    const encodedAllApptContactIds = encodeURIComponent(JSON.stringify({ "in": allApptContactIds }));
+    console.log('getting appointment contact data...');
+    const { items: apptContacts } = fetchAndParse(`${proxy}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
+
+    if (dtAppts.length !== apptAnimals.length || dtAppts.length !== apptContacts.length) {
+        throw new Error('incorrect amount of animals or contacts returned for these appointments.');
+    }
+
     for (let i = 0; i < dtAppts.length; i++) {
+        const { appointment } = dtAppts[i];
+        const { animal } = apptAnimals.find(({ animal }) => Number(animal.id) === appointment.details.animal_id);
+        const { contact } = apptContacts.find(({ contact }) => Number(contact.id) === appointment.details.contact_id);
+
         const consults = allConsultsForAnimalData[i];
         const consultIDs = consults.map(({ consult }) => consult.id);
-        // const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": consultIDs }));
 
         const prescriptions = prescriptionData[i];
         const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
 
         const newApptData = {
+            animal,
+            contact,
             consults,
-            // encodedConsultIDs,
             consultIDs,
             prescriptions,
             prescriptionIDs,
-            animal: animalData[i].at(-1).animal,
-            contact: contactData[i].at(-1).contact,
-
         }
+
         dtAppts[i] = { ...dtAppts[i], ...newApptData };
     }
 
@@ -323,19 +336,12 @@ function splitUpFetches(resourceName, dtAppts, urlBase, keyToIds, outputItems) {
     for (const appt of dtAppts) {
         console.log(`attempting to get ${resourceName} for ${appt.animal.name} ${appt.contact.last_name}`);
         const idsArray = appt[keyToIds];
-        // const itemsForOneAppt = [];
-        // for (let i = 0; i < idsArray.length; i += 30) {
-        //     const curIds = idsArray.slice(i, i + 30 + 1);
-        //     const encodedIds = encodeURIComponent(JSON.stringify({ "in": curIds }));
-        //     const { items } = fetchAndParse(urlBase + encodedIds);
-        //     itemsForOneAppt.push(...items);
-        // }
-        const itemsForOneAppt = getit(urlBase, idsArray);
+        const itemsForOneAppt = fetchAndParseInChunks(urlBase, idsArray);
         outputItems.push(itemsForOneAppt);
     }
 }
 
-function getit(urlBase, idsArray = []) {
+function fetchAndParseInChunks(urlBase, idsArray = []) {
     const itemsForOneAppt = [];
     for (let i = 0; i < idsArray.length; i += 30) {
         const curIds = idsArray.slice(i, i + 30 + 1);

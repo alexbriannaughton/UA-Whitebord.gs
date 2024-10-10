@@ -21,6 +21,8 @@ function processProcedures(apptItems) {
         ['61', 'WC'], ['62', 'WC'], // wc resource ids for procedure columns
     ]); // this map serves to check if the appointment is in the above column, and sorts per location
 
+    apptItems.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
+    
     apptItems.forEach(({ appointment }) => {
         const resourceID = appointment.details.resource_list[0];
         const location = locationForProcedureMap.get(resourceID);
