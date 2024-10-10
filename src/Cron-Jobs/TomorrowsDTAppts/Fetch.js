@@ -335,7 +335,7 @@ function splitUpFetches(resourceName, dtAppts, urlBase, keyToIds, outputItems) {
     }
 }
 
-function getit(urlBase, idsArray) {
+function getit(urlBase, idsArray = []) {
     const itemsForOneAppt = [];
     for (let i = 0; i < idsArray.length; i += 30) {
         const curIds = idsArray.slice(i, i + 30 + 1);
