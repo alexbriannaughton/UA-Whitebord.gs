@@ -143,8 +143,6 @@ function parseOtherAnimalConsults(
 }
 
 function firstRoundOfFetches(dtAppts) {
-    // const animalRequests = [];
-    // const contactRequests = [];
     const allConsultsForAnimalRequests = [];
     const prescriptionRequests = [];
     const animalAttachmentRequests = [];
@@ -158,16 +156,11 @@ function firstRoundOfFetches(dtAppts) {
         allApptAnimalIds.push(animalID);
         allApptContactIds.push(appointment.details.contact_id);
 
-        // animalRequests.push(bodyForEzyVetGet(`${proxy}/v1/animal/${animalID}`));
-        // contactRequests.push(bodyForEzyVetGet(`${proxy}/v1/contact/${appointment.details.contact_id}`));
-
         allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
         prescriptionRequests.push(bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
         animalAttachmentRequests.push(bodyForEzyVetGet(`${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
     });
 
-    // const animalData = fetchAllResponses(animalRequests, "animal");
-    // const contactData = fetchAllResponses(contactRequests, "contact");
     const allConsultsForAnimalData = fetchAllResponses(allConsultsForAnimalRequests, "consult");
     const prescriptionData = fetchAllResponses(prescriptionRequests, "prescription");
 
@@ -177,9 +170,6 @@ function firstRoundOfFetches(dtAppts) {
     const encodedAllApptContactIds = encodeURIComponent(JSON.stringify({ "in": allApptContactIds }));
     const { items: apptContacts } = fetchAndParse(`${proxy}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
 
-    console.log('dt apps len=', dtAppts.length);
-    console.log('animal data.len=', apptAnimals.length);
-    console.log('contact data len=', apptContacts.length);
     if (dtAppts.length !== apptAnimals.length || dtAppts.length !== apptContacts.length) {
         throw new Error('incorrect amount of animals or contacts returned for these appointments.');
     }
@@ -202,10 +192,8 @@ function firstRoundOfFetches(dtAppts) {
             consultIDs,
             prescriptions,
             prescriptionIDs,
-            // animal: animalData[i].at(-1).animal,
-            // contact: contactData[i].at(-1).contact,
-
         }
+        
         dtAppts[i] = { ...dtAppts[i], ...newApptData };
     }
 

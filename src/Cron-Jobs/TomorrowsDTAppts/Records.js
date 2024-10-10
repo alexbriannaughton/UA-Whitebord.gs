@@ -8,12 +8,11 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
 
     for (let i = 0; i < dtAppts.length; i++) {
         const animalName = `${dtAppts[i].animal.name} ${dtAppts[i].contact.last_name}`;
-        console.log(`processing records for ${animalName}...`);
-
+        
         const consultAttachments = consultAttachmentData[i];
         const animalAttachments = animalAttachmentData[i];
         const numOfAttachments = animalAttachments.length + consultAttachments.length;
-        console.log(`${animalName} total num of attachments:`, numOfAttachments);
+        console.log(`processing ${numOfAttachments} record(s) for ${animalName}...`);
 
         // if there's a ton of records, or if there's zero attachments,
         if (numOfAttachments > 20) {
@@ -65,7 +64,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
             attachmentDownloadResponses.push(dlResp);
         }
 
-        console.log(`initializing .pdf for ${animalName}...`);
+        // console.log(`initializing .pdf for ${animalName}...`);
         const mergedPDF = await PDFLib.PDFDocument.create();
         const pdfBytes = await buildPDF(
             attachmentDownloadResponses,
@@ -75,7 +74,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
             dtAppts[i].animal.id
         );
 
-        console.log(`creating file in drive for ${animalName}'s .pdf`);
+        // console.log(`creating file in drive for ${animalName}'s .pdf`);
         const mergedPDFDriveFile = ezyVetFolder.createFile(
             Utilities.newBlob(
                 [...new Int8Array(pdfBytes)],
@@ -93,11 +92,11 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
 }
 
 async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, animalName, animalID) {
-    console.log(`building pdf for ${animalName}...`);
+    // console.log(`building pdf for ${animalName}...`);
 
     for (let j = 0; j < attachmentDownloadResponses.length; j++) {
         const fileNameInEzyVet = fileNameArray[j];
-        console.log(`processing ${fileNameInEzyVet} for ${animalName}...`);
+        // console.log(`processing ${fileNameInEzyVet} for ${animalName}...`);
         const response = attachmentDownloadResponses[j];
         if (response === undefined) {
             console.error(`response for ${fileNameInEzyVet} is undefined.`);
@@ -146,10 +145,10 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
             continue; // just so we can avoid hitting the next console log
         }
 
-        console.log(`successfully processed ${fileNameInEzyVet}!`);
+        // console.log(`successfully processed ${fileNameInEzyVet}!`);
     }
 
-    console.log(`saving .pdf for ${animalName}...`);
+    // console.log(`saving .pdf for ${animalName}...`);
     const bytes = await mergedPDF.save();
     console.log(`saved pdf for ${animalName}!`)
     return bytes;
