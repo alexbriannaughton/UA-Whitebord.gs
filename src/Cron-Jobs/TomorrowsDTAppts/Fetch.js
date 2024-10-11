@@ -172,10 +172,6 @@ function firstRoundOfFetches(dtAppts) {
     console.log('getting appointment contact data...');
     const { items: apptContacts } = fetchAndParse(`${proxy}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
 
-    if (dtAppts.length !== apptAnimals.length || dtAppts.length !== apptContacts.length) {
-        throw new Error('incorrect amount of animals or contacts returned for these appointments.');
-    }
-
     for (let i = 0; i < dtAppts.length; i++) {
         const { appointment } = dtAppts[i];
         const { animal } = apptAnimals.find(({ animal }) => Number(animal.id) === appointment.details.animal_id);
