@@ -34,7 +34,7 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets, locationStaff
         soft_cap,
         hard_cap,
         num_of_dvms_on_floor: Number(waitlistVals[1][0]) || 0,
-        wb_wait_time: waitlistVals[2][0],
+        wb_wait_time: Number(waitlistVals[2][0]) || 0,
         num_of_pts_waiting: waitlistVals[0][0],
         rooms_in_use: numOfRoomsInUse[location],
         ...locationStaffingCounts[location]
