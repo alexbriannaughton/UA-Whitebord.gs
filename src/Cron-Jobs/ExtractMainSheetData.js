@@ -34,7 +34,7 @@ function extractMainSheetData(sheets) {
     const locationByOrder = ['CH', 'DT', 'WC'];
     staffingVals.forEach((sv, i) => extractStaffing(sv, locationByOrder[i], locationStaffingCounts, locationPossPositionNames));
 
-    return { roomsWithLinks, numOfRoomsInUse, locationStaffingCounts };
+    return { roomsWithLinks, numOfRoomsInUse, locationStaffingCounts, locationPossPositionNames };
 }
 
 // this is called from doGet(), which is triggered by supabase edge function that runs every 10 minutes during open hours
