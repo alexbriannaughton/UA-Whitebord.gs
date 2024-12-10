@@ -30,8 +30,9 @@ function extractMainSheetData(sheets) {
     ]
 
     const locationStaffingCounts = {};
+    const locationPossPositionNames = {}
     const locationByOrder = ['CH', 'DT', 'WC'];
-    staffingVals.forEach((sv, i) => extractStaffing(sv, locationByOrder[i], locationStaffingCounts));
+    staffingVals.forEach((sv, i) => extractStaffing(sv, locationByOrder[i], locationStaffingCounts, locationPossPositionNames));
 
     return { roomsWithLinks, numOfRoomsInUse, locationStaffingCounts };
 }
@@ -90,7 +91,7 @@ function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, shee
     for (let i = 0; i < rowRTVals.length; i++) {
         const statusID = indexToStatusIDMap.get(i);
         if (!statusID) break;
-        
+
         const roomLocationKey = sheetName + statusID;
         const runs = rowRTVals[i].getRuns();
         for (const richText of runs) {
@@ -121,7 +122,7 @@ function countRoomsInUse([timeRow, nameRow, reasonRow], checkRoom11 = false) {
     return roomsInUse;
 }
 
-function extractStaffing(vals, sheetName, locationStaffingCounts) {
+function extractStaffing(vals, sheetName, locationStaffingCounts, locationPossPositionNames) {
     locationStaffingCounts[sheetName] = {
         assts_on_staff: 0,
         leads_on_staff: 0,
@@ -129,7 +130,15 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         foh_on_staff: 0,
         kennel_on_staff: 0
     }
-    console.log(sheetName, vals)
+
+    locationPossPositionNames[sheetName] = {
+        assts: [],
+        leads: [],
+        dvms: [],
+        foh: [],
+        kennel: [],
+    }
+
     for (let i = 0; i < vals.length; i++) {
         const rowVals = vals[i];
 
@@ -139,11 +148,26 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         // ch foh: vals[i][3]
         // ch kennel: vals[i][4] until i is greater than 9
         if (sheetName === 'CH') {
-            if (rowVals[0]) locationStaffingCounts[sheetName].assts_on_staff += 1;
-            if (rowVals[1]) locationStaffingCounts[sheetName].leads_on_staff += 1;
-            if (rowVals[2]) locationStaffingCounts[sheetName].dvms_on_staff += 1;
-            if (rowVals[3]) locationStaffingCounts[sheetName].foh_on_staff += 1;
-            if (i <= 9 && rowVals[4]) locationStaffingCounts[sheetName].kennel_on_staff += 1;
+            if (rowVals[0]) {
+                locationPossPositionNames[sheetName].assts.push(rowVals[0]);
+                locationStaffingCounts[sheetName].assts_on_staff += 1;
+            }
+            if (rowVals[1]) {
+                locationPossPositionNames[sheetName].leads.push(rowVals[1]);
+                locationStaffingCounts[sheetName].leads_on_staff += 1;
+            }
+            if (rowVals[2]) {
+                locationPossPositionNames[sheetName].dvms.push(rowVals[2]);
+                locationStaffingCounts[sheetName].dvms_on_staff += 1;
+            }
+            if (rowVals[3]) {
+                locationPossPositionNames[sheetName].foh.push(rowVals[3]);
+                locationStaffingCounts[sheetName].foh_on_staff += 1;
+            }
+            if (i <= 9 && rowVals[4]) {
+                locationPossPositionNames[sheetName].kennel.push(rowVals[4]);
+                locationStaffingCounts[sheetName].kennel_on_staff += 1;
+            }
         }
 
         // not currently making logs for dt...
@@ -171,17 +195,36 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         // wc foh: vals[i][3]
         // wc kennel: vals[6][1]
         else if (sheetName === 'WC') {
-            if (rowVals[0]) locationStaffingCounts[sheetName].assts_on_staff += 1;
-            if (rowVals[3]) locationStaffingCounts[sheetName].foh_on_staff += 1;
+            if (rowVals[0]) {
+                locationPossPositionNames[sheetName].assts.push(rowVals[0]);
+                locationStaffingCounts[sheetName].assts_on_staff += 1;
+            }
+            if (rowVals[3]) {
+                locationPossPositionNames[sheetName].foh.push(rowVals[3]);
+                locationStaffingCounts[sheetName].foh_on_staff += 1;
+            }
 
             if (i <= 4) {
-                if (rowVals[1]) locationStaffingCounts[sheetName].leads_on_staff += 1;
-                if (rowVals[2]) locationStaffingCounts[sheetName].dvms_on_staff += 1;
+                if (rowVals[1]) {
+                    locationPossPositionNames[sheetName].leads.push(rowVals[1]);
+                    locationStaffingCounts[sheetName].leads_on_staff += 1;
+                }
+                if (rowVals[2]) {
+                    locationPossPositionNames[sheetName].dvms.push(rowVals[2]);
+                    locationStaffingCounts[sheetName].dvms_on_staff += 1;
+                }
             }
 
             if (i === 6) {
-                if (rowVals[1]) locationStaffingCounts[sheetName].kennel_on_staff += 1;
-                if (rowVals[2]) locationStaffingCounts[sheetName].dvms_on_staff += 1;
+                if (rowVals[1]) {
+                    locationPossPositionNames[sheetName].kennel.push(rowVals[1]);
+                    locationStaffingCounts[sheetName].kennel_on_staff += 1;
+                }
+                if (rowVals[2]) {
+                    locationPossPositionNames[sheetName].dvms.push(rowVals[2]);
+                    locationStaffingCounts[sheetName].dvms_on_staff += 1;
+
+                }
             }
         }
     }
