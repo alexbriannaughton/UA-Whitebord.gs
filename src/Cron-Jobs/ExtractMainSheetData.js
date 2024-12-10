@@ -129,7 +129,7 @@ function extractStaffing(vals, sheetName, locationStaffingCounts) {
         foh_on_staff: 0,
         kennel_on_staff: 0
     }
-
+    console.log(sheetName, vals)
     for (let i = 0; i < vals.length; i++) {
         const rowVals = vals[i];
 
