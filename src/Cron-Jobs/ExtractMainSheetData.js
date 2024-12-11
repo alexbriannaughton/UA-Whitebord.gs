@@ -24,7 +24,7 @@ function extractMainSheetData(sheets) {
     const numOfRoomsInUse = {};
 
     const staffingVals = [
-        extractRoomsDataAndGetStaffingVals('CH', 'C3:I34', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
+        extractRoomsDataAndGetStaffingVals('CH', 'C3:I35', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
         extractRoomsDataAndGetStaffingVals('DT', 'C3:N11', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
         extractRoomsDataAndGetStaffingVals('WC', 'C3:N27', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets)
     ]
