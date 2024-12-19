@@ -123,13 +123,13 @@ function countRoomsInUse([timeRow, nameRow, reasonRow], checkRoom11 = false) {
 }
 
 function extractStaffing(vals, sheetName, locationStaffingCounts, locationPossPositionNames) {
-    locationStaffingCounts[sheetName] = {
-        assts_on_staff: 0,
-        leads_on_staff: 0,
-        dvms_on_staff: 0,
-        foh_on_staff: 0,
-        kennel_on_staff: 0
-    }
+    // locationStaffingCounts[sheetName] = {
+    //     assts_on_staff: 0,
+    //     leads_on_staff: 0,
+    //     dvms_on_staff: 0,
+    //     foh_on_staff: 0,
+    //     kennel_on_staff: 0
+    // }
 
     locationPossPositionNames[sheetName] = {
         assts: [],

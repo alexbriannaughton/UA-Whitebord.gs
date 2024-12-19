@@ -26,7 +26,7 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets, locationStaff
         wb_wait_time: Number(waitlistVals[2][0]) || 0,
         num_of_pts_waiting: waitlistVals[0][0],
         rooms_in_use: numOfRoomsInUse[location],
-        ...locationStaffingCounts[location]
+        // ...locationStaffingCounts[location]
     };
 }
 
