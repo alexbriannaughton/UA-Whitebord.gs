@@ -17,17 +17,6 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets, locationStaff
     const cellValAsString = String(mainSheet.getRange(maxRoomCellCoords).getValue());
     const maxDvmRooms = Number(cellValAsString.slice(0, 2)) || 0;
 
-    // cur prod code below
-    // let maxDvmRooms = 0;
-    // if (location === 'CH') {
-    //     const cellVal = String(mainSheet.getRange('O4').getValue()).slice(0, 2);
-    //     maxDvmRooms = Number(cellVal);
-    // }
-    // else if (location === 'WC') {
-    //     const cellVal = String(mainSheet.getRange('I3').getValue()).slice(0, 2);
-    //     maxDvmRooms = Number(cellVal);
-    // }
-
     return {
         max_dvm_rooms: maxDvmRooms || 0,
         location,
@@ -37,7 +26,7 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets, locationStaff
         wb_wait_time: Number(waitlistVals[2][0]) || 0,
         num_of_pts_waiting: waitlistVals[0][0],
         rooms_in_use: numOfRoomsInUse[location],
-        ...locationStaffingCounts[location]
+        // ...locationStaffingCounts[location]
     };
 }
 
