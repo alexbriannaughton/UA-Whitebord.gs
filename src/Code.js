@@ -69,7 +69,12 @@ function doGet(_e) {
 
 function attemptGet() {
   const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
-  const { roomsWithLinks, numOfRoomsInUse, locationStaffingCounts, locationPossPositionNames } = extractMainSheetData(sheets)
+  const {
+    roomsWithLinks,
+    numOfRoomsInUse,
+    locationStaffingCounts,
+    locationPossPositionNames
+  } = extractMainSheetData(sheets);
   const wait = getWaitData(numOfRoomsInUse, sheets, locationStaffingCounts);
   const output = { roomsWithLinks, wait, locationPossPositionNames };
   console.log('do get output:', output);
