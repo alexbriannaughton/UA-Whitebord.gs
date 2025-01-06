@@ -72,10 +72,9 @@ function attemptGet() {
   const {
     roomsWithLinks,
     numOfRoomsInUse,
-    locationStaffingCounts,
     locationPossPositionNames
   } = extractMainSheetData(sheets);
-  const wait = getWaitData(numOfRoomsInUse, sheets, locationStaffingCounts);
+  const wait = getWaitData(numOfRoomsInUse, sheets);
   const output = { roomsWithLinks, wait, locationPossPositionNames };
   console.log('do get output:', output);
   return ContentService.createTextOutput(

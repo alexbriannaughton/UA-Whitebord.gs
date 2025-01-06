@@ -1,12 +1,12 @@
-function getWaitData(numOfRoomsInUse, sheets, locationStaffingCounts) {
+function getWaitData(numOfRoomsInUse, sheets) {
     const waitData = [
-        getWaitValsForLocation('CH', numOfRoomsInUse, sheets, locationStaffingCounts),
-        getWaitValsForLocation('WC', numOfRoomsInUse, sheets, locationStaffingCounts)
+        getWaitValsForLocation('CH', numOfRoomsInUse, sheets),
+        getWaitValsForLocation('WC', numOfRoomsInUse, sheets)
     ];
     return waitData;
 }
 
-function getWaitValsForLocation(location, numOfRoomsInUse, sheets, locationStaffingCounts) {
+function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
     const waitlistSheet = sheets.find(sheet => sheet.getName() === `${location} Wait List`);
     const waitlistVals = waitlistSheet.getRange('C2:D4').getValues();
     const capText = waitlistVals[0][1];
@@ -26,7 +26,6 @@ function getWaitValsForLocation(location, numOfRoomsInUse, sheets, locationStaff
         wait_time: Number(waitlistVals[2][0]) || 0,
         pts_waiting: waitlistVals[0][0],
         rooms_in_use: numOfRoomsInUse[location],
-        // ...locationStaffingCounts[location]
     };
 }
 
