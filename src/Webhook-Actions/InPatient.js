@@ -2,7 +2,7 @@
 function addInPatient(appointment, location) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
   const inpatientBoxRange = sheet.getRange(
-    locationInpatientCoords.get(location)
+    UA_LOC_INPATIENT_COORDS.get(location)
   );
   const { highestEmptyRow } = findRow(
     inpatientBoxRange,
@@ -10,7 +10,7 @@ function addInPatient(appointment, location) {
     location === 'WC' ? 1 : 0
   );
   if (!highestEmptyRow) return;
-  highestEmptyRow.setBackground(inpatientDefaultColorMap.get(location));
+  highestEmptyRow.setBackground(UA_LOC_INPATIENT_DEFAULT_COLOR.get(location));
   populateInpatientRow(appointment, highestEmptyRow, location);
   return;
 };
@@ -18,7 +18,7 @@ function addInPatient(appointment, location) {
 function populateInpatientRow(appointment, highestEmptyRow, location) {
   const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
   const text = `${animalName} ${contactLastName} (${animalSpecies})`;
-  const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`;
+  const webAddress = `${SITE_PREFIX}/?recordclass=Consult&recordid=${appointment.consult_id}`;
   const link = makeLink(text, webAddress);
   const columnOffset = location === 'WC' ? 1 : 0;
   highestEmptyRow.offset(0, columnOffset, 1, 4).setRichTextValues([

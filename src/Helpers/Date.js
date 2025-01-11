@@ -2,8 +2,8 @@
 function isTodayInUserTimezone(timestampDate) {
     const todaysDate = Utilities.formatDate(
         new Date(),
-        userTimezone,
-        dateStringPattern
+        USER_TIMEZONE,
+        DATE_STRING_PATTERN
     );
     return timestampDate === todaysDate;
 }
@@ -14,7 +14,7 @@ function isOnNextDayOfDtAppts(timestampDate) {
     
     const nextDTApptDateFormatted = Utilities.formatDate(
         date,
-        userTimezone,
+        USER_TIMEZONE,
         'EEEE MM/dd/yyyy'
     );
 
@@ -24,7 +24,7 @@ function isOnNextDayOfDtAppts(timestampDate) {
 function convertEpochToUserTimezone(epoch) {
     return Utilities.formatDate(
         new Date(epoch * 1000),
-        userTimezone,
+        USER_TIMEZONE,
         'h:mm'
     );
 };
@@ -32,8 +32,8 @@ function convertEpochToUserTimezone(epoch) {
 function convertEpochToUserTimezoneDate(epoch) {
     return Utilities.formatDate(
         new Date(epoch * 1000),
-        userTimezone,
-        dateStringPattern
+        USER_TIMEZONE,
+        DATE_STRING_PATTERN
     );
 }
 
@@ -50,7 +50,7 @@ function getDateForEndOfToday() {
 }
 
 function epochRangeForFutureDay(numOfDaysFromToday) {
-    const now = new Date().toLocaleString("en-US", { timeZone: userTimezone });
+    const now = new Date().toLocaleString("en-US", { timeZone: USER_TIMEZONE });
     const targetDay = new Date(now);
     targetDay.setDate(targetDay.getDate() + numOfDaysFromToday); // Move to targetDay
     const targetDayStart = Math.floor(targetDay.setHours(0, 0, 0, 0) / 1000);
@@ -59,7 +59,7 @@ function epochRangeForFutureDay(numOfDaysFromToday) {
 }
 
 function getTodayRange() {
-    const now = new Date().toLocaleString("en-US", { timeZone: userTimezone });
+    const now = new Date().toLocaleString("en-US", { timeZone: USER_TIMEZONE });
     const todayStart = Math.floor(new Date(now).setHours(0, 0, 0, 0) / 1000);
     const todayEnd = Math.floor(new Date(now).setHours(23, 59, 59, 999) / 1000);
     return [todayStart, todayEnd];

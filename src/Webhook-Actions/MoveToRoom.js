@@ -47,7 +47,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
 
   const link = makeLink(
     incomingAnimalText,
-    `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`
+    `${SITE_PREFIX}/?recordclass=Consult&recordid=${appointment.consult_id}`
   );
 
   const reasonText = `${appointment.description}${techText(appointment.type_id)}`;
@@ -193,14 +193,14 @@ function parseTheRoom(
 
 function getRoomColor(typeID, resourceID) {
   // if it's IM make the background purple
-  const typeCategory = typeIDToCategoryMap.get(typeID);
+  const typeCategory = TYPE_ID_TO_CATEGORY.get(typeID);
   if (typeCategory === 'IM' || resourceID === 65 || resourceID === 27) {
-    return typeCategoryToColorMap.get('IM');
+    return APPT_CATEGORY_TO_COLOR.get('IM');
   }
   if (typeCategory === 'tech') {
     return '#90EE90'; // bright green
   }
-  const color = typeCategoryToColorMap.get(typeCategory);
+  const color = APPT_CATEGORY_TO_COLOR.get(typeCategory);
   if (color) return color;
   const procedureResources = new Set([
     29, 30, // ch procedure columns
@@ -253,7 +253,7 @@ function handleMultiplePetRoom(
   // multiple pet room links take you to the owner's tab in ezyvet (the contact record)
   const link = makeLink(
     newPtCellText,
-    `${sitePrefix}/?recordclass=Contact&recordid=${appointment.contact_id}`
+    `${SITE_PREFIX}/?recordclass=Contact&recordid=${appointment.contact_id}`
   );
   ptCell.setRichTextValue(link);
 
@@ -264,10 +264,10 @@ function handleMultiplePetRoom(
 }
 
 function getContactIDFromConsultID(consultID) {
-  const url1 = `${proxy}/v1/consult/${consultID}`;
+  const url1 = `${EV_PROXY}/v1/consult/${consultID}`;
   const animalID = fetchAndParse(url1).items[0].consult.animal_id;
 
-  const url2 = `${proxy}/v1/animal/${animalID}`;
+  const url2 = `${EV_PROXY}/v1/animal/${animalID}`;
   const contactID = fetchAndParse(url2).items[0].animal.contact_id;
 
   return contactID;

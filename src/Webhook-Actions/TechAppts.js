@@ -22,7 +22,7 @@ function addTechAppt(appointment, location) {
 
   // populate main cell: name, species, reason... and make it a link
   const text = `${animalName} (${animalSpecies}) - ${appointment.description}`;
-  const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`;
+  const webAddress = `${SITE_PREFIX}/?recordclass=Consult&recordid=${appointment.consult_id}`;
   const link = makeLink(text, webAddress);
 
   const richTextVals = [

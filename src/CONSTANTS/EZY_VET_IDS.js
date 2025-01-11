@@ -1,4 +1,4 @@
-function whichLocation(resourceID) {
+function WHICH_LOCATION(resourceID) {
     const resourceIDToLocationMap = new Map();
 
     // calendar resource ids for CH:
@@ -17,7 +17,7 @@ function whichLocation(resourceID) {
             .set(id, 'CH')
         );
 
-    Array.from(dtResourceIDs)
+    Array.from(DT_RESOURCE_IDS)
         .forEach(id => resourceIDToLocationMap
             .set(id, 'DT')
         );
@@ -38,14 +38,14 @@ function whichLocation(resourceID) {
     return resourceIDToLocationMap.get(resourceID);
 };
 
-function filterForValidDtAppts(allTargetDayAppts) {
+function FILTER_FOR_VALID_DT_APPTS(allTargetDayAppts) {
     return allTargetDayAppts.items.filter(({ appointment }) => {
-        return appointment.details.resource_list.some(id => dtResourceIDs.has(Number(id))) // is in a DT exam column
-            && dtDVMApptTypeIDs.has(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
+        return appointment.details.resource_list.some(id => DT_RESOURCE_IDS.has(Number(id))) // is in a DT exam column
+            && DT_DVM_APPT_IDS.has(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
     });
 };
 
-function getCancellationReason(id) {
+function GET_CANCELLATION_REASON(id) {
     const idToReason = new Map([
         [1, 'No show'],
         [2, 'Owners request'],
@@ -60,10 +60,10 @@ function getCancellationReason(id) {
     return idToReason.get(id);
 }
 
-const echoApptTypeIDsSet = new Set([30]);
-const ausApptTypeIDsSet = new Set([29, 91]);
+const ECHO_APPT_TYPE_IDS = new Set([30]);
+const AUS_APPT_TYPE_IDS = new Set([29, 91]);
 
-const dtResourceIDs = new Set([ // non procedures dt columns
+const DT_RESOURCE_IDS = new Set([ // non procedures dt columns
     35, // dt dvm 1
     // 55, // used to be dt dvm 2, though it is not currently active 3/16/24
     56, // dt tech
@@ -72,14 +72,14 @@ const dtResourceIDs = new Set([ // non procedures dt columns
     57, // dt procedure 1
     58, // dt procedure 2
 ]);
-const dtDVMApptTypeIDs = new Set([
+const DT_DVM_APPT_IDS = new Set([
     79, // downtown - appointment
     95, // Downtown - Appointment (:15/:45)
     93, // Downtown - Same Day Sick
 ]);
 
 // takes appointment.type_id and outputs a string for the procedure type
-const typeIDToCategoryMap = new Map([
+const TYPE_ID_TO_CATEGORY = new Map([
     [7, 'sx'], [76, 'sx'], [89, 'sx'], [90, 'sx'], [100, 'sx'], [101, 'sx'],  // Surgery type IDs
     [29, 'aus'], [91, 'aus'],                             // Ultrasound type IDs
     [30, 'echo'],                                           // Echocardiogram type ID
@@ -92,9 +92,9 @@ const typeIDToCategoryMap = new Map([
     [80, 'euth']
 ]);
 
-const speciesMap = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
+const SPECIES_MAP = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
-const roomStatusLocationToCoords = {
+const ROOM_STATUS_LOCATION_TO_COORDS = {
     18: { // room 1
         CH: 'C3:C11',
         DT: 'C3:C11',

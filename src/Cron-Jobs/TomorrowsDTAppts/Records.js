@@ -193,7 +193,7 @@ function handleDownloadError(
     );
     yDistanceFromTop += 20;
     // line 5:
-    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
+    const animalURL = `${SITE_PREFIX}/?recordclass=Animal&recordid=${animalID}`;
     const color = { type: 'RGB', red: 0, green: 0, blue: 1 }; // make the link blue
     const linkTextOptions = { y: pageHeight - yDistanceFromTop, color }
     page.drawText(animalURL, linkTextOptions);

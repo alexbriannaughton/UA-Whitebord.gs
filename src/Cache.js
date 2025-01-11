@@ -18,9 +18,9 @@ function getDaysAheadDT(cache) {
 
     while (!foundDay && daysAhead < 10) {
         const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(++daysAhead);
-        const url = `${proxy}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
+        const url = `${EV_PROXY}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
         const allTargetDayAppts = fetchAndParse(url);
-        dtAppts = filterForValidDtAppts(allTargetDayAppts);
+        dtAppts = FILTER_FOR_VALID_DT_APPTS(allTargetDayAppts);
         if (dtAppts.length) foundDay = true;
     }
 

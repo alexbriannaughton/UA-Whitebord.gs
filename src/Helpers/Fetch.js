@@ -17,6 +17,11 @@ function fetchAndParse(url) {
         response = UrlFetchApp.fetch(url, options);
     }
 
+    if (response.getResponseCode() !== 200) {
+        console.error(`Response Code: ${response.getResponseCode()}`);
+        console.error(`Response Text: ${response.getContentText()}`);
+    }
+
     const json = response.getContentText();
 
     return JSON.parse(json);
@@ -24,23 +29,23 @@ function fetchAndParse(url) {
 
 // use fetchAndParse() to store pet name and species from /animal endpoint
 function getAnimalInfo(animalID) {
-    const url = `${proxy}/v1/animal/${animalID}`;
+    const url = `${EV_PROXY}/v1/animal/${animalID}`;
     const animal = fetchAndParse(url).items.at(-1).animal;
-    const species = speciesMap[animal.species_id] || undefined;
+    const species = SPECIES_MAP[animal.species_id] || undefined;
 
     return [animal.name, species];
 };
 
 // use fetchAndParse() to store last name from /contact endpoint
 function getLastName(contactID) {
-    const url = `${proxy}/v1/contact/${contactID}`;
+    const url = `${EV_PROXY}/v1/contact/${contactID}`;
     const lastName = fetchAndParse(url).items.at(-1).contact.last_name;
 
     return lastName;
 };
 
 function getContactIdFromAnimalId(animalID) {
-    const url = `${proxy}/v1/animal/${animalID}`;
+    const url = `${EV_PROXY}/v1/animal/${animalID}`;
     const contactID = fetchAndParse(url).items.at(-1).contact_id;
     return contactID;
 }
@@ -51,7 +56,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
 
     const animalRequest = {
         muteHttpExceptions: true,
-        url: `${proxy}/v1/animal/${animalID}`,
+        url: `${EV_PROXY}/v1/animal/${animalID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -60,7 +65,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
 
     const contactRequest = {
         muteHttpExceptions: true,
-        url: `${proxy}/v1/contact/${contactID}`,
+        url: `${EV_PROXY}/v1/contact/${contactID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -75,11 +80,17 @@ function getAnimalInfoAndLastName(animalID, contactID) {
         [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
     }
 
+    if (animalResponse.getResponseCode() !== 200 || contactResponse.getResponseCode() !== 200) {
+        console.error(`Request failed: Animal response code: ${animalResponse.getResponseCode()}`);
+        console.error(`Contact response code: ${contactResponse.getResponseCode()}`);
+        console.error(`Animal response text: ${animalResponse.getContentText()}`);
+        console.error(`Contact response text: ${contactResponse.getContentText()}`);
+    }
+
     const animalJSON = animalResponse.getContentText();
     const parsedAnimal = JSON.parse(animalJSON);
     const animal = parsedAnimal.items.at(-1).animal;
-    const speciesMap = { 1: 'K9', 2: 'FEL' };
-    const animalSpecies = speciesMap[animal.species_id] || undefined;
+    const animalSpecies = SPECIES_MAP[animal.species_id] || undefined;
     const isHostile = animal.is_hostile === '1';
 
     const contactJSON = contactResponse.getContentText();
@@ -94,7 +105,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     const animalOneRequest = {
         muteHttpExceptions: true,
-        url: `${proxy}/v1/animal/${animalOneID}`,
+        url: `${EV_PROXY}/v1/animal/${animalOneID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -103,7 +114,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     const animalTwoRequest = {
         muteHttpExceptions: true,
-        url: `${proxy}/v1/animal/${animalTwoID}`,
+        url: `${EV_PROXY}/v1/animal/${animalTwoID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -116,6 +127,13 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
         animalOneRequest.headers.authorization = updateToken();
         animalTwoRequest.headers.authorization = token;
         [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
+    }
+
+    if (animalOneResponse.getResponseCode() !== 200 || animalTwoResponse.getResponseCode() !== 200) {
+        console.error(`Request failed: Animal 1 response code: ${animalOneResponse.getResponseCode()}`);
+        console.error(`Animal 2 response code: ${animalTwoResponse.getResponseCode()}`);
+        console.error(`Animal 1 response text: ${animalOneResponse.getContentText()}`);
+        console.error(`Animal 2 response text: ${animalTwoResponse.getContentText()}`);
     }
 
     const animalOneJSON = animalOneResponse.getContentText();

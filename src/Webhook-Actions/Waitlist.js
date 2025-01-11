@@ -22,7 +22,7 @@ function addToWaitlist(appointment, location) {
   const timeCellRichText = simpleTextToRichText(timeCellText);
 
   const patientText = `${animalName} ${contactLastName}`;
-  const webAddress = `${sitePrefix}/?recordclass=Consult&recordid=${appointment.consult_id}`;
+  const webAddress = `${SITE_PREFIX}/?recordclass=Consult&recordid=${appointment.consult_id}`;
   const link = makeLink(patientText, webAddress);
 
   const speciesCellRichText = animalSpecies ? simpleTextToRichText(animalSpecies) : null;
@@ -72,7 +72,7 @@ function handleInactiveApptOnWaitlist(appointment, location) {
   const timeString = convertEpochToUserTimezone(appointment.modified_at);
 
   const { cancellation_reason, cancellation_reason_text } = appointment;
-  const cancelText = cancellation_reason_text ?? getCancellationReason(cancellation_reason) ?? '';
+  const cancelText = cancellation_reason_text ?? GET_CANCELLATION_REASON(cancellation_reason) ?? '';
 
   const incomingText = `[${newNotePreText} ${timeString}. "${cancelText}"]`;
   const newNotesCellVal = curNotesVal
@@ -103,7 +103,7 @@ function addTextedTimestampOnWaitlist(appointment, location) {
     ? `${curNotesVal}\n${newText}`
     : newText;
 
-  const bgColor = locationTextedColorMap.get(location);
+  const bgColor = UA_LOC_TEXTED_COLOR.get(location);
 
   notesCell.setValue(newNotesCellVal)
   notesCell.setBackground(bgColor);

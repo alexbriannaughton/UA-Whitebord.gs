@@ -1,18 +1,18 @@
-const proxy = 'https://api.ezyvet.com';
-const sitePrefix = 'https://urbananimalnw.usw2.ezyvet.com';
+const EV_PROXY = 'https://api.ezyvet.com';
+const SITE_PREFIX = 'https://urbananimalnw.usw2.ezyvet.com';
 
-const unknownSpeciesString = 'unknown species';
+const UNKNOWN_SPECIES_STRING = 'unknown species';
 
-const userTimezone = 'America/Los_Angeles';
+const USER_TIMEZONE = 'America/Los_Angeles';
 
-const dateStringPattern = 'EEEE MM/dd/yyyy';
+const DATE_STRING_PATTERN = 'EEEE MM/dd/yyyy';
 
-const dtNextDayApptsRowStartNumber = 15;
-const dtNextDayApptsCoords = `K${dtNextDayApptsRowStartNumber}:R85`;
+const DT_NDA_ROW_START_NUMBER = 15;
+const DT_NDA_COORDS = `K${DT_NDA_ROW_START_NUMBER}:R85`;
 
-const sameFamString = '^same fam^';
+const SAME_FAM_STRING = '^same fam^';
 
-const typeCategoryToColorMap = new Map([
+const APPT_CATEGORY_TO_COLOR = new Map([
     // ['tech', '#90EE90'], // bright green , not including this bc i dont want them to be bright green on inpatient daily job
     ['euth', '#cfe2f3'], // blue
     ['sx', '#fff2cc'],// light yellowish
@@ -25,24 +25,24 @@ const typeCategoryToColorMap = new Map([
 ]);
 
 // for obtaining a particular location's default background color for the inpatient box
-const inpatientDefaultColorMap = new Map([
+const UA_LOC_INPATIENT_DEFAULT_COLOR = new Map([
     ['CH', '#f3f3f3'], // gray for cap hill
     ['DT', '#d0e0e3'], // cyan for downtown
     ['WC', '#ead1dc']  // magenta for white center
 ]);
 
-const locationTextedColorMap = new Map([
+const UA_LOC_TEXTED_COLOR = new Map([
     ['CH', '#ff9fbd'],
     ['WC', 'yellow']
 ]);
 
-const locationInpatientCoords = new Map([
+const UA_LOC_INPATIENT_COORDS = new Map([
     ['CH', 'R3:W36'],
     ['DT', 'B14:H42'],
     ['WC', 'B20:I60']
 ]);
 
-const locationNumOfRoomsCellCoords = new Map([
+const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
     ['CH', 'O4'],
     ['WC', 'I3']
 ]);
