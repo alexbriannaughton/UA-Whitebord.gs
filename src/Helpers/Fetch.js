@@ -1,4 +1,7 @@
-// singular get request to ezyvet api that will grab a new token if we get a 401 reponse
+const UNAUTHORIZED = 401;
+const OK = 200;
+const TOO_MANY_REQUESTS = 429;
+
 function fetchAndParse(url) {
     token = getToken();
 
@@ -12,16 +15,16 @@ function fetchAndParse(url) {
 
     let response = UrlFetchApp.fetch(url, options);
 
-    if (response.getResponseCode() === 401) {
+    if (response.getResponseCode() === UNAUTHORIZED) {
         options.headers.authorization = updateToken();
         response = UrlFetchApp.fetch(url, options);
     }
 
-    if (response.getResponseCode() !== 200) {
+    if (response.getResponseCode() !== OK) {
         console.error(`Response Code: ${response.getResponseCode()}`);
         console.error(`Response Text: ${response.getContentText()}`);
 
-        if (response.getResponseCode() === 429) {
+        if (response.getResponseCode() === TOO_MANY_REQUESTS) {
             waitOn429(response);
             response = UrlFetchApp.fetch(url, options);
         }
@@ -79,20 +82,20 @@ function getAnimalInfoAndLastName(animalID, contactID) {
 
     let [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
 
-    if (animalResponse.getResponseCode() === 401 || contactResponse.getResponseCode() === 401) {
+    if (animalResponse.getResponseCode() === UNAUTHORIZED || contactResponse.getResponseCode() === UNAUTHORIZED) {
         animalRequest.headers.authorization = updateToken();
         contactRequest.headers.authorization = token;
         [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
     }
 
-    if (animalResponse.getResponseCode() !== 200 || contactResponse.getResponseCode() !== 200) {
+    if (animalResponse.getResponseCode() !== OK || contactResponse.getResponseCode() !== OK) {
         console.error(`Request failed: Animal response code: ${animalResponse.getResponseCode()}`);
         console.error(`Contact response code: ${contactResponse.getResponseCode()}`);
         console.error(`Animal response text: ${animalResponse.getContentText()}`);
         console.error(`Contact response text: ${contactResponse.getContentText()}`);
 
-        const animalResponseIs429 = animalResponse.getResponseCode() === 429;
-        const contactResponseIs429 = contactResponse.getResponseCode() === 429;
+        const animalResponseIs429 = animalResponse.getResponseCode() === TOO_MANY_REQUESTS;
+        const contactResponseIs429 = contactResponse.getResponseCode() === TOO_MANY_REQUESTS;
         if (animalResponseIs429 || contactResponseIs429) {
             if (animalResponseIs429) waitOn429(animalResponse);
             else if (contactResponseIs429) waitOn429(contactResponse);
@@ -136,20 +139,20 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     let [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
 
-    if (animalOneResponse.getResponseCode() === 401 || animalTwoResponse.getResponseCode() === 401) {
+    if (animalOneResponse.getResponseCode() === UNAUTHORIZED || animalTwoResponse.getResponseCode() === UNAUTHORIZED) { // unauthorized
         animalOneRequest.headers.authorization = updateToken();
         animalTwoRequest.headers.authorization = token;
         [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
     }
 
-    if (animalOneResponse.getResponseCode() !== 200 || animalTwoResponse.getResponseCode() !== 200) {
+    if (animalOneResponse.getResponseCode() !== OK || animalTwoResponse.getResponseCode() !== OK) {
         console.error(`Request failed: Animal 1 response code: ${animalOneResponse.getResponseCode()}`);
         console.error(`Animal 2 response code: ${animalTwoResponse.getResponseCode()}`);
         console.error(`Animal 1 response text: ${animalOneResponse.getContentText()}`);
         console.error(`Animal 2 response text: ${animalTwoResponse.getContentText()}`);
 
-        const animalOneResponseIs429 = animalOneResponse.getResponseCode() === 429;
-        const animalTwoResponseIs429 = animalTwoResponse.getResponseCode() === 429;
+        const animalOneResponseIs429 = animalOneResponse.getResponseCode() === TOO_MANY_REQUESTS; // too many requests
+        const animalTwoResponseIs429 = animalTwoResponse.getResponseCode() === TOO_MANY_REQUESTS;
         if (animalOneResponseIs429 || animalTwoResponseIs429) {
             if (animalOneResponseIs429) waitOn429(animalOneResponse);
             else if (animalTwoResponseIs429) waitOn429(animalTwoResponse);
