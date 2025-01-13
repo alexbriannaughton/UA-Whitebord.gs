@@ -20,6 +20,17 @@ function fetchAndParse(url) {
     if (response.getResponseCode() !== 200) {
         console.error(`Response Code: ${response.getResponseCode()}`);
         console.error(`Response Text: ${response.getContentText()}`);
+
+        if (response.getResponseCode() === 429) {
+            const secondsTilNextRetryMatch = response.getContentText().match(/(\d+)\s+seconds/);
+            console.log('match: ', secondsTilNextRetryMatch);
+            const secondsTilNextRetry = secondsTilNextRetryMatch?.[1];
+            console.error('seconds til next retry: ', secondsTilNextRetry);
+            if (secondsTilNextRetry) {
+                Utilities.sleep(Number(secondsTilNextRetry));
+                response = UrlFetchApp.fetch(url, options);
+            }
+        }
     }
 
     const json = response.getContentText();
