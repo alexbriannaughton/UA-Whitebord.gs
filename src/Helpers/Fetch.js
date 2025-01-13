@@ -147,6 +147,14 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
         console.error(`Animal 2 response code: ${animalTwoResponse.getResponseCode()}`);
         console.error(`Animal 1 response text: ${animalOneResponse.getContentText()}`);
         console.error(`Animal 2 response text: ${animalTwoResponse.getContentText()}`);
+
+        const animalOneResponseIs429 = animalOneResponse.getResponseCode() === 429;
+        const animalTwoResponseIs429 = animalTwoResponse.getResponseCode() === 429;
+        if (animalOneResponseIs429 || animalTwoResponseIs429) {
+            if (animalOneResponseIs429) waitOn429(animalOneResponse);
+            else if (animalTwoResponseIs429) waitOn429(animalTwoResponse);
+            [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
+        }
     }
 
     const animalOneJSON = animalOneResponse.getContentText();
