@@ -153,7 +153,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
         if (animalOneResponseIs429 || animalTwoResponseIs429) {
             if (animalOneResponseIs429) waitOn429(animalOneResponse);
             else if (animalTwoResponseIs429) waitOn429(animalTwoResponse);
-            [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
+            [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
         }
     }
 
