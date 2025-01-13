@@ -22,14 +22,8 @@ function fetchAndParse(url) {
         console.error(`Response Text: ${response.getContentText()}`);
 
         if (response.getResponseCode() === 429) {
-            const secondsTilNextRetryMatch = response.getContentText().match(/(\d+)\s+seconds/);
-            console.log('match: ', secondsTilNextRetryMatch);
-            const secondsTilNextRetry = secondsTilNextRetryMatch?.[1];
-            console.error('seconds til next retry: ', secondsTilNextRetry);
-            if (secondsTilNextRetry) {
-                Utilities.sleep(Number(secondsTilNextRetry) * 1000);
-                response = UrlFetchApp.fetch(url, options);
-            }
+            waitOn429(response);
+            response = UrlFetchApp.fetch(url, options);
         }
     }
 
@@ -96,6 +90,14 @@ function getAnimalInfoAndLastName(animalID, contactID) {
         console.error(`Contact response code: ${contactResponse.getResponseCode()}`);
         console.error(`Animal response text: ${animalResponse.getContentText()}`);
         console.error(`Contact response text: ${contactResponse.getContentText()}`);
+
+        const animalResponseIs429 = animalResponse.getResponseCode() === 429;
+        const contactResponseIs429 = contactResponse.getResponseCode() === 429;
+        if (animalResponseIs429 || contactResponseIs429) {
+            if (animalResponseIs429) waitOn429(animalResponse);
+            else if (contactResponseIs429) waitOn429(contactResponse);
+            [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
+        }
     }
 
     const animalJSON = animalResponse.getContentText();
@@ -157,3 +159,13 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     return [animalOneContactID, animalTwoContactID];
 };
+
+function waitOn429(response) {
+    const secondsTilNextRetryMatch = response.getContentText().match(/(\d+)\s+seconds/);
+    console.log('match: ', secondsTilNextRetryMatch);
+    const secondsTilNextRetry = secondsTilNextRetryMatch?.[1];
+    console.error('seconds til next retry: ', secondsTilNextRetry);
+    if (secondsTilNextRetry) {
+        Utilities.sleep(Number(secondsTilNextRetry) * 1000);
+    }
+}
