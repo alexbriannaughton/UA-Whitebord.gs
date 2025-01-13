@@ -27,7 +27,7 @@ function fetchAndParse(url) {
             const secondsTilNextRetry = secondsTilNextRetryMatch?.[1];
             console.error('seconds til next retry: ', secondsTilNextRetry);
             if (secondsTilNextRetry) {
-                Utilities.sleep(Number(secondsTilNextRetry));
+                Utilities.sleep(Number(secondsTilNextRetry) * 1000);
                 response = UrlFetchApp.fetch(url, options);
             }
         }
