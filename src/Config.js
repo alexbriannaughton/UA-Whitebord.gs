@@ -5,7 +5,7 @@ function getToken() {
 }
 
 function updateToken(cache = CacheService.getScriptCache()) {
-    const url = `${proxy}/v2/oauth/access_token`;
+    const url = `${EV_PROXY}/v2/oauth/access_token`;
     const payload = getEvCreds();
     const options = {
         crossDomain: true,

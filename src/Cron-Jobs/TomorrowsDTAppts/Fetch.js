@@ -48,7 +48,7 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
     // fetchedForOtherAnimalConsultsMap = is a map array where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
     // first check if this patient has previous valid consults
     // if so, were just going to put that last date of this patients visit, and we're not going to check if they have other animals who have had consults
-    const consultsForOtherContactAnimalsRequestBaseUrl = `${proxy}/v1/consult?active=1&animal_id=`
+    const consultsForOtherContactAnimalsRequestBaseUrl = `${EV_PROXY}/v1/consult?active=1&animal_id=`
     for (let i = 0; i < dtAppts.length; i++) {
         const { appointment, consults, otherAnimalsOfContact, consultIDs } = dtAppts[i];
         // note: appointments created through vetstoria do not have an consult, but we want to count it for this
@@ -56,7 +56,7 @@ function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
         const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
         if (numberOfConsults > 1) { // if the animal has potentially been here before..
             consults.sort((a, b) => b.consult.date - a.consult.date);
-            const appts = fetchAndParseInChunks(`${proxy}/v1/appointment?active=1&limit=200&consult_id=`, consultIDs);
+            const appts = fetchAndParseInChunks(`${EV_PROXY}/v1/appointment?active=1&limit=200&consult_id=`, consultIDs);
             for (const { consult } of consults) {
                 // if the consult does not have an appointment, it is probably not an actual visit
                 // e.g. a fecal drop off will sometimes have a consult and not a visit, and we dont want to count that as a visit.
@@ -131,7 +131,7 @@ function parseOtherAnimalConsults(
     const allOtherAnimalConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
     const encodedConsultIDsOfOtherAnimals = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs }));
     console.log(`getting consults for siblings of ${animalName}...`);
-    const { items: appts } = fetchAndParse(`${proxy}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDsOfOtherAnimals}`);
+    const { items: appts } = fetchAndParse(`${EV_PROXY}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDsOfOtherAnimals}`);
     for (const { consult } of otherAnimalConsults) {
         const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
         const consultDate = getDateAtMidnight(consult.date);
@@ -156,9 +156,9 @@ function firstRoundOfFetches(dtAppts) {
         allApptAnimalIds.push(animalID);
         allApptContactIds.push(appointment.details.contact_id);
 
-        allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${proxy}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
-        prescriptionRequests.push(bodyForEzyVetGet(`${proxy}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
-        animalAttachmentRequests.push(bodyForEzyVetGet(`${proxy}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
+        allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${EV_PROXY}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
+        prescriptionRequests.push(bodyForEzyVetGet(`${EV_PROXY}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
+        animalAttachmentRequests.push(bodyForEzyVetGet(`${EV_PROXY}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
     });
 
     const allConsultsForAnimalData = fetchAllResponses(allConsultsForAnimalRequests, "consult");
@@ -166,11 +166,11 @@ function firstRoundOfFetches(dtAppts) {
 
     const encodedAllApptAnimalIds = encodeURIComponent(JSON.stringify({ "in": allApptAnimalIds }));
     console.log('getting appointment animal data...');
-    const { items: apptAnimals } = fetchAndParse(`${proxy}/v1/animal?active=1&limit=200&id=${encodedAllApptAnimalIds}`);
+    const { items: apptAnimals } = fetchAndParse(`${EV_PROXY}/v1/animal?active=1&limit=200&id=${encodedAllApptAnimalIds}`);
 
     const encodedAllApptContactIds = encodeURIComponent(JSON.stringify({ "in": allApptContactIds }));
     console.log('getting appointment contact data...');
-    const { items: apptContacts } = fetchAndParse(`${proxy}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
+    const { items: apptContacts } = fetchAndParse(`${EV_PROXY}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
 
     for (let i = 0; i < dtAppts.length; i++) {
         const { appointment } = dtAppts[i];
@@ -204,8 +204,8 @@ function secondRoundOfFetches(dtAppts) {
     const prescriptionItemRequests = [];
     const animalsOfContactRequests = [];
 
-    const rxItemUrlBase = `${proxy}/v1/prescriptionitem?active=1&limit=200&prescription_id=`;
-    const consultAttachmentUrlBase = `${proxy}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=`;
+    const rxItemUrlBase = `${EV_PROXY}/v1/prescriptionitem?active=1&limit=200&prescription_id=`;
+    const consultAttachmentUrlBase = `${EV_PROXY}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=`;
 
     for (const appt of dtAppts) {
         const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
@@ -218,7 +218,7 @@ function secondRoundOfFetches(dtAppts) {
             bodyForEzyVetGet(rxItemUrlBase + encodedPrescriptionIDs)
         );
         animalsOfContactRequests.push(
-            bodyForEzyVetGet(`${proxy}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
+            bodyForEzyVetGet(`${EV_PROXY}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
         );
     }
 
@@ -273,8 +273,12 @@ function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
     }
     catch (error) {
         console.error(error);
+        console.error('error response code: ', error.getResponseCode());
         if (error.message.includes('too many requests recently')) {
-            console.log('Rate limit error detected. Going to wait 1 minute.');
+            const secondsTilNextRetryMatch = error.message.match(/(\d+)\s+seconds/);
+            console.log('match: ', secondsTilNextRetryMatch);
+            console.error('seconds til next retry: ', secondsTilNextRetryMatch?.[1])
+            console.error('Rate limit error detected. Going to wait 1 minute.');
             Utilities.sleep(60000);
             outputItems = [];
             responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);

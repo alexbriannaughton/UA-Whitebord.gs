@@ -6,7 +6,7 @@ async function dtJobMain() {
     const { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
-    const range = sheet.getRange(dtNextDayApptsCoords);
+    const range = sheet.getRange(DT_NDA_COORDS);
     formatNextDayApptsCells(sheet, range, dtAppts.length);
     putDataOnSheet(dtAppts, range, targetDateStr);
     const endTime = new Date();
@@ -22,7 +22,7 @@ function getNextDayDtAppts() {
         const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(++daysAhead);
         targetDateStr = convertEpochToUserTimezoneDate(targetDayStart);
         console.log(`querying for appointments on ${targetDateStr}...`);
-        const url = `${proxy}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
+        const url = `${EV_PROXY}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
         const allTargetDayAppts = fetchAndParse(url);
         dtAppts = filterAndSortDTAppts(allTargetDayAppts);
     }
@@ -32,7 +32,7 @@ function getNextDayDtAppts() {
 
 function filterAndSortDTAppts(allTargetDayAppts) {
     // filter all appts down to DT exams/techs
-    const dtAppts = filterForValidDtAppts(allTargetDayAppts);
+    const dtAppts = FILTER_FOR_VALID_DT_APPTS(allTargetDayAppts);
 
     dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 

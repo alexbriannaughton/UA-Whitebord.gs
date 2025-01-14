@@ -1,4 +1,7 @@
-// singular get request to ezyvet api that will grab a new token if we get a 401 reponse
+const UNAUTHORIZED = 401;
+const OK = 200;
+const TOO_MANY_REQUESTS = 429;
+
 function fetchAndParse(url) {
     token = getToken();
 
@@ -12,9 +15,19 @@ function fetchAndParse(url) {
 
     let response = UrlFetchApp.fetch(url, options);
 
-    if (response.getResponseCode() === 401) {
+    if (response.getResponseCode() === UNAUTHORIZED) {
         options.headers.authorization = updateToken();
         response = UrlFetchApp.fetch(url, options);
+    }
+
+    if (response.getResponseCode() !== OK) {
+        console.error(`Response Code: ${response.getResponseCode()}`);
+        console.error(`Response Text: ${response.getContentText()}`);
+
+        if (response.getResponseCode() === TOO_MANY_REQUESTS) {
+            waitOn429(response);
+            response = UrlFetchApp.fetch(url, options);
+        }
     }
 
     const json = response.getContentText();
@@ -24,23 +37,23 @@ function fetchAndParse(url) {
 
 // use fetchAndParse() to store pet name and species from /animal endpoint
 function getAnimalInfo(animalID) {
-    const url = `${proxy}/v1/animal/${animalID}`;
+    const url = `${EV_PROXY}/v1/animal/${animalID}`;
     const animal = fetchAndParse(url).items.at(-1).animal;
-    const species = speciesMap[animal.species_id] || undefined;
+    const species = SPECIES_MAP[animal.species_id] || undefined;
 
     return [animal.name, species];
 };
 
 // use fetchAndParse() to store last name from /contact endpoint
 function getLastName(contactID) {
-    const url = `${proxy}/v1/contact/${contactID}`;
+    const url = `${EV_PROXY}/v1/contact/${contactID}`;
     const lastName = fetchAndParse(url).items.at(-1).contact.last_name;
 
     return lastName;
 };
 
 function getContactIdFromAnimalId(animalID) {
-    const url = `${proxy}/v1/animal/${animalID}`;
+    const url = `${EV_PROXY}/v1/animal/${animalID}`;
     const contactID = fetchAndParse(url).items.at(-1).contact_id;
     return contactID;
 }
@@ -51,7 +64,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
 
     const animalRequest = {
         muteHttpExceptions: true,
-        url: `${proxy}/v1/animal/${animalID}`,
+        url: `${EV_PROXY}/v1/animal/${animalID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -60,7 +73,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
 
     const contactRequest = {
         muteHttpExceptions: true,
-        url: `${proxy}/v1/contact/${contactID}`,
+        url: `${EV_PROXY}/v1/contact/${contactID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -69,17 +82,31 @@ function getAnimalInfoAndLastName(animalID, contactID) {
 
     let [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
 
-    if (animalResponse.getResponseCode() === 401 || contactResponse.getResponseCode() === 401) {
+    if (animalResponse.getResponseCode() === UNAUTHORIZED || contactResponse.getResponseCode() === UNAUTHORIZED) {
         animalRequest.headers.authorization = updateToken();
         contactRequest.headers.authorization = token;
         [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
     }
 
+    if (animalResponse.getResponseCode() !== OK || contactResponse.getResponseCode() !== OK) {
+        console.error(`Request failed: Animal response code: ${animalResponse.getResponseCode()}`);
+        console.error(`Contact response code: ${contactResponse.getResponseCode()}`);
+        console.error(`Animal response text: ${animalResponse.getContentText()}`);
+        console.error(`Contact response text: ${contactResponse.getContentText()}`);
+
+        const animalResponseIs429 = animalResponse.getResponseCode() === TOO_MANY_REQUESTS;
+        const contactResponseIs429 = contactResponse.getResponseCode() === TOO_MANY_REQUESTS;
+        if (animalResponseIs429 || contactResponseIs429) {
+            if (animalResponseIs429) waitOn429(animalResponse);
+            else if (contactResponseIs429) waitOn429(contactResponse);
+            [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
+        }
+    }
+
     const animalJSON = animalResponse.getContentText();
     const parsedAnimal = JSON.parse(animalJSON);
     const animal = parsedAnimal.items.at(-1).animal;
-    const speciesMap = { 1: 'K9', 2: 'FEL' };
-    const animalSpecies = speciesMap[animal.species_id] || undefined;
+    const animalSpecies = SPECIES_MAP[animal.species_id] || undefined;
     const isHostile = animal.is_hostile === '1';
 
     const contactJSON = contactResponse.getContentText();
@@ -94,7 +121,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     const animalOneRequest = {
         muteHttpExceptions: true,
-        url: `${proxy}/v1/animal/${animalOneID}`,
+        url: `${EV_PROXY}/v1/animal/${animalOneID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -103,7 +130,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     const animalTwoRequest = {
         muteHttpExceptions: true,
-        url: `${proxy}/v1/animal/${animalTwoID}`,
+        url: `${EV_PROXY}/v1/animal/${animalTwoID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -112,10 +139,25 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     let [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
 
-    if (animalOneResponse.getResponseCode() === 401 || animalTwoResponse.getResponseCode() === 401) {
+    if (animalOneResponse.getResponseCode() === UNAUTHORIZED || animalTwoResponse.getResponseCode() === UNAUTHORIZED) { // unauthorized
         animalOneRequest.headers.authorization = updateToken();
         animalTwoRequest.headers.authorization = token;
         [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
+    }
+
+    if (animalOneResponse.getResponseCode() !== OK || animalTwoResponse.getResponseCode() !== OK) {
+        console.error(`Request failed: Animal 1 response code: ${animalOneResponse.getResponseCode()}`);
+        console.error(`Animal 2 response code: ${animalTwoResponse.getResponseCode()}`);
+        console.error(`Animal 1 response text: ${animalOneResponse.getContentText()}`);
+        console.error(`Animal 2 response text: ${animalTwoResponse.getContentText()}`);
+
+        const animalOneResponseIs429 = animalOneResponse.getResponseCode() === TOO_MANY_REQUESTS; // too many requests
+        const animalTwoResponseIs429 = animalTwoResponse.getResponseCode() === TOO_MANY_REQUESTS;
+        if (animalOneResponseIs429 || animalTwoResponseIs429) {
+            if (animalOneResponseIs429) waitOn429(animalOneResponse);
+            else if (animalTwoResponseIs429) waitOn429(animalTwoResponse);
+            [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
+        }
     }
 
     const animalOneJSON = animalOneResponse.getContentText();
@@ -128,3 +170,13 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     return [animalOneContactID, animalTwoContactID];
 };
+
+function waitOn429(response) {
+    const secondsTilNextRetryMatch = response.getContentText().match(/(\d+)\s+seconds/);
+    console.log('match: ', secondsTilNextRetryMatch);
+    const secondsTilNextRetry = secondsTilNextRetryMatch?.[1];
+    console.error('seconds til next retry: ', secondsTilNextRetry);
+    if (secondsTilNextRetry) {
+        Utilities.sleep(Number(secondsTilNextRetry) * 1000);
+    }
+}

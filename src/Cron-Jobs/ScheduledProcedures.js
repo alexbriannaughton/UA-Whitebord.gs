@@ -2,7 +2,7 @@
 function getTodaysAppointments() {
     console.log('running getTodaysAppointments in ScheduledProcedures.js...');
     const [todayStart, todayEnd] = getTodayRange();
-    const url = `${proxy}/v1/appointment?time_range_start=${todayStart}&time_range_end=${todayEnd}&limit=200`;
+    const url = `${EV_PROXY}/v1/appointment?time_range_start=${todayStart}&time_range_end=${todayEnd}&limit=200`;
     const appts = fetchAndParse(url);
     return processProcedures(appts.items);
 };
@@ -41,14 +41,14 @@ function processProcedures(apptItems) {
 
 function getColorAndSortValue(procedure, resourceID) {
     // this function sorts procedures by type and adds a color to the procedure/appointment object
-    const procedureName = typeIDToCategoryMap.get(
+    const procedureName = TYPE_ID_TO_CATEGORY.get(
         parseInt(procedure.appointment_type_id)
     );
-    procedure.color = typeCategoryToColorMap.get(procedureName);
+    procedure.color = APPT_CATEGORY_TO_COLOR.get(procedureName);
 
     // anything that is in the IM column, despite the appointment_type, will be grouped as IM
     if (resourceID === '27' || resourceID === '65' || procedureName === 'IM') {
-        procedure.color = typeCategoryToColorMap.get('IM');
+        procedure.color = APPT_CATEGORY_TO_COLOR.get('IM');
         procedure.sortValue = 5;
     }
     else if (procedureName === 'sx') {
@@ -73,8 +73,8 @@ function getColorAndSortValue(procedure, resourceID) {
 
 function addScheduledProcedures(oneLocationProcedures, location) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
-    const inpatientBox = sheet.getRange(locationInpatientCoords.get(location));
-    const defaultColor = inpatientDefaultColorMap.get(location);
+    const inpatientBox = sheet.getRange(UA_LOC_INPATIENT_COORDS.get(location));
+    const defaultColor = UA_LOC_INPATIENT_DEFAULT_COLOR.get(location);
     clearInpatientBox(inpatientBox, defaultColor);
     const numOfColumnsInBox = inpatientBox.getNumColumns();
     let rowOfInpatientBox = 0;

@@ -1,17 +1,17 @@
 function handleAppointment(webhookType, appointment) {
     // first, send to aus/echo tracker sheet/script if its an echo or aus
-    if (echoApptTypeIDsSet.has(appointment.type_id)) {
+    if (ECHO_APPT_TYPE_IDS.has(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'Echos');
     }
-    if (ausApptTypeIDsSet.has(appointment.type_id)) {
+    if (AUS_APPT_TYPE_IDS.has(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'AUS');
     }
 
     // below here is for this sheetty
     if (appointment.type_id === 4) return; // block off type
 
-    const location = whichLocation(appointment.resources[0].id);
-    const locationToRoomCoordsMap = roomStatusLocationToCoords[appointment.status_id];
+    const location = WHICH_LOCATION(appointment.resources[0].id);
+    const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 
     if (location === 'DT') return handleDTAppointment(appointment, location, locationToRoomCoordsMap);
 

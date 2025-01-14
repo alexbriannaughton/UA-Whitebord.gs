@@ -1,8 +1,8 @@
 function handleNextDayDtAppt(appointment, location) {
-    if (!dtDVMApptTypeIDs.has(appointment.type_id)) return;
+    if (!DT_DVM_APPT_IDS.has(appointment.type_id)) return;
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
-    const range = sheet.getRange(dtNextDayApptsCoords);
+    const range = sheet.getRange(DT_NDA_COORDS);
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
     if (!appointment.active) return handleDeleteRow(existingRow, range);
@@ -14,14 +14,14 @@ function handleNextDayDtAppt(appointment, location) {
     const incomingTimeValue = new Date(appointment.start_at * 1000);
     let timeCellString = incomingTimeValue;
     const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
-    if (timeCellValBeforeUpdating === sameFamString) {
+    if (timeCellValBeforeUpdating === SAME_FAM_STRING) {
         // get the value of the time were pointing to
         let foundCoorespondingTimeCellVal;
         let rowOffset = -1;
         while (!foundCoorespondingTimeCellVal || rowOffset < -10) {
             const rowRangeAbove = rowRange.offset(rowOffset, 0);
             const timeCellVal = rowRangeAbove.getValue(); // note api call within a loop, not ideal
-            if (timeCellVal !== sameFamString) {
+            if (timeCellVal !== SAME_FAM_STRING) {
                 foundCoorespondingTimeCellVal = timeCellVal;
                 break;
             }
@@ -30,11 +30,11 @@ function handleNextDayDtAppt(appointment, location) {
         if (!foundCoorespondingTimeCellVal) {
             throw new Error(`unable to find corresponding time cell val at handleNextDayDtAppts(): ${appointment}`);
         }
-        // if the value is within 1 hour of the incoming value, keep the time cell val to have sameFamString
+        // if the value is within 1 hour of the incoming value, keep the time cell val to have SAME_FAM_STRING
         const timeDifferenceMs = Math.abs(incomingTimeValue - foundCoorespondingTimeCellVal);
         const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
         if (timeDifferenceHours <= 1) {
-            timeCellString = sameFamString;
+            timeCellString = SAME_FAM_STRING;
         }
     }
 
@@ -94,15 +94,15 @@ function fetchForDataAndMakeLink(appointment) {
         contactLastName,
         isHostile
     ] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
-    const text = `${animalName} ${contactLastName} (${animalSpecies || unknownSpeciesString})`;
-    const url = `${sitePrefix}/?recordclass=Animal&recordid=${appointment.animal_id}`;
+    const text = `${animalName} ${contactLastName} (${animalSpecies || UNKNOWN_SPECIES_STRING})`;
+    const url = `${SITE_PREFIX}/?recordclass=Animal&recordid=${appointment.animal_id}`;
     const ptCellLink = makeLink(text, url);
     const seeChartLink = makeLink('see pt chart', url);
     return { ptCellLink, isHostile, seeChartLink };
 }
 
 function resortDtAppts(
-    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT').getRange(dtNextDayApptsCoords)
+    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT').getRange(DT_NDA_COORDS)
 ) {
     const vals = range.getValues();
     const numOfAppts = getNumOfApptRows(vals);
@@ -112,7 +112,7 @@ function resortDtAppts(
     const apptVals = vals.slice(0, numOfAppts);
 
     const combinedVals = apptVals.map((apptVal, i) => {
-        const sameFamTime = apptVal[0] === sameFamString
+        const sameFamTime = apptVal[0] === SAME_FAM_STRING
             ? getFirstSameFamTime(apptVals, i)
             : null;
         return {
@@ -129,57 +129,6 @@ function resortDtAppts(
         return aSortVal - bSortVal;
     });
 
-    // below there are two for loops which are two versions that try to handle
-    // incoming appointments that should have same family flags in their time cell
-    // the first version only flags if the two appointements are already back to back in the combinedVals array
-    // the second version tries to handle this and resort the array if there are two appts within same family within two hours of each other
-    // but i have not completed the second versin
-    // version 1:
-    // for (let i = 0; i < combinedVals.length - 1; i++) {
-    //     const {
-    //         lastName: curApptLastName,
-    //         plainValue: curApptPlainValues,
-    //         richTextValue: curApptRichTextValues
-    //     } = combinedVals[i];
-
-    //     const curApptDate = curApptPlainValues[0];
-
-    //     if (curApptDate === sameFamString) continue;
-
-    //     let j = i + 1;
-    //     while (j < combinedVals.length) {
-    //         const {
-    //             lastName: nextApptLastName,
-    //             plainValue: nextApptPlainValues,
-    //             richTextValue: nextApptRichTextValues
-    //         } = combinedVals[j];
-
-    //         const nextApptDate = nextApptPlainValues[0];
-
-    //         if (nextApptDate === sameFamString) {
-    //             j++;
-    //             continue;
-    //         }
-
-    //         if (curApptLastName !== nextApptLastName) break;
-
-    //         const curApptAnimalID = getAnimaIdFromCellRichText(curApptRichTextValues[1])
-    //         if (!curApptAnimalID) break;
-
-    //         const nextApptAnimalID = getAnimaIdFromCellRichText(nextApptRichTextValues[1]);
-    //         if (!nextApptAnimalID) break;
-
-    //         const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
-
-    //         if (curAnimalContactID === nextAnimalContactID) {
-    //             combinedVals[j].plainValue[0] = sameFamString;
-    //         }
-
-    //     }
-
-    // }
-
-    // version 2:
     for (let i = 0; i < combinedVals.length - 1; i++) {
         const {
             lastName: curApptLastName,
@@ -189,7 +138,7 @@ function resortDtAppts(
 
         const curApptDate = curApptPlainValues[0];
 
-        if (curApptDate === sameFamString) continue;
+        if (curApptDate === SAME_FAM_STRING) continue;
 
         let sameFamWouldBeForCurAppt = true;
         for (let j = i + 1; j < combinedVals.length; j++) {
@@ -201,7 +150,7 @@ function resortDtAppts(
 
             const nextApptDate = nextApptPlainValues[0];
 
-            if (nextApptDate === sameFamString && sameFamWouldBeForCurAppt) continue;
+            if (nextApptDate === SAME_FAM_STRING && sameFamWouldBeForCurAppt) continue;
 
             sameFamWouldBeForCurAppt = false;
 
@@ -218,9 +167,9 @@ function resortDtAppts(
                 const [curAnimalContactID, nextAnimalContactID] = getTwoAnimalContactIDsAsync(curApptAnimalID, nextApptAnimalID);
 
                 if (curAnimalContactID === nextAnimalContactID) {
-                    // ensure that they are next to each other in the array and set nextPlainValue[0] = sameFamString
+                    // ensure that they are next to each other in the array and set nextPlainValue[0] = SAME_FAM_STRING
                     // 
-                    combinedVals[j].plainValue[0] = sameFamString;
+                    combinedVals[j].plainValue[0] = SAME_FAM_STRING;
                     const curValToMove = combinedVals.splice(j, 1)[0];
                     combinedVals.splice(i + 1, 0, curValToMove);
                     break;
@@ -256,7 +205,7 @@ function getFirstSameFamTime(apptVals, i) {
     let j = i - 1;
     while (j >= 0) {
         const timeVal = apptVals[j][0];
-        if (timeVal !== sameFamString) {
+        if (timeVal !== SAME_FAM_STRING) {
             return timeVal;
         }
         j--;
@@ -278,14 +227,14 @@ function handleDeleteRow(existingRow, range) {
     const numOfAppts = getNumOfApptRows(vals);
     if (!numOfAppts) return;
 
-    const existingRowIndexWithinRange = existingRow.getRow() - dtNextDayApptsRowStartNumber;
+    const existingRowIndexWithinRange = existingRow.getRow() - DT_NDA_ROW_START_NUMBER;
 
     const existingRowTimeValue = vals[existingRowIndexWithinRange][0];
     let nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
 
-    if (nextRowTimeValue === sameFamString && existingRowTimeValue !== sameFamString) {
+    if (nextRowTimeValue === SAME_FAM_STRING && existingRowTimeValue !== SAME_FAM_STRING) {
         let totalNumOfRowsPointingToExistingRowTime = 0;
-        while (nextRowTimeValue === sameFamString) {
+        while (nextRowTimeValue === SAME_FAM_STRING) {
             totalNumOfRowsPointingToExistingRowTime++;
             nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime][0];
         }
@@ -333,7 +282,7 @@ function getActualStartTime(animalIDs) {
     const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextDtAppts);
     const encodedTime = `start_time=${encodeURIComponent(JSON.stringify({ ">": targetDayStart, "<": targetDayEnd }))}`;
     const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": animalIDs }));
-    const url = `${proxy}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}&limit=200`;
+    const url = `${EV_PROXY}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}&limit=200`;
     const allTargetDayAppts = fetchAndParse(url);
     const appts = filterAndSortDTAppts(allTargetDayAppts);
     console.log('appts: ', appts)

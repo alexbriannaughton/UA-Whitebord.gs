@@ -48,9 +48,9 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         }
 
         // if we know the animal/contact stuff, continue normally
-        const ptSpecies = speciesMap[animal.species_id] || unknownSpeciesString;
+        const ptSpecies = SPECIES_MAP[animal.species_id] || UNKNOWN_SPECIES_STRING;
         const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
-        const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animal.id}`;
+        const animalURL = `${SITE_PREFIX}/?recordclass=Animal&recordid=${animal.id}`;
         const link = makeLink(ptText, animalURL);
         ptCell.setRichTextValue(link);
 
@@ -112,7 +112,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
 function getTimeCellValue(i, startTime, contactID, dtAppts) {
     const isSameFam = i > 0 && contactID === dtAppts[i - 1].contact.id;
     if (isSameFam && contactID !== unmatchedVetstoriaContactID) {
-        return sameFamString;
+        return SAME_FAM_STRING;
     }
     const date = new Date(startTime * 1000);
     return date;

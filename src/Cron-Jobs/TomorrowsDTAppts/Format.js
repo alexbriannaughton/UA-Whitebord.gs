@@ -23,14 +23,14 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
     const rules = [
         // time column
         SpreadsheetApp.newConditionalFormatRule()
-            .whenTextEqualTo(sameFamString)
+            .whenTextEqualTo(SAME_FAM_STRING)
             .setBackground(highPriorityColor)
             .setRanges([range.offset(0, 0, numOfRowsInRange, 1)])
             .build(),
 
         // pt name column
         SpreadsheetApp.newConditionalFormatRule()
-            .whenTextContains(unknownSpeciesString)
+            .whenTextContains(UNKNOWN_SPECIES_STRING)
             .setBackground(highPriorityColor)
             .setRanges([range.offset(0, 1, numOfRowsInRange, 1)])
             .build(),

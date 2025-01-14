@@ -15,12 +15,12 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         console.log(`processing ${numOfAttachments} record(s) for ${animalName}...`);
 
         // if there's a ton of records, or if there's zero attachments,
-        if (numOfAttachments > 20) {
-            dtAppts[i].records = {
-                text: `${numOfAttachments} attachments...`,
-            };
-            continue;
-        }
+        // if (numOfAttachments > 20) {
+        //     dtAppts[i].records = {
+        //         text: `${numOfAttachments} attachments...`,
+        //     };
+        //     continue;
+        // }
         if (numOfAttachments < 1) {
             dtAppts[i].records = {
                 text: 'no attachments'
@@ -193,7 +193,7 @@ function handleDownloadError(
     );
     yDistanceFromTop += 20;
     // line 5:
-    const animalURL = `${sitePrefix}/?recordclass=Animal&recordid=${animalID}`;
+    const animalURL = `${SITE_PREFIX}/?recordclass=Animal&recordid=${animalID}`;
     const color = { type: 'RGB', red: 0, green: 0, blue: 1 }; // make the link blue
     const linkTextOptions = { y: pageHeight - yDistanceFromTop, color }
     page.drawText(animalURL, linkTextOptions);
