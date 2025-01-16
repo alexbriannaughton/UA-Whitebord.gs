@@ -139,7 +139,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     let [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
 
-    if (animalOneResponse.getResponseCode() === UNAUTHORIZED || animalTwoResponse.getResponseCode() === UNAUTHORIZED) { // unauthorized
+    if (animalOneResponse.getResponseCode() === UNAUTHORIZED || animalTwoResponse.getResponseCode() === UNAUTHORIZED) {
         animalOneRequest.headers.authorization = updateToken();
         animalTwoRequest.headers.authorization = token;
         [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
@@ -151,7 +151,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
         console.error(`Animal 1 response text: ${animalOneResponse.getContentText()}`);
         console.error(`Animal 2 response text: ${animalTwoResponse.getContentText()}`);
 
-        const animalOneResponseIs429 = animalOneResponse.getResponseCode() === TOO_MANY_REQUESTS; // too many requests
+        const animalOneResponseIs429 = animalOneResponse.getResponseCode() === TOO_MANY_REQUESTS;
         const animalTwoResponseIs429 = animalTwoResponse.getResponseCode() === TOO_MANY_REQUESTS;
         if (animalOneResponseIs429 || animalTwoResponseIs429) {
             if (animalOneResponseIs429) waitOn429(animalOneResponse);
