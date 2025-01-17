@@ -273,7 +273,6 @@ function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
     }
     catch (error) {
         console.error(error);
-        console.error('error response code: ', error.getResponseCode());
         if (error.message.includes('too many requests recently')) {
             const secondsTilNextRetryMatch = error.message.match(/(\d+)\s+seconds/);
             console.log('match: ', secondsTilNextRetryMatch);
