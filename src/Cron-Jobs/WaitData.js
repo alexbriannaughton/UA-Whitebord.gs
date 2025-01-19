@@ -1,7 +1,7 @@
 function getWaitData(numOfRoomsInUse, sheets) {
     const waitData = [
-        getWaitValsForLocation('CH', numOfRoomsInUse, sheets),
-        getWaitValsForLocation('WC', numOfRoomsInUse, sheets)
+        getWaitValsForLocation(CH_NAME, numOfRoomsInUse, sheets),
+        getWaitValsForLocation(WC_NAME, numOfRoomsInUse, sheets)
     ];
     return waitData;
 }

@@ -5,7 +5,7 @@ async function dtJobMain() {
     console.log('running getTomrrowsDTAppts job...');
     const { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT');
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DT_NAME); 
     const range = sheet.getRange(DT_NDA_COORDS);
     formatNextDayApptsCells(sheet, range, dtAppts.length);
     putDataOnSheet(dtAppts, range, targetDateStr);

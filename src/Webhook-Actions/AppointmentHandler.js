@@ -13,7 +13,7 @@ function handleAppointment(webhookType, appointment) {
     const location = WHICH_LOCATION(appointment.resources[0].id);
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 
-    if (location === 'DT') return handleDTAppointment(appointment, location, locationToRoomCoordsMap);
+    if (location === DT_NAME) return handleDTAppointment(appointment, location, locationToRoomCoordsMap);
 
     const isToday = isTodayInUserTimezone(
         convertEpochToUserTimezoneDate(appointment.start_at)

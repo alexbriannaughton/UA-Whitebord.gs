@@ -102,7 +102,7 @@ function fetchForDataAndMakeLink(appointment) {
 }
 
 function resortDtAppts(
-    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT').getRange(DT_NDA_COORDS)
+    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DT_NAME).getRange(DT_NDA_COORDS)
 ) {
     const vals = range.getValues();
     const numOfAppts = getNumOfApptRows(vals);

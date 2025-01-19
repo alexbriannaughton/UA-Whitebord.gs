@@ -274,7 +274,7 @@ function getContactIDFromConsultID(consultID) {
 }
 
 function deleteFromWaitlist(location, consultID) {
-  if (location === 'DT') return;
+  if (location === DT_NAME) return;
   const waitlistSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(`${location} Wait List`);
   const patientNameRichText = waitlistSheet.getRange(`C7:D75`).getRichTextValues();
 
@@ -293,7 +293,7 @@ function deleteFromWaitlist(location, consultID) {
 
 function roomIsOkToPopulateWithData(roomValues, location) {
   // DT requests to be allowed to populate a room while there is data 'in the room' on whiteboard
-  return location === 'DT'
+  return location === DT_NAME
     ? roomValues[1].every(cellIsEmpty)
     : roomValues.every(roomVal => roomVal.every(cellIsEmpty));
 }

@@ -7,7 +7,7 @@ function addInPatient(appointment, location) {
   const { highestEmptyRow } = findRow(
     inpatientBoxRange,
     appointment.consult_id,
-    location === 'WC' ? 1 : 0
+    location === WC_NAME ? 1 : 0
   );
   if (!highestEmptyRow) return;
   highestEmptyRow.setBackground(UA_LOC_INPATIENT_DEFAULT_COLOR.get(location));
@@ -20,7 +20,7 @@ function populateInpatientRow(appointment, highestEmptyRow, location) {
   const text = `${animalName} ${contactLastName} (${animalSpecies})`;
   const webAddress = `${SITE_PREFIX}/?recordclass=Consult&recordid=${appointment.consult_id}`;
   const link = makeLink(text, webAddress);
-  const columnOffset = location === 'WC' ? 1 : 0;
+  const columnOffset = location === WC_NAME ? 1 : 0;
   highestEmptyRow.offset(0, columnOffset, 1, 4).setRichTextValues([
     [
       link,

@@ -14,12 +14,12 @@ function WHICH_LOCATION(resourceID) {
     // 1081: Walk Ins (with CH as dept)
     [24, 25, 26, 27, 28, 29, 30, 65, 1063, 1081]
         .forEach(id => resourceIDToLocationMap
-            .set(id, 'CH')
+            .set(id, CH_NAME)
         );
 
     Array.from(DT_RESOURCE_IDS)
         .forEach(id => resourceIDToLocationMap
-            .set(id, 'DT')
+            .set(id, DT_NAME)
         );
 
     // calendar resource ids for WC:
@@ -32,7 +32,7 @@ function WHICH_LOCATION(resourceID) {
     // 1384: WC DVM 3
     [39, 59, 60, 61, 62, 1083, 1384]
         .forEach(id => resourceIDToLocationMap
-            .set(id, 'WC')
+            .set(id, WC_NAME)
         );
 
     return resourceIDToLocationMap.get(resourceID);
@@ -96,157 +96,89 @@ const SPECIES_MAP = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => specie
 
 const ROOM_STATUS_LOCATION_TO_COORDS = {
     18: { // room 1
-        CH: 'C3:C11',
-        DT: 'C3:C11',
-        WC: 'C3:C11'
+        [CH_NAME]: 'C3:C11',
+        [DT_NAME]: 'C3:C11',
+        [WC_NAME]: 'C3:C11'
     },
     25: { // room 2
-        CH: 'D3:D11',
-        DT: 'D3:D11',
-        WC: 'D3:D11'
+        [CH_NAME]: 'D3:D11',
+        [DT_NAME]: 'D3:D11',
+        [WC_NAME]: 'D3:D11'
     },
     26: { // room 3
-        CH: 'E3:E11',
-        DT: 'E3:E11',
-        WC: 'E3:E11'
+        [CH_NAME]: 'E3:E11',
+        [DT_NAME]: 'E3:E11',
+        [WC_NAME]: 'E3:E11'
     },
     27: { // room 4
-        CH: 'F3:F11',
-        DT: 'F3:F11',
-        WC: 'F3:F11'
+        [CH_NAME]: 'F3:F11',
+        [DT_NAME]: 'F3:F11',
+        [WC_NAME]: 'F3:F11'
     },
     28: { // room 5
-        CH: 'G3:G11',
-        DT: 'G3:G11',
-        WC: 'G3:G11'
+        [CH_NAME]: 'G3:G11',
+        [DT_NAME]: 'G3:G11',
+        [WC_NAME]: 'G3:G11'
     },
     29: { // room 6
-        CH: 'C13:C21',
-        DT: 'H3:H11',
-        WC: null
+        [CH_NAME]: 'C13:C21',
+        [DT_NAME]: 'H3:H11',
+        [WC_NAME]: null
     },
     30: { // room 7
-        CH: 'D13:D21',
-        DT: 'I3:I11',
-        WC: null
+        [CH_NAME]: 'D13:D21',
+        [DT_NAME]: 'I3:I11',
+        [WC_NAME]: null
     },
     31: { // room 8
-        CH: 'E13:E21',
-        DT: null,
-        WC: null
+        [CH_NAME]: 'E13:E21',
+        [DT_NAME]: null,
+        [WC_NAME]: null
     },
     32: { // room 9
-        CH: 'F13:F21',
-        DT: null,
-        WC: null
+        [CH_NAME]: 'F13:F21',
+        [DT_NAME]: null,
+        [WC_NAME]: null
     },
     33: { // room 10
-        CH: 'G13:G21',
-        DT: null,
-        WC: null
+        [CH_NAME]: 'G13:G21',
+        [DT_NAME]: null,
+        [WC_NAME]: null
     },
     36: { // room 11
-        CH: 'H13:H21',
-        DT: null,
-        WC: null
+        [CH_NAME]: 'H13:H21',
+        [DT_NAME]: null,
+        [WC_NAME]: null
     },
     39: { // dog lob
-        CH: 'I13:I21',
-        DT: null,
-        WC: null
+        [CH_NAME]: 'I13:I21',
+        [DT_NAME]: null,
+        [WC_NAME]: null
     },
     40: { // cat lob
-        CH: 'H3:H11', // first column
-        DT: null,
-        WC: null
+        [CH_NAME]: 'H3:H11', // first column
+        [DT_NAME]: null,
+        [WC_NAME]: null
     },
     43: { // wc sx 1
-        CH: null,
-        DT: null,
-        WC: 'C13:C21'
+        [CH_NAME]: null,
+        [DT_NAME]: null,
+        [WC_NAME]: 'C13:C21'
     },
     42: { // wc sx 2
-        CH: null,
-        DT: null,
-        WC: 'D13:D21'
+        [CH_NAME]: null,
+        [DT_NAME]: null,
+        [WC_NAME]: 'D13:D21'
     },
     41: { // wc sx 3
-        CH: null,
-        DT: null,
-        WC: 'E13:E21'
+        [CH_NAME]: null,
+        [DT_NAME]: null,
+        [WC_NAME]: 'E13:E21'
     },
     // 44: { // wc sx lobby
-    //     CH: null,
-    //     DT: null,
-    //     WC: ''
+    //     [CH_NAME]: null,
+    //     [DT_NAME]: null,
+    //     [WC_NAME]: ''
     // }
-    
-  }
 
-// getRoomRange() is alternative to find room range which is in ./Webhook-Actions/MoveToRoom.js
-// function getRoomRange(location, statusID, sheet) {
-//     const otherRowsToGrab = 5;
-//     const trrs = 3; // top rooms row start
-//     const trre = trrs + otherRowsToGrab; // top rooms row end
-  
-//     if (location === 'CH') {
-//       const brrs = 13; // bottom rooms row start
-//       const brre = brrs + otherRowsToGrab; // bottom rooms row end
-  
-//       const chStatusIDToRangeA1 = new Map([
-//         [18, `C${trrs}:C${trre}`], // 1
-//         [25, `D${trrs}:D${trre}`], // 2
-//         [26, `E${trrs}:E${trre}`], // 3
-//         [27, `F${trrs}:F${trre}`], // 4
-//         [28, `G${trrs}:G${trre}`], // 5
-//         [29, `C${brrs}:C${brre}`], // 6
-//         [30, `D${brrs}:D${brre}`], // 7
-//         [31, `E${brrs}:E${brre}`], // 8
-//         [32, `F${brrs}:F${brre}`], // 9
-//         [33, `G${brrs}:G${brre}`], // 10
-//         [36, `H${brrs}:H${brre}`], // 11
-//         [39, `I${brrs}:I${brre}`], // dog lobby
-//         [40, `H${trrs}:H${trre}`], // cat lobby 1
-//         // ['CHxx', `I${trrs}:I${trre}`], // cat lobby 2 -- there is no unique status for the second cat lobby column
-//       ]);
-  
-//       const coords = chStatusIDToRangeA1.get(statusID);
-//       return sheet.getRange(coords);
-//     }
-  
-//     else if (location === 'DT') {
-  
-//     }
-//   }
-
-// const statusIDToNameMap = new Map([
-//     [1, 'no status'],
-//     [2, 'confirmed'],
-//     [13, 'complete'],
-//     [15, 'unconfirmed'],
-//     [16, 'triaged/bumped'],
-//     [18, 'room 1'],
-//     [17, 'on wait list'],
-//     [19, 'ok to check out'],
-//     [20, 'texted'],
-//     [21, 'in lobby'],
-//     [22, 'ready'],
-//     [23, 'add to tech column'],
-//     [24, 'checked out'],
-//     [25, 'room 2'],
-//     [26, 'room 3'],
-//     [27, 'room 4'],
-//     [28, 'room 5'],
-//     [29, 'room 6'],
-//     [30, 'room 7'],
-//     [31, 'room 8'],
-//     [32, 'room 9'],
-//     [33, 'room 10'],
-//     [34, 'inpatient'],
-//     [35, 'chart complete'],
-//     [36, 'room 11'],
-//     [37, 'deposit paid'],
-//     [38, 'deposit requested'],
-//     [39, 'dog lob'],
-//     [40, 'cat lobby'],
-// ])
+}

@@ -1,3 +1,7 @@
+const CH_NAME = 'CH';
+const DT_NAME = 'DT';
+const WC_NAME = 'WC';
+
 const EV_PROXY = 'https://api.ezyvet.com';
 const SITE_PREFIX = 'https://urbananimalnw.usw2.ezyvet.com';
 
@@ -26,23 +30,23 @@ const APPT_CATEGORY_TO_COLOR = new Map([
 
 // for obtaining a particular location's default background color for the inpatient box
 const UA_LOC_INPATIENT_DEFAULT_COLOR = new Map([
-    ['CH', '#f3f3f3'], // gray for cap hill
-    ['DT', '#d0e0e3'], // cyan for downtown
-    ['WC', '#ead1dc']  // magenta for white center
+    [CH_NAME, '#f3f3f3'], // gray for cap hill
+    [DT_NAME, '#d0e0e3'], // cyan for downtown
+    [WC_NAME, '#ead1dc']  // magenta for white center
 ]);
 
 const UA_LOC_TEXTED_COLOR = new Map([
-    ['CH', '#ff9fbd'],
-    ['WC', 'yellow']
+    [CH_NAME, '#ff9fbd'],
+    [WC_NAME, 'yellow']
 ]);
 
 const UA_LOC_INPATIENT_COORDS = new Map([
-    ['CH', 'R3:W36'],
-    ['DT', 'B14:H42'],
-    ['WC', 'B20:I60']
+    [CH_NAME, 'R3:W36'],
+    [DT_NAME, 'B14:H42'],
+    [WC_NAME, 'B20:I60']
 ]);
 
 const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
-    ['CH', 'O4'],
-    ['WC', 'I3']
+    [CH_NAME, 'O4'],
+    [WC_NAME, 'I3']
 ]);

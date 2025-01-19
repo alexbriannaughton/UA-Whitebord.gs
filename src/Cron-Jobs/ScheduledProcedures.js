@@ -9,16 +9,16 @@ function getTodaysAppointments() {
 
 function processProcedures(apptItems) {
     const allLocationProcedures = new Map([
-        ['CH', []],
-        ['DT', []],
-        ['WC', []]
+        [CH_NAME, []],
+        [DT_NAME, []],
+        [WC_NAME, []]
     ]);
 
     const locationForProcedureMap = new Map([
-        ['29', 'CH'], ['30', 'CH'], // cap hill resource ids for procedure columns
-        ['27', 'CH'], ['65', 'CH'], // cap hill resource ids for IM columns
-        ['57', 'DT'], ['58', 'DT'], // dt resource ids for procedure columns
-        ['61', 'WC'], ['62', 'WC'], // wc resource ids for procedure columns
+        ['29', CH_NAME], ['30', CH_NAME], // cap hill resource ids for procedure columns
+        ['27', CH_NAME], ['65', CH_NAME], // cap hill resource ids for IM columns
+        ['57', DT_NAME], ['58', DT_NAME], // dt resource ids for procedure columns
+        ['61', WC_NAME], ['62', WC_NAME], // wc resource ids for procedure columns
     ]); // this map serves to check if the appointment is in the above column, and sorts per location
 
     apptItems.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
