@@ -51,7 +51,6 @@ const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
     [WC_NAME, 'I3']
 ]);
 
-
 function WHICH_LOCATION(resourceID) {
     const resourceIDToLocationMap = new Map();
 
