@@ -4,13 +4,33 @@ function whichLocation(resourceId) {
     if (ezyVetResourceToUaLoc === undefined) {
         ezyVetResourceToUaLoc = buildEzyVetResourceMap();
     }
-    else return ezyVetResourceToUaLoc.get(resourceId)
+    
+    console.log(ezyVetResourceToUaLoc)
+    
+    return ezyVetResourceToUaLoc.get(resourceId)
 }
 
 function buildEzyVetResourceMap() {
-    const [separations, resources] = buildEzyVetResourceMap();
-    console.log('separations: ', separations);
-    console.log('resources: ', resources);
+    const [separations, resources] = getSeparationsAndResources();
+    const map = new Map();
+
+    resources.forEach(({ resource }) => {
+        const separationOfUaLoc = separations.find(({ separation }) => separation.id === resource.ownership_id);
+        if (!separationOfUaLoc) {
+            console.error(`No Urban Animal Location for facility resource: ${resource}`);
+            return;
+        }
+
+        const uaLoc = separationOfUaLoc.separation.name;
+        if (!uaLoc) {
+            console.error(`No uaLoc for ${separationOfUaLoc}`);
+            return;
+        }
+
+        map.set(resource.id, uaLoc)
+    });
+
+    return map;
 }
 
 function getSeparationsAndResources() {
