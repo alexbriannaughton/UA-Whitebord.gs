@@ -23,7 +23,7 @@ function fetchAndBuildEzyVetResourceMap(cache = CacheService.getScriptCache()) {
         ezyVetResourceMap[resource.id] = uaLoc;
     });
 
-    cache.put(EZYVET_RESOURCE_TO_UA_LOC_NAME, JSON.stringify(ezyVetResourceMap), 120);
+    cache.put(EZYVET_RESOURCE_TO_UA_LOC_NAME, JSON.stringify(ezyVetResourceMap), 7200);
     
     console.log('successfully fetched / built / cached new ezyvet resource map.');
 
