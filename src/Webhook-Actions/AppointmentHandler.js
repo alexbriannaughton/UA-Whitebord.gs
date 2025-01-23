@@ -13,22 +13,22 @@ function handleAppointment(webhookType, appointment) {
     const { isToday, couldBeNextDayDtAppt } = checkIfTodayOrOnNextDayOfDtAppts(appointment);
     if (!isToday && !couldBeNextDayDtAppt) return;
 
-    // const location = WHICH_LOCATION(appointment.resources[0].id);
-    const location = whichLocation(appointment.resources[0].id);
+    const uaLoc = whichLocation(appointment.resources[0].id);
+    const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc];
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 
-    if (location === DT_NAME) {
-        return handleDTAppointment(appointment, location, locationToRoomCoordsMap, couldBeNextDayDtAppt);
+    if (uaLocSheetName === DT_SHEET_NAME) {
+        return handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap, couldBeNextDayDtAppt);
     }
 
     if (!appointment.active) {
-        return handleInactiveApptOnWaitlist(appointment, location);
+        return handleInactiveApptOnWaitlist(appointment, uaLocSheetName);
     }
 
     appointment.description = removeVetstoriaDescriptionText(appointment.description);
 
     if (locationToRoomCoordsMap) {
-        return moveToRoom(appointment, location, locationToRoomCoordsMap);
+        return moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap);
     }
 
     const nonDtStatusHandlers = {
@@ -43,19 +43,19 @@ function handleAppointment(webhookType, appointment) {
 
     const statusHandler = nonDtStatusHandlers[appointment.status_id];
 
-    if (statusHandler) return statusHandler(appointment, location);
+    if (statusHandler) return statusHandler(appointment, uaLocSheetName);
 
     if (webhookType === 'appointment_created') {
         const apptTypeID = appointment.type_id;
 
         // appointment type 37 is a walk in and appointment type 77 is a new client walk in
         if (apptTypeID === 37 || apptTypeID === 77) {
-            return addToWaitlist(appointment, location);
+            return addToWaitlist(appointment, uaLocSheetName);
         }
 
         // appointment type 19 is a tech appointment
         else if (apptTypeID === 19) {
-            return addTechAppt(appointment, location);
+            return addTechAppt(appointment, uaLocSheetName);
         }
     }
 
@@ -76,13 +76,13 @@ function handleEchoOrAUS(appointment, sheetName) {
     return;
 }
 
-function handleDTAppointment(appointment, location, locationToRoomCoordsMap, couldBeNextDayDtAppt) {
+function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap, couldBeNextDayDtAppt) {
     if (couldBeNextDayDtAppt) {
-        return handleNextDayDtAppt(appointment, location);
+        return handleNextDayDtAppt(appointment, uaLocSheetName);
     }
 
     if (locationToRoomCoordsMap) { // this would mean that its a room status
-        return moveToRoom(appointment, location, locationToRoomCoordsMap);
+        return moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap);
     }
 
     const dtStatusHandlers = {
@@ -93,7 +93,7 @@ function handleDTAppointment(appointment, location, locationToRoomCoordsMap, cou
 
     const handler = dtStatusHandlers[appointment.status_id];
 
-    return handler ? handler(appointment, location) : null;
+    return handler ? handler(appointment, uaLocSheetName) : null;
 }
 
 function checkIfTodayOrOnNextDayOfDtAppts(appointment) {

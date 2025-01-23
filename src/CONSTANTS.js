@@ -1,6 +1,14 @@
-const CH_NAME = 'CH';
-const DT_NAME = 'DT';
-const WC_NAME = 'WC';
+const CH_SHEET_NAME = 'CH';
+const DT_SHEET_NAME = 'DT';
+const WC_SHEET_NAME = 'WC';
+
+const ALL_LOCATION_SHEETS = [CH_SHEET_NAME, DT_SHEET_NAME, WC_SHEET_NAME];
+
+const UA_LOC_SHEET_NAMES_MAP = {
+    'Capitol Hill': CH_SHEET_NAME,
+    'Downtown': DT_SHEET_NAME,
+    'White Center': WC_SHEET_NAME,
+};
 
 const EV_PROXY = 'https://api.ezyvet.com';
 const SITE_PREFIX = 'https://urbananimalnw.usw2.ezyvet.com';
@@ -30,28 +38,26 @@ const APPT_CATEGORY_TO_COLOR = new Map([
 
 // for obtaining a particular location's default background color for the inpatient box
 const UA_LOC_INPATIENT_DEFAULT_COLOR = new Map([
-    [CH_NAME, '#f3f3f3'], // gray for cap hill
-    [DT_NAME, '#d0e0e3'], // cyan for downtown
-    [WC_NAME, '#ead1dc']  // magenta for white center
+    [CH_SHEET_NAME, '#f3f3f3'], // gray for cap hill
+    [DT_SHEET_NAME, '#d0e0e3'], // cyan for downtown
+    [WC_SHEET_NAME, '#ead1dc']  // magenta for white center
 ]);
 
 const UA_LOC_TEXTED_COLOR = new Map([
-    [CH_NAME, '#ff9fbd'],
-    [WC_NAME, 'yellow']
+    [CH_SHEET_NAME, '#ff9fbd'],
+    [WC_SHEET_NAME, 'yellow']
 ]);
 
 const UA_LOC_INPATIENT_COORDS = new Map([
-    [CH_NAME, 'R3:W36'],
-    [DT_NAME, 'B14:H42'],
-    [WC_NAME, 'B20:I60']
+    [CH_SHEET_NAME, 'R3:W36'],
+    [DT_SHEET_NAME, 'B14:H42'],
+    [WC_SHEET_NAME, 'B20:I60']
 ]);
 
 const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
-    [CH_NAME, 'O4'],
-    [WC_NAME, 'I3']
+    [CH_SHEET_NAME, 'O4'],
+    [WC_SHEET_NAME, 'I3']
 ]);
-
-// function WHICH_LOCATION(resourceID) {
 //     const resourceIDToLocationMap = new Map();
 
 //     // calendar resource ids for CH:
@@ -72,7 +78,7 @@ const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
 
 //     Array.from(DT_RESOURCE_IDS)
 //         .forEach(id => resourceIDToLocationMap
-//             .set(id, DT_NAME)
+//             .set(id, DT_SHEET_NAME)
 //         );
 
 //     // calendar resource ids for WC:
@@ -85,7 +91,7 @@ const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
 //     // 1384: WC DVM 3
 //     [39, 59, 60, 61, 62, 1083, 1384]
 //         .forEach(id => resourceIDToLocationMap
-//             .set(id, WC_NAME)
+//             .set(id, WC_SHEET_NAME)
 //         );
 
 //     return resourceIDToLocationMap.get(resourceID);
@@ -149,89 +155,89 @@ const SPECIES_MAP = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => specie
 
 const ROOM_STATUS_LOCATION_TO_COORDS = {
     18: { // room 1
-        [CH_NAME]: 'C3:C11',
-        [DT_NAME]: 'C3:C11',
-        [WC_NAME]: 'C3:C11'
+        [CH_SHEET_NAME]: 'C3:C11',
+        [DT_SHEET_NAME]: 'C3:C11',
+        [WC_SHEET_NAME]: 'C3:C11'
     },
     25: { // room 2
-        [CH_NAME]: 'D3:D11',
-        [DT_NAME]: 'D3:D11',
-        [WC_NAME]: 'D3:D11'
+        [CH_SHEET_NAME]: 'D3:D11',
+        [DT_SHEET_NAME]: 'D3:D11',
+        [WC_SHEET_NAME]: 'D3:D11'
     },
     26: { // room 3
-        [CH_NAME]: 'E3:E11',
-        [DT_NAME]: 'E3:E11',
-        [WC_NAME]: 'E3:E11'
+        [CH_SHEET_NAME]: 'E3:E11',
+        [DT_SHEET_NAME]: 'E3:E11',
+        [WC_SHEET_NAME]: 'E3:E11'
     },
     27: { // room 4
-        [CH_NAME]: 'F3:F11',
-        [DT_NAME]: 'F3:F11',
-        [WC_NAME]: 'F3:F11'
+        [CH_SHEET_NAME]: 'F3:F11',
+        [DT_SHEET_NAME]: 'F3:F11',
+        [WC_SHEET_NAME]: 'F3:F11'
     },
     28: { // room 5
-        [CH_NAME]: 'G3:G11',
-        [DT_NAME]: 'G3:G11',
-        [WC_NAME]: 'G3:G11'
+        [CH_SHEET_NAME]: 'G3:G11',
+        [DT_SHEET_NAME]: 'G3:G11',
+        [WC_SHEET_NAME]: 'G3:G11'
     },
     29: { // room 6
-        [CH_NAME]: 'C13:C21',
-        [DT_NAME]: 'H3:H11',
-        [WC_NAME]: null
+        [CH_SHEET_NAME]: 'C13:C21',
+        [DT_SHEET_NAME]: 'H3:H11',
+        [WC_SHEET_NAME]: null
     },
     30: { // room 7
-        [CH_NAME]: 'D13:D21',
-        [DT_NAME]: 'I3:I11',
-        [WC_NAME]: null
+        [CH_SHEET_NAME]: 'D13:D21',
+        [DT_SHEET_NAME]: 'I3:I11',
+        [WC_SHEET_NAME]: null
     },
     31: { // room 8
-        [CH_NAME]: 'E13:E21',
-        [DT_NAME]: null,
-        [WC_NAME]: null
+        [CH_SHEET_NAME]: 'E13:E21',
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: null
     },
     32: { // room 9
-        [CH_NAME]: 'F13:F21',
-        [DT_NAME]: null,
-        [WC_NAME]: null
+        [CH_SHEET_NAME]: 'F13:F21',
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: null
     },
     33: { // room 10
-        [CH_NAME]: 'G13:G21',
-        [DT_NAME]: null,
-        [WC_NAME]: null
+        [CH_SHEET_NAME]: 'G13:G21',
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: null
     },
     36: { // room 11
-        [CH_NAME]: 'H13:H21',
-        [DT_NAME]: null,
-        [WC_NAME]: null
+        [CH_SHEET_NAME]: 'H13:H21',
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: null
     },
     39: { // dog lob
-        [CH_NAME]: 'I13:I21',
-        [DT_NAME]: null,
-        [WC_NAME]: null
+        [CH_SHEET_NAME]: 'I13:I21',
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: null
     },
     40: { // cat lob
-        [CH_NAME]: 'H3:H11', // first column
-        [DT_NAME]: null,
-        [WC_NAME]: null
+        [CH_SHEET_NAME]: 'H3:H11', // first column
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: null
     },
     43: { // wc sx 1
-        [CH_NAME]: null,
-        [DT_NAME]: null,
-        [WC_NAME]: 'C13:C21'
+        [CH_SHEET_NAME]: null,
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: 'C13:C21'
     },
     42: { // wc sx 2
-        [CH_NAME]: null,
-        [DT_NAME]: null,
-        [WC_NAME]: 'D13:D21'
+        [CH_SHEET_NAME]: null,
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: 'D13:D21'
     },
     41: { // wc sx 3
-        [CH_NAME]: null,
-        [DT_NAME]: null,
-        [WC_NAME]: 'E13:E21'
+        [CH_SHEET_NAME]: null,
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: 'E13:E21'
     },
     // 44: { // wc sx lobby
-    //     [CH_NAME]: null,
-    //     [DT_NAME]: null,
-    //     [WC_NAME]: ''
+    //     [CH_SHEET_NAME]: null,
+    //     [DT_SHEET_NAME]: null,
+    //     [WC_SHEET_NAME]: ''
     // }
 
 }
@@ -243,4 +249,23 @@ const UNHANDLED_APPT_TYPE_IDS = [
     BLOCK_OFF_APPT_TYPE_ID,
     NO_SHOW_APPT_ID,
     EOD_APPT_ID,
+];
+const CH_PROCEDURE_1_RESOURCE_ID = '29';
+const CH_PROCEDURE_2_RESOURCE_ID = '30';
+const CH_IM_RESOURCE_ID = '27';
+const CH_IM_PROCEDURE_RESOURCE_ID = '65';
+const DT_PROCEDURE_1_RESOURCE_ID = '57';
+const DT_PROCEDURE_2_RESOURCE_ID = '58';
+const WC_PROCEDURE_1_RESOURCE_ID = '61';
+const WC_PROCEDURE_2_RESOURCE_ID = '62';
+
+const SCHEDULED_PROCEDURES_RESOURCE_IDS = [
+    CH_PROCEDURE_1_RESOURCE_ID, 
+    CH_PROCEDURE_2_RESOURCE_ID,
+    CH_IM_RESOURCE_ID,
+    CH_IM_PROCEDURE_RESOURCE_ID,
+    DT_PROCEDURE_1_RESOURCE_ID,
+    DT_PROCEDURE_2_RESOURCE_ID,
+    WC_PROCEDURE_1_RESOURCE_ID,
+    WC_PROCEDURE_2_RESOURCE_ID,
 ];

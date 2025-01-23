@@ -24,14 +24,14 @@ function extractMainSheetData(sheets) {
     const numOfRoomsInUse = {};
 
     const staffingVals = [
-        extractRoomsDataAndGetStaffingVals(CH_NAME, 'C3:I35', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
-        extractRoomsDataAndGetStaffingVals(DT_NAME, 'C3:N11', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
-        extractRoomsDataAndGetStaffingVals(WC_NAME, 'C3:N27', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets)
+        extractRoomsDataAndGetStaffingVals(CH_SHEET_NAME, 'C3:I35', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
+        extractRoomsDataAndGetStaffingVals(DT_SHEET_NAME, 'C3:N11', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
+        extractRoomsDataAndGetStaffingVals(WC_SHEET_NAME, 'C3:N27', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets)
     ]
 
     const locationPossPositionNames = {}
-    const locationByOrder = [CH_NAME, DT_NAME, WC_NAME];
-    staffingVals.forEach((sv, i) => extractStaffing(sv, locationByOrder[i], locationPossPositionNames));
+
+    staffingVals.forEach((sv, i) => extractStaffing(sv, ALL_LOCATION_SHEETS[i], locationPossPositionNames));
 
     return { roomsWithLinks, numOfRoomsInUse, locationPossPositionNames };
 }
@@ -52,9 +52,9 @@ function extractRoomsDataAndGetStaffingVals(
 
     parseOneRowForLinks(rowFourRTVals, indexToStatusIDMap, roomsWithLinks, sheetName);
 
-    if (sheetName !== DT_NAME) { // cap hill and white center have 2 locations / lobbies, so there's an extra step
+    if (sheetName !== DT_SHEET_NAME) { // cap hill and white center have 2 locations / lobbies, so there's an extra step
         const rowFourteenRTVals = rtVals[11];
-        const rowFourteenIndexToSatusIDMap = sheetName === CH_NAME
+        const rowFourteenIndexToSatusIDMap = sheetName === CH_SHEET_NAME
             ? new Map([ // cap hill dog lobby
                 [0, '29'], // room 6
                 [1, '30'], //Room 7
@@ -76,14 +76,14 @@ function extractRoomsDataAndGetStaffingVals(
     else return range.offset(0, 8, 9, 4).getValues();
 
     const vals = range.getValues();
-    const roomsInUse = sheetName === CH_NAME
+    const roomsInUse = sheetName === CH_SHEET_NAME
         ? countRoomsInUse(vals.slice(0, 3)) + countRoomsInUse(vals.slice(10, 13), true)
         : countRoomsInUse(vals.slice(0, 3));
 
     numOfRoomsInUse[sheetName] = roomsInUse;
 
-    if (sheetName === CH_NAME) return vals.slice(22).map(rowVals => rowVals.slice(1, -1));
-    if (sheetName === WC_NAME) return vals.slice(17).map(rowVals => rowVals.slice(-4));
+    if (sheetName === CH_SHEET_NAME) return vals.slice(22).map(rowVals => rowVals.slice(1, -1));
+    if (sheetName === WC_SHEET_NAME) return vals.slice(17).map(rowVals => rowVals.slice(-4));
 }
 
 function parseOneRowForLinks(rowRTVals, indexToStatusIDMap, roomsWithLinks, sheetName) {
@@ -138,7 +138,7 @@ function extractStaffing(vals, sheetName, locationPossPositionNames) {
         // ch dvm: vals[i][2]
         // ch foh: vals[i][3]
         // ch kennel: vals[i][4] until i is greater than 9
-        if (sheetName === CH_NAME) {
+        if (sheetName === CH_SHEET_NAME) {
             if (rowVals[0]) {
                 locationPossPositionNames[sheetName].assts.push(rowVals[0]);
             }
@@ -164,7 +164,7 @@ function extractStaffing(vals, sheetName, locationPossPositionNames) {
         // dt dvm: vals[i][2] until i is greater than 4, also vals[6][0] (house doctor cell)
         // dt foh: vals[i][3] until i is greater than 4
         // dt kennel: when i is greater than 5, vals[i][1]
-        // else if (sheetName === DT_NAME) {
+        // else if (sheetName === DT_SHEET_NAME) {
         //     if (i <= 4) {
         //         if (rowVals[0]) locationStaffingCounts[sheetName].assts_on_staff += 1;
         //         if (rowVals[1]) locationStaffingCounts[sheetName].leads_on_staff += 1;
@@ -182,7 +182,7 @@ function extractStaffing(vals, sheetName, locationPossPositionNames) {
         // wc dvm: vals[i][2] until i is greater than 4, also vals [6][2] (house dvm)
         // wc foh: vals[i][3]
         // wc kennel: vals[6][1]
-        else if (sheetName === WC_NAME) {
+        else if (sheetName === WC_SHEET_NAME) {
             if (rowVals[0]) {
                 locationPossPositionNames[sheetName].assts.push(rowVals[0]);
             }

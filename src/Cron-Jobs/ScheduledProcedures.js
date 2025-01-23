@@ -1,6 +1,7 @@
 // this will run with a daily trigger to put scheduled procedures in the in patient box.
 function getTodaysAppointments() {
     console.log('running getTodaysAppointments in ScheduledProcedures.js...');
+    getCacheVals();
     const [todayStart, todayEnd] = getTodayRange();
     const url = `${EV_PROXY}/v1/appointment?time_range_start=${todayStart}&time_range_end=${todayEnd}&limit=200`;
     const appts = fetchAndParse(url);
@@ -8,34 +9,24 @@ function getTodaysAppointments() {
 };
 
 function processProcedures(apptItems) {
-    const allLocationProcedures = new Map([
-        [CH_NAME, []],
-        [DT_NAME, []],
-        [WC_NAME, []]
-    ]);
-
-    const locationForProcedureMap = new Map([
-        ['29', CH_NAME], ['30', CH_NAME], // cap hill resource ids for procedure columns
-        ['27', CH_NAME], ['65', CH_NAME], // cap hill resource ids for IM columns
-        ['57', DT_NAME], ['58', DT_NAME], // dt resource ids for procedure columns
-        ['61', WC_NAME], ['62', WC_NAME], // wc resource ids for procedure columns
-    ]); // this map serves to check if the appointment is in the above column, and sorts per location
+    const allLocationProcedures = new Map(
+        ALL_LOCATION_SHEETS.map(sheetName => [sheetName, []])
+    );
 
     apptItems.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
-    
+
     apptItems.forEach(({ appointment }) => {
         const resourceID = appointment.details.resource_list[0];
-        const location = locationForProcedureMap.get(resourceID);
-
-        if (location) {
-            const procedure = getColorAndSortValue(appointment.details, resourceID);
-            allLocationProcedures.get(location).push(procedure);
-        }
+        if (!SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(resourceID)) return;
+        const uaLoc = whichLocation(resourceID);
+        const procedure = getColorAndSortValue(appointment.details, resourceID);
+        const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc]
+        allLocationProcedures.get(uaLocSheetName).push(procedure);
     });
 
-    allLocationProcedures.forEach((oneLocationProcedures, location) => {
+    allLocationProcedures.forEach((oneLocationProcedures, uaLocSheetName) => {
         oneLocationProcedures.sort((a, b) => a.sortValue - b.sortValue);
-        addScheduledProcedures(oneLocationProcedures, location);
+        addScheduledProcedures(oneLocationProcedures, uaLocSheetName);
     });
 };
 
@@ -71,10 +62,10 @@ function getColorAndSortValue(procedure, resourceID) {
     return procedure;
 };
 
-function addScheduledProcedures(oneLocationProcedures, location) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
-    const inpatientBox = sheet.getRange(UA_LOC_INPATIENT_COORDS.get(location));
-    const defaultColor = UA_LOC_INPATIENT_DEFAULT_COLOR.get(location);
+function addScheduledProcedures(oneLocationProcedures, uaLocSheetName) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
+    const inpatientBox = sheet.getRange(UA_LOC_INPATIENT_COORDS.get(uaLocSheetName));
+    const defaultColor = UA_LOC_INPATIENT_DEFAULT_COLOR.get(uaLocSheetName);
     clearInpatientBox(inpatientBox, defaultColor);
     const numOfColumnsInBox = inpatientBox.getNumColumns();
     let rowOfInpatientBox = 0;
@@ -82,7 +73,7 @@ function addScheduledProcedures(oneLocationProcedures, location) {
         if (!procedure.animal_id) continue; // skip the empty object
         const rowRange = inpatientBox.offset(rowOfInpatientBox++, 0, 1, numOfColumnsInBox);
         rowRange.setBackground(procedure.color || defaultColor);
-        populateInpatientRow(procedure, rowRange, location);
+        populateInpatientRow(procedure, rowRange, uaLocSheetName);
     }
     return;
 };

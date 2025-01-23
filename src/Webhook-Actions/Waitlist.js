@@ -1,7 +1,7 @@
-function getWaitlistRowRange(appointment, location) {
+function getWaitlistRowRange(appointment, uaLocSheetName) {
   const waitlistRange = SpreadsheetApp
     .getActiveSpreadsheet()
-    .getSheetByName(`${location} Wait List`)
+    .getSheetByName(`${uaLocSheetName} Wait List`)
     .getRange(`B7:K75`);
   // only checking up through row 75 on the waitlists
   // meaning only up to 69 pets can currently be on the waitlist (it never gets that high currently)
@@ -9,8 +9,8 @@ function getWaitlistRowRange(appointment, location) {
   return findRow(waitlistRange, appointment.consult_id, 1);
 }
 
-function addToWaitlist(appointment, location) {
-  const { highestEmptyRow: rowRange } = getWaitlistRowRange(appointment, location);
+function addToWaitlist(appointment, uaLocSheetName) {
+  const { highestEmptyRow: rowRange } = getWaitlistRowRange(appointment, uaLocSheetName);
   if (!rowRange) return;
 
   rowRange.setBackground('#f3f3f3');
@@ -58,8 +58,8 @@ function addToWaitlist(appointment, location) {
 
 }
 
-function handleInactiveApptOnWaitlist(appointment, location) {
-  const { existingRow } = getWaitlistRowRange(appointment, location);
+function handleInactiveApptOnWaitlist(appointment, uaLocSheetName) {
+  const { existingRow } = getWaitlistRowRange(appointment, uaLocSheetName);
   if (!existingRow) return;
 
   const notesCell = existingRow.offset(0, 4, 1, 1);

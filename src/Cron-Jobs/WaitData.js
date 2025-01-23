@@ -1,19 +1,19 @@
 function getWaitData(numOfRoomsInUse, sheets) {
     const waitData = [
-        getWaitValsForLocation(CH_NAME, numOfRoomsInUse, sheets),
-        getWaitValsForLocation(WC_NAME, numOfRoomsInUse, sheets)
+        getWaitValsForLocation(CH_SHEET_NAME, numOfRoomsInUse, sheets),
+        getWaitValsForLocation(WC_SHEET_NAME, numOfRoomsInUse, sheets)
     ];
     return waitData;
 }
 
-function getWaitValsForLocation(location, numOfRoomsInUse, sheets) {
-    const waitlistSheet = sheets.find(sheet => sheet.getName() === `${location} Wait List`);
+function getWaitValsForLocation(uaLocSheetName, numOfRoomsInUse, sheets) {
+    const waitlistSheet = sheets.find(sheet => sheet.getName() === `${uaLocSheetName} Wait List`);
     const waitlistVals = waitlistSheet.getRange('C2:D4').getValues();
     const capText = waitlistVals[0][1];
     const { soft_cap, hard_cap } = checkForCap(capText);
 
-    const mainSheet = sheets.find(sheet => sheet.getName() === location);
-    const maxRoomCellCoords = UA_LOC_MAX_ROOMS_CELL_COORDS.get(location);
+    const mainSheet = sheets.find(sheet => sheet.getName() === uaLocSheetName);
+    const maxRoomCellCoords = UA_LOC_MAX_ROOMS_CELL_COORDS.get(uaLocSheetName);
     const cellValAsString = String(mainSheet.getRange(maxRoomCellCoords).getValue());
     const maxDvmRooms = Number(cellValAsString.slice(0, 2)) || 0;
 
