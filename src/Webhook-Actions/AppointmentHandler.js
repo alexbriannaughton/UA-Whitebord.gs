@@ -7,26 +7,25 @@ function handleAppointment(webhookType, appointment) {
         handleEchoOrAUS(appointment, 'AUS');
     }
 
-    // below here is for this sheetty
-    if (appointment.type_id === 4) return; // block off type
+    // below here is for this sheet
+    if (UNHANDLED_APPT_TYPE_IDS.includes(appointment.type_id)) return;
+
+    const { isToday, couldBeNextDayDtAppt } = checkIfTodayOrOnNextDayOfDtAppts(appointment);
+    if (!isToday && !couldBeNextDayDtAppt) return;
 
     const location = WHICH_LOCATION(appointment.resources[0].id);
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 
-    if (location === DT_NAME) return handleDTAppointment(appointment, location, locationToRoomCoordsMap);
-
-    const isToday = isTodayInUserTimezone(
-        convertEpochToUserTimezoneDate(appointment.start_at)
-    )
-
-    if (!isToday) return;
+    if (location === DT_NAME) {
+        return handleDTAppointment(appointment, location, locationToRoomCoordsMap, couldBeNextDayDtAppt);
+    }
 
     if (!appointment.active) {
         return handleInactiveApptOnWaitlist(appointment, location);
     }
 
     appointment.description = removeVetstoriaDescriptionText(appointment.description);
-       
+
     if (locationToRoomCoordsMap) {
         return moveToRoom(appointment, location, locationToRoomCoordsMap);
     }
@@ -76,14 +75,10 @@ function handleEchoOrAUS(appointment, sheetName) {
     return;
 }
 
-function handleDTAppointment(appointment, location, locationToRoomCoordsMap) {
-    const timestampDate = convertEpochToUserTimezoneDate(appointment.start_at);
-    const couldBeNextDayDtAppt = isOnNextDayOfDtAppts(timestampDate);
+function handleDTAppointment(appointment, location, locationToRoomCoordsMap, couldBeNextDayDtAppt) {
     if (couldBeNextDayDtAppt) {
         return handleNextDayDtAppt(appointment, location);
     }
-
-    if (!isTodayInUserTimezone(timestampDate)) return null;
 
     if (locationToRoomCoordsMap) { // this would mean that its a room status
         return moveToRoom(appointment, location, locationToRoomCoordsMap);
@@ -98,4 +93,15 @@ function handleDTAppointment(appointment, location, locationToRoomCoordsMap) {
     const handler = dtStatusHandlers[appointment.status_id];
 
     return handler ? handler(appointment, location) : null;
+}
+
+function checkIfTodayOrOnNextDayOfDtAppts(appointment) {
+    const isToday = isTodayInUserTimezone(
+        convertEpochToUserTimezoneDate(appointment.start_at)
+    );
+
+    const timestampDate = convertEpochToUserTimezoneDate(appointment.start_at);
+    const couldBeNextDayDtAppt = checkIfIsOnNextDayOfDtAppts(timestampDate);
+
+    return { isToday, couldBeNextDayDtAppt };
 }

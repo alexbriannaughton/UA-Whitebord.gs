@@ -8,7 +8,7 @@ function isTodayInUserTimezone(timestampDate) {
     return timestampDate === todaysDate;
 }
 
-function isOnNextDayOfDtAppts(timestampDate) {
+function checkIfIsOnNextDayOfDtAppts(timestampDate) {
     const date = new Date();
     date.setDate(date.getDate() + daysToNextDtAppts);
     

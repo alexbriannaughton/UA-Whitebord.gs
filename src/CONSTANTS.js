@@ -236,3 +236,12 @@ const ROOM_STATUS_LOCATION_TO_COORDS = {
     // }
 
 }
+
+const BLOCK_OFF_APPT_TYPE_ID = 4;
+const NO_SHOW_APPT_ID = 98;
+const EOD_APPT_ID = 96;
+const UNHANDLED_APPT_TYPE_IDS = [
+    BLOCK_OFF_APPT_TYPE_ID,
+    NO_SHOW_APPT_ID,
+    EOD_APPT_ID,
+];
