@@ -1,3 +1,9 @@
+const UA_LOC_NAMES_MAP = {
+    'Capitol Hill': 'CH',
+    'Downtown': 'DT',
+    'White Center': 'WC',
+};
+
 function whichLocation(resourceId) {
     if (!ezyVetResourceToUaLoc) ezyVetResourceToUaLoc = fetchAndBuildEzyVetResourceMap();
     return ezyVetResourceToUaLoc[String(resourceId)];
@@ -20,7 +26,7 @@ function fetchAndBuildEzyVetResourceMap(cache = CacheService.getScriptCache()) {
             return;
         }
 
-        ezyVetResourceMap[resource.id] = uaLoc;
+        ezyVetResourceMap[resource.id] = UA_LOC_NAMES_MAP[uaLoc];
     });
 
     cache.put(EZYVET_RESOURCE_TO_UA_LOC_NAME, JSON.stringify(ezyVetResourceMap), 120);
