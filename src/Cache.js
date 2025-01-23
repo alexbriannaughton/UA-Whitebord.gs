@@ -16,12 +16,12 @@ function getCacheVals() {
     daysToNextDtAppts = Number(cacheVals[NDA_DT_APPTS_NAME]);
     if (!daysToNextDtAppts) daysToNextDtAppts = getDaysAheadDT(cache);
 
-    const ezyVetResourceToUaLocJson = cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME];
-    ezyVetResourceToUaLoc = handleEzyVetResourceMapCache(cache, ezyVetResourceToUaLocJson);
+    const mapJson = cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME];
+    ezyVetResourceToUaLoc = handleEzyVetResourceMapCache(cache, mapJson);
 }
 
-function handleEzyVetResourceMapCache(cache, json) {
-    if (json) return JSON.parse(json);
+function handleEzyVetResourceMapCache(cache, mapJson) {
+    if (mapJson) return JSON.parse(mapJson);
     else return fetchAndBuildEzyVetResourceMap(cache);
 }
 
