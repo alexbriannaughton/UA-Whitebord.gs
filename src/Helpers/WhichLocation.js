@@ -1,18 +1,11 @@
-let ezyVetResourceToUaLoc;
-
 function whichLocation(resourceId) {
-    if (ezyVetResourceToUaLoc === undefined) {
-        ezyVetResourceToUaLoc = buildEzyVetResourceMap();
-    }
-    
-    console.log(ezyVetResourceToUaLoc)
-    
-    return ezyVetResourceToUaLoc.get(resourceId)
+    if (!ezyVetResourceToUaLoc) ezyVetResourceToUaLoc = fetchAndBuildEzyVetResourceMap();
+    return ezyVetResourceToUaLoc.get(resourceId);
 }
 
-function buildEzyVetResourceMap() {
+function fetchAndBuildEzyVetResourceMap(cache = CacheService.getScriptCache()) {
     const [separations, resources] = getSeparationsAndResources();
-    const map = new Map();
+    const ezyVetResourceMap = {};
 
     resources.forEach(({ resource }) => {
         const separationOfUaLoc = separations.find(({ separation }) => separation.id === resource.ownership_id);
@@ -27,10 +20,12 @@ function buildEzyVetResourceMap() {
             return;
         }
 
-        map.set(resource.id, uaLoc)
+        ezyVetResourceMap[resource.id] = uaLoc;
     });
 
-    return map;
+    cache.put(EZYVET_RESOURCE_TO_UA_LOC_NAME, JSON.stringify(ezyVetResourceMap), 120);
+
+    return ezyVetResourceMap;
 }
 
 function getSeparationsAndResources() {

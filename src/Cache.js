@@ -1,15 +1,28 @@
+const TOKEN_NAME = 'ezyVet_token';
+const DAYS_TO_NDA_DT_APPTS_NAME = 'days_to_next_dt_appts';
+const EZYVET_RESOURCE_TO_UA_LOC_NAME = 'ezyvet_resource_to_ua_loc';
+
 let token;
 let daysToNextDtAppts;
+let ezyVetResourceToUaLoc;
 
 function getCacheVals() {
     const cache = CacheService.getScriptCache();
-    const cacheVals = cache.getAll(['ezyVet_token', 'days_to_next_dt_appts']);
+    const cacheVals = cache.getAll([TOKEN_NAME, NDA_DT_APPTS_NAME, EZYVET_RESOURCE_TO_UA_LOC_NAME]);
 
-    token = cacheVals.ezyVet_token;
+    token = cacheVals[TOKEN_NAME];
     if (!token) token = updateToken(cache);
 
-    daysToNextDtAppts = Number(cacheVals.days_to_next_dt_appts);
+    daysToNextDtAppts = Number(cacheVals[NDA_DT_APPTS_NAME]);
     if (!daysToNextDtAppts) daysToNextDtAppts = getDaysAheadDT(cache);
+
+    const ezyVetResourceToUaLocJson = cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME];
+    ezyVetResourceToUaLoc = handleEzyVetResourceMapCache(cache, ezyVetResourceToUaLocJson);
+}
+
+function handleEzyVetResourceMapCache(cache, json) {
+    if (json) return JSON.parse(json);
+    else return fetchAndBuildEzyVetResourceMap(cache);
 }
 
 function getDaysAheadDT(cache) {
@@ -29,7 +42,7 @@ function getDaysAheadDT(cache) {
     }
 
     console.log(`putting ${daysAhead} as days_to_next_dt_appts into cache...`);
-    cache.put('days_to_next_dt_appts', daysAhead, 21600);
+    cache.put(DAYS_TO_NDA_DT_APPTS_NAME, daysAhead, 21600);
 
     return daysAhead;
 };
