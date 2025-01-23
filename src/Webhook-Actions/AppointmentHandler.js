@@ -13,7 +13,8 @@ function handleAppointment(webhookType, appointment) {
     const { isToday, couldBeNextDayDtAppt } = checkIfTodayOrOnNextDayOfDtAppts(appointment);
     if (!isToday && !couldBeNextDayDtAppt) return;
 
-    const location = WHICH_LOCATION(appointment.resources[0].id);
+    // const location = WHICH_LOCATION(appointment.resources[0].id);
+    const location = whichLocation(appointment.resources[0].id);
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 
     if (location === DT_NAME) {

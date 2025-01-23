@@ -1,6 +1,6 @@
 function whichLocation(resourceId) {
     if (!ezyVetResourceToUaLoc) ezyVetResourceToUaLoc = fetchAndBuildEzyVetResourceMap();
-    return ezyVetResourceToUaLoc[resourceId];
+    return ezyVetResourceToUaLoc[String(resourceId)];
 }
 
 function fetchAndBuildEzyVetResourceMap(cache = CacheService.getScriptCache()) {

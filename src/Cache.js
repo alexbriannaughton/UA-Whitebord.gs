@@ -8,12 +8,12 @@ let ezyVetResourceToUaLoc;
 
 function getCacheVals() {
     const cache = CacheService.getScriptCache();
-    const cacheVals = cache.getAll([TOKEN_NAME, NDA_DT_APPTS_NAME, EZYVET_RESOURCE_TO_UA_LOC_NAME]);
+    const cacheVals = cache.getAll([TOKEN_NAME, DAYS_TO_NDA_DT_APPTS_NAME, EZYVET_RESOURCE_TO_UA_LOC_NAME]);
 
     token = cacheVals[TOKEN_NAME];
     if (!token) token = updateToken(cache);
 
-    daysToNextDtAppts = Number(cacheVals[NDA_DT_APPTS_NAME]);
+    daysToNextDtAppts = Number(cacheVals[DAYS_TO_NDA_DT_APPTS_NAME]);
     if (!daysToNextDtAppts) daysToNextDtAppts = getDaysAheadDT(cache);
 
     const mapJson = cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME];

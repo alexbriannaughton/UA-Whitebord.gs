@@ -51,45 +51,45 @@ const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
     [WC_NAME, 'I3']
 ]);
 
-function WHICH_LOCATION(resourceID) {
-    const resourceIDToLocationMap = new Map();
+// function WHICH_LOCATION(resourceID) {
+//     const resourceIDToLocationMap = new Map();
 
-    // calendar resource ids for CH:
-    // 24: CH DVM 1
-    // 25: CH DVM 2
-    // 26: CH DVM 3
-    // 27: CH INT MED
-    // 28: CH Tech
-    // 29: CH Procedure 1
-    // 30: CH Procedure 2
-    // 65: CH IM Procedure
-    // 1063: CH DVM 4
-    // 1081: Walk Ins (with CH as dept)
-    [24, 25, 26, 27, 28, 29, 30, 65, 1063, 1081]
-        .forEach(id => resourceIDToLocationMap
-            .set(id, CH_NAME)
-        );
+//     // calendar resource ids for CH:
+//     // 24: CH DVM 1
+//     // 25: CH DVM 2
+//     // 26: CH DVM 3
+//     // 27: CH INT MED
+//     // 28: CH Tech
+//     // 29: CH Procedure 1
+//     // 30: CH Procedure 2
+//     // 65: CH IM Procedure
+//     // 1063: CH DVM 4
+//     // 1081: Walk Ins (with CH as dept)
+//     [24, 25, 26, 27, 28, 29, 30, 65, 1063, 1081]
+//         .forEach(id => resourceIDToLocationMap
+//             .set(id, CH_NAME)
+//         );
 
-    Array.from(DT_RESOURCE_IDS)
-        .forEach(id => resourceIDToLocationMap
-            .set(id, DT_NAME)
-        );
+//     Array.from(DT_RESOURCE_IDS)
+//         .forEach(id => resourceIDToLocationMap
+//             .set(id, DT_NAME)
+//         );
 
-    // calendar resource ids for WC:
-    // 39: WC DVM 1
-    // 59: WC DVM 2
-    // 60: WC Tech
-    // 61: WC Procedure 1
-    // 62: WC Procedure 2
-    // 1083: Walk Ins(with WC as dept)
-    // 1384: WC DVM 3
-    [39, 59, 60, 61, 62, 1083, 1384]
-        .forEach(id => resourceIDToLocationMap
-            .set(id, WC_NAME)
-        );
+//     // calendar resource ids for WC:
+//     // 39: WC DVM 1
+//     // 59: WC DVM 2
+//     // 60: WC Tech
+//     // 61: WC Procedure 1
+//     // 62: WC Procedure 2
+//     // 1083: Walk Ins(with WC as dept)
+//     // 1384: WC DVM 3
+//     [39, 59, 60, 61, 62, 1083, 1384]
+//         .forEach(id => resourceIDToLocationMap
+//             .set(id, WC_NAME)
+//         );
 
-    return resourceIDToLocationMap.get(resourceID);
-};
+//     return resourceIDToLocationMap.get(resourceID);
+// };
 
 function FILTER_FOR_VALID_DT_APPTS(allTargetDayAppts) {
     return allTargetDayAppts.items.filter(({ appointment }) => {
