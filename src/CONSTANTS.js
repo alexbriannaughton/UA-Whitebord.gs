@@ -32,7 +32,7 @@ const APPT_CATEGORY_TO_COLOR = new Map([
     ['echo', '#f4cccc'],// light red
     ['dental', '#d9ead3'], // light green
     ['h/c', '#fce5cd'],// light orangish
-    ['secondary', '#fce5cd'],// light orangish
+    // ['secondary', '#fce5cd'],// light orangish
     ['IM', '#d9d2e9'] // light purplish
 ]);
 
@@ -145,10 +145,10 @@ const TYPE_ID_TO_CATEGORY = new Map([
     [28, 'dental'], [86, 'dental'], [94, 'dental'],     // Dental type IDs
     [81, 'h/c'],                                            // Health certificate appointment type ID
     // NOTE: secondary type ids sorted as other in the daily inpatient job
-    [31, 'secondary'], [32, 'secondary'], [33, 'secondary'], [36, 'secondary'], [38, 'secondary'], [82, 'secondary'], [83, 'secondary'], [88, 'secondary'],
+    // [31, 'secondary'], [32, 'secondary'], [33, 'secondary'], [36, 'secondary'], [38, 'secondary'], [82, 'secondary'], [83, 'secondary'], [88, 'secondary'],
     [26, 'IM'], [27, 'IM'], [34, 'IM'], [35, 'IM'],
     [19, 'tech'], [85, 'tech'],
-    [80, 'euth']
+    [80, 'euth'], [87, 'euth']
 ]);
 
 const SPECIES_MAP = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string

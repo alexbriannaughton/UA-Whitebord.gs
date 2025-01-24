@@ -3,18 +3,21 @@ function handleAppointment(webhookType, appointment) {
     if (ECHO_APPT_TYPE_IDS.has(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'Echos');
     }
-    if (AUS_APPT_TYPE_IDS.has(appointment.type_id)) {
+    else if (AUS_APPT_TYPE_IDS.has(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'AUS');
     }
 
     // below here is for this sheet
     if (UNHANDLED_APPT_TYPE_IDS.includes(appointment.type_id)) return;
 
-    const { isToday, couldBeNextDayDtAppt } = checkIfTodayOrOnNextDayOfDtAppts(appointment);
+    const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
+    const isToday = isTodayInUserTimezone(userTimeZoneDate);
+    const couldBeNextDayDtAppt = checkIfIsOnNextDayOfDtAppts(userTimeZoneDate);
     if (!isToday && !couldBeNextDayDtAppt) return;
 
     const uaLoc = whichLocation(appointment.resources[0].id);
     const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc];
+    
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 
     if (uaLocSheetName === DT_SHEET_NAME) {
@@ -94,15 +97,4 @@ function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMa
     const handler = dtStatusHandlers[appointment.status_id];
 
     return handler ? handler(appointment, uaLocSheetName) : null;
-}
-
-function checkIfTodayOrOnNextDayOfDtAppts(appointment) {
-    const isToday = isTodayInUserTimezone(
-        convertEpochToUserTimezoneDate(appointment.start_at)
-    );
-
-    const timestampDate = convertEpochToUserTimezoneDate(appointment.start_at);
-    const couldBeNextDayDtAppt = checkIfIsOnNextDayOfDtAppts(timestampDate);
-
-    return { isToday, couldBeNextDayDtAppt };
 }
