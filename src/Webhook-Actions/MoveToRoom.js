@@ -193,21 +193,21 @@ function parseTheRoom(
 
 function getRoomColor(typeID, resourceID) {
   // if it's IM make the background purple
-  const typeCategory = TYPE_ID_TO_CATEGORY.get(typeID);
-  if (typeCategory === 'IM' || resourceID === 65 || resourceID === 27) {
-    return APPT_CATEGORY_TO_COLOR.get('IM');
+  let typeCategory = TYPE_ID_TO_CATEGORY.get(typeID);
+  if (typeCategory === IM_APPT_CATEGORY || resourceID === 65 || resourceID === 27) {
+    typeCategory = IM_APPT_CATEGORY
   }
-  if (typeCategory === 'tech') {
-    return '#90EE90'; // bright green
-  }
-  const color = APPT_CATEGORY_TO_COLOR.get(typeCategory);
-  if (color) return color;
-  const procedureResources = new Set([
-    29, 30, // ch procedure columns
-    57, 58, // dt procedure columns
-    61, 62 // wc procedure columns
-  ])
-  if (procedureResources.has(resourceID)) {
+  // if (typeCategory === 'tech') {
+  //   return '#90EE90'; // bright green
+  // }
+  const category = APPT_CATEGORY_TO_COLOR.get(typeCategory);
+  if (category?.color) return category.color;
+  // const procedureResources = new Set([
+  //   29, 30, // ch procedure columns
+  //   57, 58, // dt procedure columns
+  //   61, 62 // wc procedure columns
+  // ])
+  if (SCHEDULED_PROCEDURES_RESOURCE_IDS.has(String(resourceID))) {
     // if type is not covered in name to color map, but it's in the procedure column, make it light orangish
     return '#fce5cd';
   }
