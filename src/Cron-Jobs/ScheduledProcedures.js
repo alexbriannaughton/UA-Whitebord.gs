@@ -35,9 +35,7 @@ function getColorAndSortValue(procedure, resourceID) {
     const procedureName = TYPE_ID_TO_CATEGORY.get(
         Number(procedure.appointment_type_id)
     );
-
-    // take the type id, assign a sort value and a color
-
+    
     procedure.color = APPT_CATEGORY_TO_COLOR.get(procedureName) ?? '#fce5cd';
 
     // anything that is in the IM column, despite the appointment_type, will be grouped as IM
