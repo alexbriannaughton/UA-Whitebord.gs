@@ -228,10 +228,10 @@ const DT_DVM_RESOURCE_IDS = [ // non procedures dt columns
     1082, // dt DVM :15/:45
 ];
 
-function IS_VALID_DT_NDA(appointment) {
-    return appointment.details.resource_list.some(id => DT_DVM_RESOURCE_IDS.includes(Number(id))) // is in a DT exam column
-        && DT_DVM_APPT_IDS.includes(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
-}
+function IS_VALID_DT_NDA(resourceIds, apptTypeId) {
+    return resourceIds.some(id => DT_DVM_RESOURCE_IDS.includes(Number(id))) // is in a DT exam column
+        && DT_DVM_APPT_IDS.includes(Number(apptTypeId)); // is a dt doctor exam type
+};
 
 const ROOM_STATUS_LOCATION_TO_COORDS = {
     18: { // room 1
