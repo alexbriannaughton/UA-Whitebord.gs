@@ -1,5 +1,5 @@
 function handleNextDayDtAppt(appointment, uaLocSheetName) {
-    if (!DT_DVM_APPT_IDS.has(appointment.type_id)) return;
+    if (!IS_VALID_DT_NDA(appointment)) return;
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
     const range = sheet.getRange(DT_NDA_COORDS);

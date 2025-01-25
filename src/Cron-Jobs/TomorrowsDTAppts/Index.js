@@ -5,7 +5,7 @@ async function dtJobMain() {
     console.log('running getTomrrowsDTAppts job...');
     const { dtAppts, targetDateStr } = getNextDayDtAppts();
     await getAllEzyVetData(dtAppts, targetDateStr);
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DT_SHEET_NAME); 
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DT_SHEET_NAME);
     const range = sheet.getRange(DT_NDA_COORDS);
     formatNextDayApptsCells(sheet, range, dtAppts.length);
     putDataOnSheet(dtAppts, range, targetDateStr);
@@ -32,7 +32,7 @@ function getNextDayDtAppts() {
 
 function filterAndSortDTAppts(allTargetDayAppts) {
     // filter all appts down to DT exams/techs
-    const dtAppts = FILTER_FOR_VALID_DT_NDAS(allTargetDayAppts);
+    const dtAppts = allTargetDayAppts.items.filter(({ appointment }) => IS_VALID_DT_NDA(appointment));
 
     dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 
@@ -41,8 +41,8 @@ function filterAndSortDTAppts(allTargetDayAppts) {
         const appt1 = dtAppts[i];
         for (let j = i + 1; j < dtAppts.length; j++) {
             const appt2 = dtAppts[j];
-            
-            const withinAnHour = Math.abs(appt2.appointment.start_time - appt1.appointment.start_time) <= 3600; 
+
+            const withinAnHour = Math.abs(appt2.appointment.start_time - appt1.appointment.start_time) <= 3600;
             if (!withinAnHour) break;
 
             const isSameContact = appt1.appointment.details.contact_id === appt2.appointment.details.contact_id;

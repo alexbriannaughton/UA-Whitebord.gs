@@ -24,6 +24,8 @@ const DT_NDA_COORDS = `K${DT_NDA_ROW_START_NUMBER}:R85`;
 
 const SAME_FAM_STRING = '^same fam^';
 
+const TECH_IN_ROOM_TEXT = ' (TECH)';
+
 const SPECIES_MAP = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
 const STANDARD_GREY = '#f3f3f3';
@@ -90,15 +92,14 @@ const EZYVET_DT_SPAY_NEUTER_TYPE_ID = 89;
 const EZYVET_DT_SX_TYPE_ID = 90;
 const EZYVET_WC_SPAY_NEUTER_TYPE_ID = 100;
 const EZYVET_WC_SX_TYPE_ID = 101;
-const EZYVET_SX_TYPE_IDS = [
-    EZYVET_SX_TYPE_ID,
-    EZYVET_SPAY_NEUTER_TYPE_ID,
-    EZYVET_DT_SX_TYPE_ID,
-    EZYVET_WC_SPAY_NEUTER_TYPE_ID,
-    EZYVET_WC_SX_TYPE_ID,
-];
 const SX_APPT_CATEGORY = new ApptCategory(
-    EZYVET_SX_TYPE_IDS,
+    [
+        EZYVET_SX_TYPE_ID,
+        EZYVET_SPAY_NEUTER_TYPE_ID,
+        EZYVET_DT_SX_TYPE_ID,
+        EZYVET_WC_SPAY_NEUTER_TYPE_ID,
+        EZYVET_WC_SX_TYPE_ID,
+    ],
     'sx',
     '#fff2cc',
     0
@@ -106,16 +107,16 @@ const SX_APPT_CATEGORY = new ApptCategory(
 
 const EZYVET_AUS_TYPE_ID = 29;
 const EZYVET_DT_AUS_TYPE_ID = 91;
-const EZYVET_AUS_TYPE_IDS = [EZYVET_AUS_TYPE_ID, EZYVET_DT_AUS_TYPE_ID];
 const AUS_APPT_CATEGORY = new ApptCategory(
-    EZYVET_AUS_TYPE_IDS,
+    [EZYVET_AUS_TYPE_ID, EZYVET_DT_AUS_TYPE_ID],
     'aus',
-    '#cfe2f3', 1
+    '#cfe2f3',
+    1
 );
 
-const EZYVET_ECHO_TYPE_IDS = [30];
+const EZYVET_ECHO_TYPE_ID = 30;
 const ECHO_APPT_CATEGORY = new ApptCategory(
-    EZYVET_ECHO_TYPE_IDS,
+    [EZYVET_ECHO_TYPE_ID],
     'echo',
     '#f4cccc',
     2
@@ -124,21 +125,20 @@ const ECHO_APPT_CATEGORY = new ApptCategory(
 const EZYVET_CH_DENTAL_TYPE_ID = 28;
 const EZYVET_DT_DENTAL_TYPE_ID = 86;
 const EZYVET_WC_THURS_DENTAL_TYPE_ID = 94;
-const EZYVET_DENTAL_TYPE_IDS = [
-    EZYVET_CH_DENTAL_TYPE_ID,
-    EZYVET_DT_DENTAL_TYPE_ID,
-    EZYVET_WC_THURS_DENTAL_TYPE_ID
-];
 const DENTAL_APPT_CATEGORY = new ApptCategory(
-    EZYVET_DENTAL_TYPE_IDS,
+    [
+        EZYVET_CH_DENTAL_TYPE_ID,
+        EZYVET_DT_DENTAL_TYPE_ID,
+        EZYVET_WC_THURS_DENTAL_TYPE_ID
+    ],
     'dental',
     '#d9ead3',
     4
 );
 
-const EZYVET_HC_TYPE_IDS = [81];
+const EZYVET_HC_TYPE_ID = 81;
 const HC_APPT_CATEGORY = new ApptCategory(
-    EZYVET_HC_TYPE_IDS,
+    [EZYVET_HC_TYPE_ID],
     'hc',
     '#fce5cd',
     6
@@ -148,14 +148,13 @@ const EZYVET_IM_CONSULT_TYPE_ID = 26;
 const EZYVET_IM_RECECK_TYPE_ID = 27;
 const EZYVET_IM_PROCEDURE_TYPE_ID = 34;
 const EZYVET_IM_TECH_APPT_TYPE_ID = 35;
-const EZYVET_IM_APPT_TYPES = [
-    EZYVET_IM_CONSULT_TYPE_ID,
-    EZYVET_IM_RECECK_TYPE_ID,
-    EZYVET_IM_PROCEDURE_TYPE_ID,
-    EZYVET_IM_TECH_APPT_TYPE_ID
-];
 const IM_APPT_CATEGORY = new ApptCategory(
-    EZYVET_IM_APPT_TYPES,
+    [
+        EZYVET_IM_CONSULT_TYPE_ID,
+        EZYVET_IM_RECECK_TYPE_ID,
+        EZYVET_IM_PROCEDURE_TYPE_ID,
+        EZYVET_IM_TECH_APPT_TYPE_ID
+    ],
     'im',
     '#d9d2e9',
     5
@@ -163,9 +162,8 @@ const IM_APPT_CATEGORY = new ApptCategory(
 
 const EZYVET_TECH_APPT_TYPE_ID = 19;
 const EZYVET_DT_TECH_APPT_TYPE_ID = 85;
-const EZYVET_TECH_APPT_IDS = [EZYVET_TECH_APPT_TYPE_ID, EZYVET_DT_TECH_APPT_TYPE_ID];
 const TECH_APPT_CATEGORY = new ApptCategory(
-    EZYVET_TECH_APPT_IDS,
+    [EZYVET_TECH_APPT_TYPE_ID, EZYVET_DT_TECH_APPT_TYPE_ID],
     'tech',
     '#90EE90',
     3
@@ -173,12 +171,8 @@ const TECH_APPT_CATEGORY = new ApptCategory(
 
 const EZYVET_EUTH_APPT_ID = 80;
 const EZYVET_DT_EUTH_APPT_ID = 87;
-const EZYVET_EUTH_APPT_IDS = [
-    EZYVET_EUTH_APPT_ID,
-    EZYVET_DT_EUTH_APPT_ID
-];
 const EUTH_APPT_CATEGORY = new ApptCategory(
-    EZYVET_EUTH_APPT_IDS,
+    [EZYVET_EUTH_APPT_ID, EZYVET_DT_EUTH_APPT_ID],
     'euth',
     '#cfe2f3',
     3
@@ -223,23 +217,21 @@ const SCHEDULED_PROCEDURES_RESOURCE_IDS = [
     WC_PROCEDURE_2_RESOURCE_ID,
 ];
 
-function FILTER_FOR_VALID_DT_NDAS(allTargetDayAppts) {
-    const dtDvmApptIds = [
-        79, // downtown - appointment
-        95, // Downtown - Appointment (:15/:45)
-        93, // Downtown - Same Day Sick
-    ];
+const DT_DVM_APPT_IDS = [
+    79, // downtown - appointment
+    95, // Downtown - Appointment (:15/:45)
+    93, // Downtown - Same Day Sick
+];
 
-    const dvmDvmResourceIds = [ // non procedures dt columns
-        35, // dt dvm 1
-        1082, // dt DVM :15/:45
-    ];
+const DT_DVM_RESOURCE_IDS = [ // non procedures dt columns
+    35, // dt dvm 1
+    1082, // dt DVM :15/:45
+];
 
-    return allTargetDayAppts.items.filter(({ appointment }) => {
-        return appointment.details.resource_list.some(id => dvmDvmResourceIds.includes(Number(id))) // is in a DT exam column
-            && dtDvmApptIds.includes(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
-    });
-};
+function IS_VALID_DT_NDA(appointment) {
+    return appointment.details.resource_list.some(id => DT_DVM_RESOURCE_IDS.includes(Number(id))) // is in a DT exam column
+        && DT_DVM_APPT_IDS.includes(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
+}
 
 const ROOM_STATUS_LOCATION_TO_COORDS = {
     18: { // room 1

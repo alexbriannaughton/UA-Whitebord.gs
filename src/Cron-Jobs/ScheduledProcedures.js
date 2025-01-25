@@ -20,7 +20,7 @@ function processProcedures(apptItems) {
         if (!SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(resourceID)) return;
         const uaLoc = whichLocation(resourceID);
         const procedure = getColorAndSortValue(appointment.details, resourceID);
-        const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc]
+        const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc];
         allLocationProcedures.get(uaLocSheetName).push(procedure);
     });
 
@@ -32,12 +32,12 @@ function processProcedures(apptItems) {
 
 function getColorAndSortValue(procedure, resourceID) {
     // this function sorts procedures by type and adds a color to the procedure/appointment object
-    const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(Number(resourceID));
+    const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(resourceID);
     const apptCategory = isInImColumn
         ? IM_APPT_CATEGORY
         : TYPE_ID_TO_CATEGORY.get(Number(procedure.appointment_type_id));
 
-    if (apptCategory && apptCategory !== TECH_APPT_CATEGORY) {
+    if (apptCategory && ![TECH_APPT_CATEGORY, EUTH_APPT_CATEGORY].includes(apptCategory)) {
         procedure = { ...procedure, ...apptCategory };
     }
 

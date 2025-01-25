@@ -205,7 +205,7 @@ function getRoomColor(typeID, resourceID) {
 
 function techText(typeID) {
   return typeID === 19 || typeID === 85
-    ? "(TECH)"
+    ? TECH_IN_ROOM_TEXT
     : "";
 }
 
@@ -234,7 +234,7 @@ function handleMultiplePetRoom(
     ? `${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
-  if (!isWCSxRoom && (!reasonText.includes('(TECH)') || !incomingAnimalText.includes('(TECH)'))) {
+  if (!isWCSxRoom && (!reasonText.includes(TECH_IN_ROOM_TEXT) || !incomingAnimalText.includes(TECH_IN_ROOM_TEXT))) {
     roomRange.offset(0, 0, 8, 1).setBackground(STANDARD_GREY);
   }
 
