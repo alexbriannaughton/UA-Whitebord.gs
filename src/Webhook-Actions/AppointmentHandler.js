@@ -80,7 +80,7 @@ function handleEchoOrAUS(appointment, sheetName) {
 function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap) {
     const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
     const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfDtAppts(userTimeZoneDate);
-    const isValidDtNda = isOnNextDayOfDtAppts && IS_VALID_DT_NDA(
+    const isValidDtNda = isOnNextDayOfDtAppts && CONTAINS_VALID_DT_NDA_IDS(
         appointment.resources.map(({ id }) => id),
         appointment.type_id
     )

@@ -31,10 +31,15 @@ function getDaysAheadDT(cache) {
 
     while (!foundDay && daysAhead < 10) {
         const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(++daysAhead);
+
         const url = `${EV_PROXY}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
+
         const allTargetDayAppts = fetchAndParse(url);
+        
         const dtAppts = allTargetDayAppts.items
-            .filter(({ appointment }) => IS_VALID_DT_NDA(appointment.details.resource_list, appointment.details.appointment_type_id));
+            .filter(({ appointment }) =>
+                CONTAINS_VALID_DT_NDA_IDS(appointment.details.resource_list, appointment.details.appointment_type_id));
+
         if (dtAppts.length) foundDay = true;
     }
 
