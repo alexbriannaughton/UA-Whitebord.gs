@@ -207,7 +207,7 @@ function getRoomColor(typeID, resourceID) {
   //   57, 58, // dt procedure columns
   //   61, 62 // wc procedure columns
   // ])
-  if (SCHEDULED_PROCEDURES_RESOURCE_IDS.has(String(resourceID))) {
+  if (SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(String(resourceID))) {
     // if type is not covered in name to color map, but it's in the procedure column, make it light orangish
     return '#fce5cd';
   }
