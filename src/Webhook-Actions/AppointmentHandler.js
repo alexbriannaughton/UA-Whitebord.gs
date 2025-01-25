@@ -10,19 +10,17 @@ function handleAppointment(webhookType, appointment) {
     // below here is for this sheet
     if (UNHANDLED_APPT_TYPE_IDS.includes(appointment.type_id)) return;
 
-    const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
-    const isToday = isTodayInUserTimezone(userTimeZoneDate);
-    const couldBeNextDayDtAppt = checkIfIsOnNextDayOfDtAppts(userTimeZoneDate);
-    if (!isToday && !couldBeNextDayDtAppt) return;
-
     const uaLoc = whichLocation(appointment.resources[0].id);
     const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc];
-    
+
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 
     if (uaLocSheetName === DT_SHEET_NAME) {
-        return handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap, couldBeNextDayDtAppt);
+        return handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap);
     }
+
+    const isToday = isTodayInUserTimezone(userTimeZoneDate);
+    if (!isToday) return;
 
     if (!appointment.active) {
         return handleInactiveApptOnWaitlist(appointment, uaLocSheetName);
@@ -79,10 +77,15 @@ function handleEchoOrAUS(appointment, sheetName) {
     return;
 }
 
-function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap, couldBeNextDayDtAppt) {
-    if (couldBeNextDayDtAppt) {
-        return handleNextDayDtAppt(appointment, uaLocSheetName);
-    }
+function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap) {
+    const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
+    const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfDtAppts(userTimeZoneDate);
+    const isValidDtNda = isOnNextDayOfDtAppts && IS_VALID_DT_NDA(
+        appointment.resources.map(({ id }) => id),
+        appointment.type_id
+    )
+
+    if (isValidDtNda) return handleNextDayDtAppt(appointment, uaLocSheetName);
 
     if (locationToRoomCoordsMap) { // this would mean that its a room status
         return moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap);
