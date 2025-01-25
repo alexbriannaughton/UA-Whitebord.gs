@@ -13,7 +13,7 @@ function addToWaitlist(appointment, uaLocSheetName) {
   const { highestEmptyRow: rowRange } = getWaitlistRowRange(appointment, uaLocSheetName);
   if (!rowRange) return;
 
-  rowRange.setBackground('#f3f3f3');
+  rowRange.setBackground(STANDARD_GREY);
   rowRange.setBorder(true, true, true, true, true, true);
 
   const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);

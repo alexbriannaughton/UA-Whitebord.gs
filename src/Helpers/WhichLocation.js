@@ -1,6 +1,6 @@
 function whichLocation(resourceId) {
     if (!ezyVetResourceToUaLoc) ezyVetResourceToUaLoc = fetchAndBuildEzyVetResourceMap();
-    return ezyVetResourceToUaLoc[String(resourceId)];
+    return ezyVetResourceToUaLoc[Number(resourceId)];
 }
 
 function fetchAndBuildEzyVetResourceMap(cache = CacheService.getScriptCache()) {
@@ -20,7 +20,7 @@ function fetchAndBuildEzyVetResourceMap(cache = CacheService.getScriptCache()) {
             return;
         }
 
-        ezyVetResourceMap[resource.id] = uaLoc;
+        ezyVetResourceMap[Number(resource.id)] = uaLoc;
     });
 
     cache.put(EZYVET_RESOURCE_TO_UA_LOC_NAME, JSON.stringify(ezyVetResourceMap), 7200);

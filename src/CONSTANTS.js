@@ -24,10 +24,12 @@ const DT_NDA_COORDS = `K${DT_NDA_ROW_START_NUMBER}:R85`;
 
 const SAME_FAM_STRING = '^same fam^';
 
+const SPECIES_MAP = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
-// for obtaining a particular location's default background color for the inpatient box
+const STANDARD_GREY = '#f3f3f3';
+
 const UA_LOC_INPATIENT_DEFAULT_COLOR = new Map([
-    [CH_SHEET_NAME, '#f3f3f3'], // gray for cap hill
+    [CH_SHEET_NAME, STANDARD_GREY], // gray for cap hill
     [DT_SHEET_NAME, '#d0e0e3'], // cyan for downtown
     [WC_SHEET_NAME, '#ead1dc']  // magenta for white center
 ]);
@@ -48,13 +50,6 @@ const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
     [WC_SHEET_NAME, 'I3']
 ]);
 
-function FILTER_FOR_VALID_DT_APPTS(allTargetDayAppts) {
-    return allTargetDayAppts.items.filter(({ appointment }) => {
-        return appointment.details.resource_list.some(id => DT_RESOURCE_IDS.has(Number(id))) // is in a DT exam column
-            && DT_DVM_APPT_IDS.has(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
-    });
-};
-
 function GET_CANCELLATION_REASON(id) {
     const idToReason = new Map([
         [1, 'No show'],
@@ -70,20 +65,15 @@ function GET_CANCELLATION_REASON(id) {
     return idToReason.get(id);
 }
 
-const DT_RESOURCE_IDS = new Set([ // non procedures dt columns
-    35, // dt dvm 1
-    // 55, // used to be dt dvm 2, though it is not currently active 3/16/24
-    56, // dt tech
-    // 1015, // used to be dt dvm 3, though it is not currently active 3/16/24
-    1082, // dt DVM :15/:45
-    57, // dt procedure 1
-    58, // dt procedure 2
-]);
-const DT_DVM_APPT_IDS = new Set([
-    79, // downtown - appointment
-    95, // Downtown - Appointment (:15/:45)
-    93, // Downtown - Same Day Sick
-]);
+// ezyvet appt type handlers
+const BLOCK_OFF_APPT_TYPE_ID = 4;
+const NO_SHOW_APPT_ID = 98;
+const EOD_APPT_ID = 96;
+const UNHANDLED_APPT_TYPE_IDS = [
+    BLOCK_OFF_APPT_TYPE_ID,
+    NO_SHOW_APPT_ID,
+    EOD_APPT_ID,
+];
 
 class ApptCategory {
     constructor(ezyVetTypeIds, name, color, sortValue) {
@@ -107,18 +97,29 @@ const EZYVET_SX_TYPE_IDS = [
     EZYVET_WC_SPAY_NEUTER_TYPE_ID,
     EZYVET_WC_SX_TYPE_ID,
 ];
-const SX_APPT_CATEGORY_NAME = 'sx';
-const SX_APPT_CATEGORY = new ApptCategory(EZYVET_SX_TYPE_IDS, SX_APPT_CATEGORY_NAME, '#fff2cc', 0);
+const SX_APPT_CATEGORY = new ApptCategory(
+    EZYVET_SX_TYPE_IDS,
+    'sx',
+    '#fff2cc',
+    0
+);
 
 const EZYVET_AUS_TYPE_ID = 29;
 const EZYVET_DT_AUS_TYPE_ID = 91;
 const EZYVET_AUS_TYPE_IDS = [EZYVET_AUS_TYPE_ID, EZYVET_DT_AUS_TYPE_ID];
-const AUS_APPT_CATEGORY_NAME = 'aus';
-const AUS_APPT_CATEGORY = new ApptCategory(EZYVET_AUS_TYPE_IDS, AUS_APPT_CATEGORY_NAME, '#cfe2f3', 1);
+const AUS_APPT_CATEGORY = new ApptCategory(
+    EZYVET_AUS_TYPE_IDS,
+    'aus',
+    '#cfe2f3', 1
+);
 
 const EZYVET_ECHO_TYPE_IDS = [30];
-const ECHO_APPT_CATEGORY_NAME = 'echo';
-const ECHO_APPT_CATEGORY = new ApptCategory(EZYVET_ECHO_TYPE_IDS, ECHO_APPT_CATEGORY_NAME, '#f4cccc', 2);
+const ECHO_APPT_CATEGORY = new ApptCategory(
+    EZYVET_ECHO_TYPE_IDS,
+    'echo',
+    '#f4cccc',
+    2
+);
 
 const EZYVET_CH_DENTAL_TYPE_ID = 28;
 const EZYVET_DT_DENTAL_TYPE_ID = 86;
@@ -128,12 +129,20 @@ const EZYVET_DENTAL_TYPE_IDS = [
     EZYVET_DT_DENTAL_TYPE_ID,
     EZYVET_WC_THURS_DENTAL_TYPE_ID
 ];
-const DENTAL_APPT_CATEGORY_NAME = 'dental';
-const DENTAL_APPT_CATEGORY = new ApptCategory(EZYVET_DENTAL_TYPE_IDS, DENTAL_APPT_CATEGORY_NAME, '#d9ead3', 4);
+const DENTAL_APPT_CATEGORY = new ApptCategory(
+    EZYVET_DENTAL_TYPE_IDS,
+    'dental',
+    '#d9ead3',
+    4
+);
 
 const EZYVET_HC_TYPE_IDS = [81];
-const HC_APPT_CATEGORY_NAME = 'hc';
-const HC_APPT_CATEGORY = new ApptCategory(EZYVET_HC_TYPE_IDS, HC_APPT_CATEGORY_NAME, '#fce5cd', 6);
+const HC_APPT_CATEGORY = new ApptCategory(
+    EZYVET_HC_TYPE_IDS,
+    'hc',
+    '#fce5cd',
+    6
+);
 
 const EZYVET_IM_CONSULT_TYPE_ID = 26;
 const EZYVET_IM_RECECK_TYPE_ID = 27;
@@ -145,14 +154,22 @@ const EZYVET_IM_APPT_TYPES = [
     EZYVET_IM_PROCEDURE_TYPE_ID,
     EZYVET_IM_TECH_APPT_TYPE_ID
 ];
-const IM_APPT_CATEOGRY_NAME = 'im';
-const IM_APPT_CATEGORY = new ApptCategory(EZYVET_IM_APPT_TYPES, IM_APPT_CATEOGRY_NAME, '#d9d2e9', 5);
+const IM_APPT_CATEGORY = new ApptCategory(
+    EZYVET_IM_APPT_TYPES,
+    'im',
+    '#d9d2e9',
+    5
+);
 
 const EZYVET_TECH_APPT_TYPE_ID = 19;
 const EZYVET_DT_TECH_APPT_TYPE_ID = 85;
 const EZYVET_TECH_APPT_IDS = [EZYVET_TECH_APPT_TYPE_ID, EZYVET_DT_TECH_APPT_TYPE_ID];
-const TECH_APPT_CATEGORY_NAME = 'tech';
-const TECH_APPT_CATEGORY = new ApptCategory(EZYVET_TECH_APPT_IDS, TECH_APPT_CATEGORY_NAME, '#90EE90', 3);
+const TECH_APPT_CATEGORY = new ApptCategory(
+    EZYVET_TECH_APPT_IDS,
+    'tech',
+    '#90EE90',
+    3
+);
 
 const EZYVET_EUTH_APPT_ID = 80;
 const EZYVET_DT_EUTH_APPT_ID = 87;
@@ -160,9 +177,12 @@ const EZYVET_EUTH_APPT_IDS = [
     EZYVET_EUTH_APPT_ID,
     EZYVET_DT_EUTH_APPT_ID
 ];
-const EZYVET_EUTH_APPT_CATEGORY_NAME = 'euth';
-
-const EUTH_APPT_CATEGORY = new ApptCategory(EZYVET_EUTH_APPT_IDS, EZYVET_EUTH_APPT_CATEGORY_NAME, '#cfe2f3', 3);
+const EUTH_APPT_CATEGORY = new ApptCategory(
+    EZYVET_EUTH_APPT_IDS,
+    'euth',
+    '#cfe2f3',
+    3
+);
 
 const APPT_CATEGORIES = [
     SX_APPT_CATEGORY,
@@ -182,19 +202,44 @@ APPT_CATEGORIES.forEach(category => {
     });
 });
 
-const APPT_CATEGORY_TO_COLOR = new Map([
-    // ['tech', '#90EE90'], // bright green , not including this bc i dont want them to be bright green on inpatient daily job
-    ['euth', '#cfe2f3'], // blue
-    ['sx', '#fff2cc'],// light yellowish
-    ['aus', '#cfe2f3'],// light blue 3
-    ['echo', '#f4cccc'],// light red
-    ['dental', '#d9ead3'], // light green
-    ['h/c', '#fce5cd'],// light orangish
-    // ['secondary', '#fce5cd'],// light orangish
-    ['IM', '#d9d2e9'] // light purplish
-]);
+// ezyvet resource ids
+const CH_PROCEDURE_1_RESOURCE_ID = 29;
+const CH_PROCEDURE_2_RESOURCE_ID = 30;
+const CH_IM_RESOURCE_ID = 27;
+const CH_IM_PROCEDURE_RESOURCE_ID = 65;
+const DT_PROCEDURE_1_RESOURCE_ID = 57;
+const DT_PROCEDURE_2_RESOURCE_ID = 58;
+const WC_PROCEDURE_1_RESOURCE_ID = 61;
+const WC_PROCEDURE_2_RESOURCE_ID = 62;
 
-const SPECIES_MAP = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
+const SCHEDULED_PROCEDURES_RESOURCE_IDS = [
+    CH_PROCEDURE_1_RESOURCE_ID,
+    CH_PROCEDURE_2_RESOURCE_ID,
+    CH_IM_RESOURCE_ID,
+    CH_IM_PROCEDURE_RESOURCE_ID,
+    DT_PROCEDURE_1_RESOURCE_ID,
+    DT_PROCEDURE_2_RESOURCE_ID,
+    WC_PROCEDURE_1_RESOURCE_ID,
+    WC_PROCEDURE_2_RESOURCE_ID,
+];
+
+function FILTER_FOR_VALID_DT_NDAS(allTargetDayAppts) {
+    const dtDvmApptIds = [
+        79, // downtown - appointment
+        95, // Downtown - Appointment (:15/:45)
+        93, // Downtown - Same Day Sick
+    ];
+
+    const dvmDvmResourceIds = [ // non procedures dt columns
+        35, // dt dvm 1
+        1082, // dt DVM :15/:45
+    ];
+
+    return allTargetDayAppts.items.filter(({ appointment }) => {
+        return appointment.details.resource_list.some(id => dvmDvmResourceIds.includes(Number(id))) // is in a DT exam column
+            && dtDvmApptIds.includes(Number(appointment.details.appointment_type_id)); // is a dt doctor exam type
+    });
+};
 
 const ROOM_STATUS_LOCATION_TO_COORDS = {
     18: { // room 1
@@ -284,31 +329,3 @@ const ROOM_STATUS_LOCATION_TO_COORDS = {
     // }
 
 }
-
-const BLOCK_OFF_APPT_TYPE_ID = 4;
-const NO_SHOW_APPT_ID = 98;
-const EOD_APPT_ID = 96;
-const UNHANDLED_APPT_TYPE_IDS = [
-    BLOCK_OFF_APPT_TYPE_ID,
-    NO_SHOW_APPT_ID,
-    EOD_APPT_ID,
-];
-const CH_PROCEDURE_1_RESOURCE_ID = '29';
-const CH_PROCEDURE_2_RESOURCE_ID = '30';
-const CH_IM_RESOURCE_ID = '27';
-const CH_IM_PROCEDURE_RESOURCE_ID = '65';
-const DT_PROCEDURE_1_RESOURCE_ID = '57';
-const DT_PROCEDURE_2_RESOURCE_ID = '58';
-const WC_PROCEDURE_1_RESOURCE_ID = '61';
-const WC_PROCEDURE_2_RESOURCE_ID = '62';
-
-const SCHEDULED_PROCEDURES_RESOURCE_IDS = [
-    CH_PROCEDURE_1_RESOURCE_ID,
-    CH_PROCEDURE_2_RESOURCE_ID,
-    CH_IM_RESOURCE_ID,
-    CH_IM_PROCEDURE_RESOURCE_ID,
-    DT_PROCEDURE_1_RESOURCE_ID,
-    DT_PROCEDURE_2_RESOURCE_ID,
-    WC_PROCEDURE_1_RESOURCE_ID,
-    WC_PROCEDURE_2_RESOURCE_ID,
-];

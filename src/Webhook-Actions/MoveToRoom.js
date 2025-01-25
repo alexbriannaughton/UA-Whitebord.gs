@@ -192,27 +192,15 @@ function parseTheRoom(
 }
 
 function getRoomColor(typeID, resourceID) {
-  // if it's IM make the background purple
-  let typeCategory = TYPE_ID_TO_CATEGORY.get(typeID);
-  if (typeCategory === IM_APPT_CATEGORY || resourceID === 65 || resourceID === 27) {
-    typeCategory = IM_APPT_CATEGORY
-  }
-  // if (typeCategory === 'tech') {
-  //   return '#90EE90'; // bright green
-  // }
-  const category = APPT_CATEGORY_TO_COLOR.get(typeCategory);
-  if (category?.color) return category.color;
-  // const procedureResources = new Set([
-  //   29, 30, // ch procedure columns
-  //   57, 58, // dt procedure columns
-  //   61, 62 // wc procedure columns
-  // ])
-  if (SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(String(resourceID))) {
-    // if type is not covered in name to color map, but it's in the procedure column, make it light orangish
-    return '#fce5cd';
-  }
-  // else do the standard gray
-  return '#f3f3f3';
+  const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(resourceID);
+  const typeCategory = isInImColumn ? IM_APPT_CATEGORY : TYPE_ID_TO_CATEGORY.get(typeID);
+
+  // if special type cateogry, use its color
+  if (typeCategory?.color) return typeCategory.color;
+
+  // if in proecure column make it orangish, else make it grey
+  return SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(String(resourceID))
+    ? '#fce5cd' : STANDARD_GREY;
 }
 
 function techText(typeID) {
@@ -247,7 +235,7 @@ function handleMultiplePetRoom(
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
   if (!isWCSxRoom && (!reasonText.includes('(TECH)') || !incomingAnimalText.includes('(TECH)'))) {
-    roomRange.offset(0, 0, 8, 1).setBackground('#f3f3f3');
+    roomRange.offset(0, 0, 8, 1).setBackground(STANDARD_GREY);
   }
 
   // multiple pet room links take you to the owner's tab in ezyvet (the contact record)

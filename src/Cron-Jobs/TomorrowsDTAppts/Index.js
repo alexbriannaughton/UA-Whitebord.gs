@@ -32,7 +32,7 @@ function getNextDayDtAppts() {
 
 function filterAndSortDTAppts(allTargetDayAppts) {
     // filter all appts down to DT exams/techs
-    const dtAppts = FILTER_FOR_VALID_DT_APPTS(allTargetDayAppts);
+    const dtAppts = FILTER_FOR_VALID_DT_NDAS(allTargetDayAppts);
 
     dtAppts.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 

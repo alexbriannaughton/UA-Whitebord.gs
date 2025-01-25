@@ -16,7 +16,7 @@ function processProcedures(apptItems) {
     apptItems.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 
     apptItems.forEach(({ appointment }) => {
-        const resourceID = appointment.details.resource_list[0];
+        const resourceID = Number(appointment.details.resource_list[0]);
         if (!SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(resourceID)) return;
         const uaLoc = whichLocation(resourceID);
         const procedure = getColorAndSortValue(appointment.details, resourceID);
@@ -32,45 +32,19 @@ function processProcedures(apptItems) {
 
 function getColorAndSortValue(procedure, resourceID) {
     // this function sorts procedures by type and adds a color to the procedure/appointment object
-    let apptCategory = TYPE_ID_TO_CATEGORY.get(Number(procedure.appointment_type_id));
+    const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(Number(resourceID));
+    const apptCategory = isInImColumn
+        ? IM_APPT_CATEGORY
+        : TYPE_ID_TO_CATEGORY.get(Number(procedure.appointment_type_id));
 
-    if (resourceID === '27' || resourceID === '65' || apptCategory === IM_APPT_CATEGORY) {
-        apptCategory = IM_APPT_CATEGORY;
-    }
-
-    if (apptCategory) procedure = {
-        ...procedure,
-        ...apptCategory,
+    if (apptCategory && apptCategory !== TECH_APPT_CATEGORY) {
+        procedure = { ...procedure, ...apptCategory };
     }
 
     else {
         procedure.color = '#fce5cd';
         procedure.sortValue = 3;
     }
-
-    // procedure.color = APPT_CATEGORY_TO_COLOR.get(procedureName) ?? '#fce5cd';
-
-    // // anything that is in the IM column, despite the appointment_type, will be grouped as IM
-    // if (resourceID === '27' || resourceID === '65' || procedureName === 'IM') {
-    //     procedure.color = APPT_CATEGORY_TO_COLOR.get('IM');
-    //     procedure.sortValue = 5;
-    // }
-    // else if (procedureName === 'sx') {
-    //     procedure.sortValue = 0;
-    // }
-    // else if (procedureName === 'aus') {
-    //     procedure.sortValue = 1;
-    // }
-    // else if (procedureName === 'echo') {
-    //     procedure.sortValue = 2;
-    // }
-    // else if (procedureName === 'dental') {
-    //     procedure.sortValue = 4;
-    // }
-    // else if (procedureName === 'h/c') {
-    //     procedure.sortValue = 6;
-    // }
-    // else procedure.sortValue = 3; // put before im, dental and h/c if type_id not mentioned above
 
     return procedure;
 };
