@@ -1,9 +1,9 @@
 function handleAppointment(webhookType, appointment) {
     // first, send to aus/echo tracker sheet/script if its an echo or aus
-    if (ECHO_APPT_TYPE_IDS.has(appointment.type_id)) {
+    if (ECHO_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'Echos');
     }
-    else if (AUS_APPT_TYPE_IDS.has(appointment.type_id)) {
+    else if (AUS_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'AUS');
     }
 

@@ -70,9 +70,6 @@ function GET_CANCELLATION_REASON(id) {
     return idToReason.get(id);
 }
 
-const ECHO_APPT_TYPE_IDS = new Set([30]);
-const AUS_APPT_TYPE_IDS = new Set([29, 91]);
-
 const DT_RESOURCE_IDS = new Set([ // non procedures dt columns
     35, // dt dvm 1
     // 55, // used to be dt dvm 2, though it is not currently active 3/16/24
