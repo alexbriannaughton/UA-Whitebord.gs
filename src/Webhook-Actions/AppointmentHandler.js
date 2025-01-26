@@ -1,6 +1,6 @@
 function handleAppointment(webhookType, appointment) {
     getCacheVals();
-    
+
     // first, send to aus/echo tracker sheet/script if its an echo or aus
     if (ECHO_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'Echos');
@@ -21,6 +21,7 @@ function handleAppointment(webhookType, appointment) {
         return handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap);
     }
 
+    const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
     const isToday = isTodayInUserTimezone(userTimeZoneDate);
     if (!isToday) return;
 
