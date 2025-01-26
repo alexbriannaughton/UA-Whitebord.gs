@@ -1,14 +1,16 @@
 // check if utc timestamp is today in user timezone
-function isTodayInUserTimezone(timestampDate) {
+function isTodayInUserTimezone(appointment) {
+    const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
     const todaysDate = Utilities.formatDate(
         new Date(),
         USER_TIMEZONE,
         DATE_STRING_PATTERN
     );
-    return timestampDate === todaysDate;
+    return userTimeZoneDate === todaysDate;
 }
 
-function checkIfIsOnNextDayOfDtAppts(timestampDate) {
+function checkIfIsOnNextDayOfDtAppts(appointment) {
+    const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
     const date = new Date();
     date.setDate(date.getDate() + daysToNextDtAppts);
     
@@ -18,7 +20,7 @@ function checkIfIsOnNextDayOfDtAppts(timestampDate) {
         'EEEE MM/dd/yyyy'
     );
 
-    return timestampDate === nextDTApptDateFormatted;
+    return userTimeZoneDate === nextDTApptDateFormatted;
 }
 
 function convertEpochToUserTimezone(epoch) {

@@ -21,8 +21,7 @@ function handleAppointment(webhookType, appointment) {
         return handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap);
     }
 
-    const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
-    const isToday = isTodayInUserTimezone(userTimeZoneDate);
+    const isToday = isTodayInUserTimezone(appointment);
     if (!isToday) return;
 
     if (!appointment.active) {
@@ -81,8 +80,7 @@ function handleEchoOrAUS(appointment, sheetName) {
 }
 
 function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap) {
-    const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
-    const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfDtAppts(userTimeZoneDate);
+    const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfDtAppts(appointment);
     const isValidDtNda = isOnNextDayOfDtAppts && CONTAINS_VALID_DT_NDA_IDS(
         appointment.resources.map(({ id }) => id),
         appointment.type_id
