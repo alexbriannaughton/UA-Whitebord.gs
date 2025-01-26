@@ -13,11 +13,11 @@ function checkIfIsOnNextDayOfDtAppts(appointment) {
     const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
     const date = new Date();
     date.setDate(date.getDate() + daysToNextDtAppts);
-    
+
     const nextDTApptDateFormatted = Utilities.formatDate(
         date,
         USER_TIMEZONE,
-        'EEEE MM/dd/yyyy'
+        DATE_STRING_PATTERN
     );
 
     return userTimeZoneDate === nextDTApptDateFormatted;

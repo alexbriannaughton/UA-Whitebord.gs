@@ -200,7 +200,7 @@ function getRoomColor(typeID, resourceID) {
 
   // if in proecure column make it orangish, else make it grey
   return SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(String(resourceID))
-    ? '#fce5cd' : STANDARD_GREY;
+    ? OTHER_APPT_COLOR : STANDARD_GREY;
 }
 
 function techText(typeID) {

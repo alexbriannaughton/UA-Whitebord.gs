@@ -25,7 +25,11 @@ function processProcedures(apptItems) {
     });
 
     allLocationProcedures.forEach((oneLocationProcedures, uaLocSheetName) => {
-        oneLocationProcedures.sort((a, b) => a.sortValue - b.sortValue);
+        oneLocationProcedures.sort((a, b) => {
+            return a.sortValue === b.sortValue
+                ? Number(a.appointment_type_id) - Number(b.appointment_type_id)
+                : a.sortValue - b.sortValue;
+        });
         addScheduledProcedures(oneLocationProcedures, uaLocSheetName);
     });
 };
@@ -33,18 +37,15 @@ function processProcedures(apptItems) {
 function getColorAndSortValue(procedure, resourceID) {
     // this function sorts procedures by type and adds a color to the procedure/appointment object
     const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(resourceID);
-    const apptCategory = isInImColumn
+    let apptCategory = isInImColumn
         ? IM_APPT_CATEGORY
         : TYPE_ID_TO_CATEGORY.get(Number(procedure.appointment_type_id));
 
-    if (apptCategory && ![TECH_APPT_CATEGORY, EUTH_APPT_CATEGORY].includes(apptCategory)) {
-        procedure = { ...procedure, ...apptCategory };
+    if (!apptCategory || [TECH_APPT_CATEGORY, EUTH_APPT_CATEGORY].includes(apptCategory)) {
+        apptCategory = OTHER_APPT_CATEGORY;
     }
 
-    else {
-        procedure.color = '#fce5cd';
-        procedure.sortValue = 3;
-    }
+    procedure = { ...procedure, ...apptCategory };
 
     return procedure;
 };
