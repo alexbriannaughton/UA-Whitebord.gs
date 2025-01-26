@@ -98,6 +98,7 @@ const SX_APPT_CATEGORY = new ApptCategory(
     [
         EZYVET_SX_TYPE_ID,
         EZYVET_SPAY_NEUTER_TYPE_ID,
+        EZYVET_DT_SPAY_NEUTER_TYPE_ID,
         EZYVET_DT_SX_TYPE_ID,
         EZYVET_WC_SPAY_NEUTER_TYPE_ID,
         EZYVET_WC_SX_TYPE_ID,
@@ -230,7 +231,7 @@ const OTHER_APPT_CATEGORY = new ApptCategory(
     'other',
     OTHER_APPT_COLOR,
     OTHER_PROCEDURE_SORT_VALUE,
-)
+);
 
 const APPT_CATEGORIES = [
     SX_APPT_CATEGORY,
