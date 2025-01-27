@@ -19,7 +19,7 @@ function getWaitValsForLocation(uaLocSheetName, numOfRoomsInUse, sheets) {
 
     return {
         max_dvm_rooms: maxDvmRooms || 0,
-        location,
+        location: uaLocSheetName,
         soft_cap,
         hard_cap,
         dvms_on_floor: Number(waitlistVals[1][0]) || 0,
