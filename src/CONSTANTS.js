@@ -376,4 +376,4 @@ const ROOM_STATUS_LOCATION_TO_COORDS = {
     //     [WC_SHEET_NAME]: ''
     // }
 
-}
+};
