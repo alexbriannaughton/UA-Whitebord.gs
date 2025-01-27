@@ -18,6 +18,7 @@ function processProcedures(apptItems) {
     apptItems.forEach(({ appointment }) => {
         const resourceID = Number(appointment.details.resource_list[0]);
         if (!SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(resourceID)) return;
+        if (UNHANDLED_APPT_TYPE_IDS.includes(Number(appointment.details.appointment_type_id))) return;
         const uaLoc = whichLocation(resourceID);
         const procedure = getColorAndSortValue(appointment.details, resourceID);
         const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc];
