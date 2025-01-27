@@ -25,7 +25,7 @@ function getWaitValsForLocation(uaLocSheetName, numOfRoomsInUse, sheets) {
         dvms_on_floor: Number(waitlistVals[1][0]) || 0,
         wait_time: Number(waitlistVals[2][0]) || 0,
         pts_waiting: waitlistVals[0][0],
-        rooms_in_use: numOfRoomsInUse[location],
+        rooms_in_use: numOfRoomsInUse[uaLocSheetName],
     };
 }
 
