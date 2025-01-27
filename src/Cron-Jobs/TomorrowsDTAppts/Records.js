@@ -150,7 +150,7 @@ async function buildPDF(attachmentDownloadResponses, fileNameArray, mergedPDF, a
 
     // console.log(`saving .pdf for ${animalName}...`);
     const bytes = await mergedPDF.save();
-    console.log(`saved pdf for ${animalName}!`)
+    console.log(`saved pdf for ${animalName}!`);
     return bytes;
 }
 

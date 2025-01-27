@@ -1,15 +1,28 @@
+const TOKEN_NAME = 'ezyVet_token';
+const DAYS_TO_NDA_DT_APPTS_NAME = 'days_to_next_dt_appts';
+const EZYVET_RESOURCE_TO_UA_LOC_NAME = 'ezyvet_resource_to_ua_loc';
+
 let token;
 let daysToNextDtAppts;
+let ezyVetResourceToUaLoc;
 
 function getCacheVals() {
     const cache = CacheService.getScriptCache();
-    const cacheVals = cache.getAll(['ezyVet_token', 'days_to_next_dt_appts']);
+    const cacheVals = cache.getAll([TOKEN_NAME, DAYS_TO_NDA_DT_APPTS_NAME, EZYVET_RESOURCE_TO_UA_LOC_NAME]);
 
-    token = cacheVals.ezyVet_token;
+    token = cacheVals[TOKEN_NAME];
     if (!token) token = updateToken(cache);
 
-    daysToNextDtAppts = Number(cacheVals.days_to_next_dt_appts);
+    daysToNextDtAppts = Number(cacheVals[DAYS_TO_NDA_DT_APPTS_NAME]);
     if (!daysToNextDtAppts) daysToNextDtAppts = getDaysAheadDT(cache);
+
+    const mapJson = cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME];
+    ezyVetResourceToUaLoc = handleEzyVetResourceMapCache(cache, mapJson);
+}
+
+function handleEzyVetResourceMapCache(cache, mapJson) {
+    if (mapJson) return JSON.parse(mapJson);
+    else return fetchAndBuildEzyVetResourceMap(cache);
 }
 
 function getDaysAheadDT(cache) {
@@ -18,9 +31,15 @@ function getDaysAheadDT(cache) {
 
     while (!foundDay && daysAhead < 10) {
         const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(++daysAhead);
+
         const url = `${EV_PROXY}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
+
         const allTargetDayAppts = fetchAndParse(url);
-        dtAppts = FILTER_FOR_VALID_DT_APPTS(allTargetDayAppts);
+        
+        const dtAppts = allTargetDayAppts.items
+            .filter(({ appointment }) =>
+                CONTAINS_VALID_DT_NDA_IDS(appointment.details.resource_list, appointment.details.appointment_type_id));
+
         if (dtAppts.length) foundDay = true;
     }
 
@@ -29,7 +48,7 @@ function getDaysAheadDT(cache) {
     }
 
     console.log(`putting ${daysAhead} as days_to_next_dt_appts into cache...`);
-    cache.put('days_to_next_dt_appts', daysAhead, 21600);
+    cache.put(DAYS_TO_NDA_DT_APPTS_NAME, daysAhead, 21600);
 
     return daysAhead;
 };

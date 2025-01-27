@@ -11,30 +11,30 @@
 // appointment.status_id 36 = room11 = CH cells: H13, H14, H15
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
-function moveToRoom(appointment, location, locationToRoomCoordsMap) {
+function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
   const isWCSxRoom = new Set([41, 42, 43]).has(appointment.status_id);
 
-  const roomCoords = locationToRoomCoordsMap[location]; // change this so it gets all 9 cells
+  const roomCoords = locationToRoomCoordsMap[uaLocSheetName]; // change this so it gets all 9 cells
 
   // if we're moving into a room that doesn't exist... don't do that
-  if (!roomCoords) return stopMovingToRoom(appointment, location);
-  // if ((appointment.status_id >= 31 && location === 'DT') || (appointment.status_id >= 29 && location === 'WC')) {
-  //   return stopMovingToRoom(appointment, location);
+  if (!roomCoords) return stopMovingToRoom(appointment, uaLocSheetName);
+  // if ((appointment.status_id >= 31 && uaLocSheetName === 'DT') || (appointment.status_id >= 29 && uaLocSheetName === 'WC')) {
+  //   return stopMovingToRoom(appointment, uaLocSheetName);
   // }
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
 
   const fullRoomRange = sheet.getRange(roomCoords);
-  const [roomRange, incomingAnimalText, allRoomVals] = parseTheRoom(sheet, appointment, location, fullRoomRange, isWCSxRoom) || [];
+  const [roomRange, incomingAnimalText, allRoomVals] = parseTheRoom(sheet, appointment, uaLocSheetName, fullRoomRange, isWCSxRoom) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals, isWCSxRoom);
+  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom);
 
   return;
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location, allRoomVals, isWCSxRoom) {
+function populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom) {
   // if not white center surgery room, set bg color of room
   if (!isWCSxRoom) {
     roomRange.offset(0, 0, 8, 1).setBackground(
@@ -68,7 +68,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
   roomRange.offset(0, 0, 9, 1).setRichTextValues(richTextVals);
 
   // delete from the waitlist
-  deleteFromWaitlist(location, appointment.consult_id);
+  deleteFromWaitlist(uaLocSheetName, appointment.consult_id);
 
   return;
 }
@@ -85,7 +85,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, location,
 function parseTheRoom(
   sheet,
   appointment,
-  location,
+  uaLocSheetName,
   fullRoomRange,
   isWCSxRoom,
   rangeForSecondCatLobbyColumn, // will be undefined unless the first cat lobby column is unavailable
@@ -103,7 +103,7 @@ function parseTheRoom(
   if (curLinkID === String(appointment.consult_id)) {
     // deleteFromWaitlist bc there's a chance that this execution is a retry
     // this assumes the logic that if it's in a room, it doesnt need to be on the waitlist
-    deleteFromWaitlist(location, appointment.consult_id);
+    deleteFromWaitlist(uaLocSheetName, appointment.consult_id);
     return;
   }
 
@@ -112,12 +112,12 @@ function parseTheRoom(
 
   const roomValues = isWCSxRoom ? allRoomVals.slice(0, -6) : allRoomVals.slice(0, -3);
 
-  if (!roomIsOkToPopulateWithData(roomValues, location)) {
+  if (!roomIsOkToPopulateWithData(roomValues, uaLocSheetName)) {
     const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
 
     // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
     if (roomValues[1][0].includes(incomingAnimalText)) {
-      stopMovingToRoom(appointment, location);
+      stopMovingToRoom(appointment, uaLocSheetName);
       return;
     }
 
@@ -126,13 +126,13 @@ function parseTheRoom(
         return parseTheRoom( // check the second cat lobby column
           sheet,
           appointment,
-          location,
+          uaLocSheetName,
           fullRoomRange,
           isWCSxRoom,
           roomRange.offset(0, 1) // this is the range for the second cat lobby column
         )
       }
-      else stopMovingToRoom(appointment, location); // otherwise we're done here bc we dont want to overwrite whatever is in the column
+      else stopMovingToRoom(appointment, uaLocSheetName); // otherwise we're done here bc we dont want to overwrite whatever is in the column
       return;
     }
 
@@ -162,7 +162,7 @@ function parseTheRoom(
         isWCSxRoom
       );
 
-      deleteFromWaitlist(location, appointment.consult_id);
+      deleteFromWaitlist(uaLocSheetName, appointment.consult_id);
 
       return;
     }
@@ -175,7 +175,7 @@ function parseTheRoom(
       return parseTheRoom(
         sheet,
         appointment,
-        location,
+        uaLocSheetName,
         fullRoomRange,
         isWCSxRoom,
         roomRange.offset(0, 1) // this is the range for the second cat lobby column
@@ -183,7 +183,7 @@ function parseTheRoom(
     }
 
     // otherwise dont move to room because the room is not empty
-    stopMovingToRoom(appointment, location);
+    stopMovingToRoom(appointment, uaLocSheetName);
     return;
   }
 
@@ -192,39 +192,27 @@ function parseTheRoom(
 }
 
 function getRoomColor(typeID, resourceID) {
-  // if it's IM make the background purple
-  const typeCategory = TYPE_ID_TO_CATEGORY.get(typeID);
-  if (typeCategory === 'IM' || resourceID === 65 || resourceID === 27) {
-    return APPT_CATEGORY_TO_COLOR.get('IM');
-  }
-  if (typeCategory === 'tech') {
-    return '#90EE90'; // bright green
-  }
-  const color = APPT_CATEGORY_TO_COLOR.get(typeCategory);
-  if (color) return color;
-  const procedureResources = new Set([
-    29, 30, // ch procedure columns
-    57, 58, // dt procedure columns
-    61, 62 // wc procedure columns
-  ])
-  if (procedureResources.has(resourceID)) {
-    // if type is not covered in name to color map, but it's in the procedure column, make it light orangish
-    return '#fce5cd';
-  }
-  // else do the standard gray
-  return '#f3f3f3';
+  const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(resourceID);
+  const typeCategory = isInImColumn ? IM_APPT_CATEGORY : TYPE_ID_TO_CATEGORY.get(typeID);
+
+  // if special type cateogry, use its color
+  if (typeCategory?.color) return typeCategory.color;
+
+  // if in proecure column make it orangish, else make it grey
+  return SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(String(resourceID))
+    ? OTHER_APPT_COLOR : STANDARD_GREY;
 }
 
 function techText(typeID) {
   return typeID === 19 || typeID === 85
-    ? "(TECH)"
+    ? TECH_IN_ROOM_TEXT
     : "";
 }
 
-function stopMovingToRoom(appointment, location) {
+function stopMovingToRoom(appointment, uaLocSheetName) {
   // add it to the waitlist if it was just created
   if (appointment.created_at === appointment.modified_at) {
-    addToWaitlist(appointment, location);
+    addToWaitlist(appointment, uaLocSheetName);
   }
   return;
 }
@@ -246,8 +234,8 @@ function handleMultiplePetRoom(
     ? `${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
-  if (!isWCSxRoom && (!reasonText.includes('(TECH)') || !incomingAnimalText.includes('(TECH)'))) {
-    roomRange.offset(0, 0, 8, 1).setBackground('#f3f3f3');
+  if (!isWCSxRoom && (!reasonText.includes(TECH_IN_ROOM_TEXT) || !incomingAnimalText.includes(TECH_IN_ROOM_TEXT))) {
+    roomRange.offset(0, 0, 8, 1).setBackground(STANDARD_GREY);
   }
 
   // multiple pet room links take you to the owner's tab in ezyvet (the contact record)
@@ -273,9 +261,9 @@ function getContactIDFromConsultID(consultID) {
   return contactID;
 }
 
-function deleteFromWaitlist(location, consultID) {
-  if (location === 'DT') return;
-  const waitlistSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(`${location} Wait List`);
+function deleteFromWaitlist(uaLocSheetName, consultID) {
+  if (uaLocSheetName === DT_SHEET_NAME) return;
+  const waitlistSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(`${uaLocSheetName} Wait List`);
   const patientNameRichText = waitlistSheet.getRange(`C7:D75`).getRichTextValues();
 
   for (let i = 0; i < patientNameRichText.length; i++) {
@@ -291,9 +279,9 @@ function deleteFromWaitlist(location, consultID) {
   return;
 }
 
-function roomIsOkToPopulateWithData(roomValues, location) {
+function roomIsOkToPopulateWithData(roomValues, uaLocSheetName) {
   // DT requests to be allowed to populate a room while there is data 'in the room' on whiteboard
-  return location === 'DT'
+  return uaLocSheetName === DT_SHEET_NAME
     ? roomValues[1].every(cellIsEmpty)
     : roomValues.every(roomVal => roomVal.every(cellIsEmpty));
 }

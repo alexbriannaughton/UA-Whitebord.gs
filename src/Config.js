@@ -1,5 +1,5 @@
 function getToken() {
-    token = token || CacheService.getScriptCache().get('ezyVet_token');
+    token = token || CacheService.getScriptCache().get(TOKEN_NAME);
     if (!token) token = updateToken();
     return token;
 }
@@ -18,7 +18,7 @@ function updateToken(cache = CacheService.getScriptCache()) {
     token = `${token_type} ${access_token}`;
     console.log('successfully grabbed new ezyvet token.');
 
-    cache.put('ezyVet_token', token, 21600);
+    cache.put(TOKEN_NAME, token, 21600);
     console.log('put new token in cache.')
 
     return token;

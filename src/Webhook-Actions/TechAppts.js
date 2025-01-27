@@ -1,14 +1,15 @@
-function addTechAppt(appointment, location) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
+function addTechAppt(appointment, uaLocSheetName) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
+  const wcSxName = WC_SHEET_NAME + 'Sx';
 
   const techBoxCoordsMap = new Map([
-    ['CH', 'K6:O21'],
+    [CH_SHEET_NAME, 'K6:O21'],
     // ['DT', 'L3:N11'],
-    ['WC', 'K4:N11'],
-    ['WCSx', 'G14:I17']
+    [WC_SHEET_NAME, 'K4:N11'],
+    [wcSxName, 'G14:I17']
   ]);
 
-  const locKey = appointment.status_id === 44 ? 'WCSx' : location;
+  const locKey = appointment.status_id === 44 ? wcSxName : uaLocSheetName;
   const techBoxCoords = techBoxCoordsMap.get(locKey);
   const techApptRange = sheet.getRange(techBoxCoords);
 

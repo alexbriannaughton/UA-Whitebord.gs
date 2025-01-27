@@ -1,7 +1,5 @@
-function handleNextDayDtAppt(appointment, location) {
-    if (!DT_DVM_APPT_IDS.has(appointment.type_id)) return;
-
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(location);
+function handleNextDayDtAppt(appointment, uaLocSheetName) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
     const range = sheet.getRange(DT_NDA_COORDS);
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
@@ -102,7 +100,7 @@ function fetchForDataAndMakeLink(appointment) {
 }
 
 function resortDtAppts(
-    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('DT').getRange(DT_NDA_COORDS)
+    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DT_SHEET_NAME).getRange(DT_NDA_COORDS)
 ) {
     const vals = range.getValues();
     const numOfAppts = getNumOfApptRows(vals);
