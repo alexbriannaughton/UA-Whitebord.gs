@@ -13,9 +13,7 @@ function handleAppointment(webhookType, appointment) {
     if (UNHANDLED_APPT_TYPE_IDS.includes(appointment.type_id)) return;
 
     const uaLoc = whichLocation(appointment.resources[0].id);
-    console.log('uaLoc', uaLoc)
     const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc];
-    console.log('ualocsheetname', uaLocSheetName)
 
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 
