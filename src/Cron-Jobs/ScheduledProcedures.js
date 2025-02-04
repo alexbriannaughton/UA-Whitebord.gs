@@ -37,7 +37,7 @@ function processProcedures(apptItems) {
 
 function getColorAndSortValue(procedure, resourceID) {
     // this function sorts procedures by type and adds a color to the procedure/appointment object
-    const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(resourceID);
+    const isInImColumn = IM_RESOURCE_IDS.includes(resourceID);
     let apptCategory = isInImColumn
         ? IM_APPT_CATEGORY
         : TYPE_ID_TO_CATEGORY.get(Number(procedure.appointment_type_id));
