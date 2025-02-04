@@ -24,7 +24,6 @@ function doPost(e) {
     console.error('error after the first try:', error);
     Utilities.sleep(3000);
     try {
-      getCacheVals();
       const params = JSON.parse(e.postData.contents);
       console.log('second try appointment objects: ', params?.items);
       const apptItems = params.items;
@@ -67,14 +66,18 @@ function doGet(_e) {
 
 function attemptGet() {
   const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+
   const {
     roomsWithLinks,
     numOfRoomsInUse,
     locationPossPositionNames
   } = extractMainSheetData(sheets);
+
   const wait = getWaitData(numOfRoomsInUse, sheets);
+
   const output = { roomsWithLinks, wait, locationPossPositionNames };
   console.log('do get output:', output);
+  
   return ContentService.createTextOutput(
     JSON.stringify(output)
   ).setMimeType(ContentService.MimeType.JSON);

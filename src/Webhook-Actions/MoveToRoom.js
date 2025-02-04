@@ -38,7 +38,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocShee
   // if not white center surgery room, set bg color of room
   if (!isWCSxRoom) {
     roomRange.offset(0, 0, 8, 1).setBackground(
-      getRoomColor(appointment.type_id, appointment.resources[0].id)
+      getRoomColor(appointment)
     );
   }
 
@@ -191,15 +191,18 @@ function parseTheRoom(
   return [roomRange, incomingAnimalText, allRoomVals];
 }
 
-function getRoomColor(typeID, resourceID) {
-  const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(resourceID);
-  const typeCategory = isInImColumn ? IM_APPT_CATEGORY : TYPE_ID_TO_CATEGORY.get(typeID);
+function getRoomColor(appointment) {
+  const resourceId = appointment.resources[0].id; // number
+  const typeId = appointment.type_id; // number
+
+  const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(resourceId);
+  const typeCategory = isInImColumn ? IM_APPT_CATEGORY : TYPE_ID_TO_CATEGORY.get(typeId);
 
   // if special type cateogry, use its color
   if (typeCategory?.color) return typeCategory.color;
 
   // if in proecure column make it orangish, else make it grey
-  return SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(String(resourceID))
+  return SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(resourceId)
     ? OTHER_APPT_COLOR : STANDARD_GREY;
 }
 
