@@ -273,6 +273,8 @@ const SCHEDULED_PROCEDURES_RESOURCE_IDS = [
     WC_PROCEDURE_2_RESOURCE_ID,
 ];
 
+const IM_RESOURCE_IDS = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID];
+
 const DT_DVM_APPT_IDS = [
     79, // downtown - appointment
     95, // Downtown - Appointment (:15/:45)

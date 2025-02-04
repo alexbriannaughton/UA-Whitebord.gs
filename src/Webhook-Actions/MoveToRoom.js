@@ -36,9 +36,7 @@ function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
 
 function populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom) {
   // if not white center surgery room, set bg color of room
-  if (!isWCSxRoom) {
-    roomRange.offset(0, 0, 8, 1).setBackground(getRoomColor(appointment));
-  }
+  if (!isWCSxRoom) roomRange.offset(0, 0, 8, 1).setBackground(getRoomColor(appointment));
 
   const timeText = convertEpochToUserTimezone(appointment.modified_at);
   const timeRichText = simpleTextToRichText(timeText);
@@ -193,7 +191,7 @@ function getRoomColor(appointment) {
   const resourceId = appointment.resources[0].id; // number
   const typeId = appointment.type_id; // number
 
-  const isInImColumn = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID].includes(resourceId);
+  const isInImColumn = IM_RESOURCE_IDS.includes(resourceId);
   const typeCategory = isInImColumn ? IM_APPT_CATEGORY : TYPE_ID_TO_CATEGORY.get(typeId);
 
   // if special type cateogry, use its color
