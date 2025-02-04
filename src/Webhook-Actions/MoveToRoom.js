@@ -37,9 +37,7 @@ function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
 function populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom) {
   // if not white center surgery room, set bg color of room
   if (!isWCSxRoom) {
-    roomRange.offset(0, 0, 8, 1).setBackground(
-      getRoomColor(appointment)
-    );
+    roomRange.offset(0, 0, 8, 1).setBackground(getRoomColor(appointment));
   }
 
   const timeText = convertEpochToUserTimezone(appointment.modified_at);
