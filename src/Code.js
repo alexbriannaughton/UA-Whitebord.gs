@@ -70,7 +70,12 @@ function attemptGet() {
   const wait = getWaitData(numOfRoomsInUse, sheets);
 
   const output = { roomsWithLinks, wait, locationPossPositionNames };
-  
+
+  if ([15, 35, 55].includes(new Date().getMinutes())) {
+    console.log('do get output-->', output);
+  }
+
+
   return ContentService.createTextOutput(
     JSON.stringify(output)
   ).setMimeType(ContentService.MimeType.JSON);
