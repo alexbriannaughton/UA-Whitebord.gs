@@ -283,7 +283,6 @@ function getActualStartTime(animalIDs) {
     const url = `${EV_PROXY}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}&limit=200`;
     const allTargetDayAppts = fetchAndParse(url);
     const appts = filterAndSortDTAppts(allTargetDayAppts);
-    console.log('appts: ', appts)
     if (appts.length !== animalIDs.length) {
         throw new Error(`there are ${appts.length} on next day of dt appts for animals with ids of ${animalIDs}`);
     }
