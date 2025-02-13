@@ -5,6 +5,8 @@ function doPost(e) {
     const params = JSON.parse(e.postData.contents);
     const apptItems = params.items;
 
+    getCacheVals();
+
     for (const { appointment } of apptItems) {
       handleAppointment(params.meta.event, appointment);
     }
