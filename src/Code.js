@@ -75,7 +75,6 @@ function attemptGet() {
     console.log('do get output-->', output);
   }
 
-
   return ContentService.createTextOutput(
     JSON.stringify(output)
   ).setMimeType(ContentService.MimeType.JSON);
