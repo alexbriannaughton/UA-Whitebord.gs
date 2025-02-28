@@ -282,5 +282,5 @@ function roomIsOkToPopulateWithData(roomValues, uaLocSheetName) {
   // DT requests to be allowed to populate a room while there is data 'in the room' on whiteboard
   return uaLocSheetName === DT_SHEET_NAME
     ? roomValues[1].every(cellIsEmpty)
-    : roomValues.every(roomVal => roomVal.every(cellIsEmpty));
+    : roomValues.slice(0, 2).every(roomVal => roomVal.every(cellIsEmpty));
 }

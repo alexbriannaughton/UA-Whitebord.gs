@@ -280,7 +280,7 @@ function getActualStartTime(animalIDs) {
     const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextDtAppts);
     const encodedTime = `start_time=${encodeURIComponent(JSON.stringify({ ">": targetDayStart, "<": targetDayEnd }))}`;
     const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": animalIDs }));
-    const url = `${EV_PROXY}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}&limit=200`;
+    const url = `${EV_PROXY}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}`;
     const allTargetDayAppts = fetchAndParse(url);
     const appts = filterAndSortDTAppts(allTargetDayAppts);
     if (appts.length !== animalIDs.length) {
