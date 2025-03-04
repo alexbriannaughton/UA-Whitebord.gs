@@ -13,6 +13,7 @@ function fetchAndParse(url) {
         }
     };
 
+    console.log('before fetch and parse', url);
     let response = UrlFetchApp.fetch(url, options);
 
     if (response.getResponseCode() === UNAUTHORIZED) {
@@ -32,6 +33,7 @@ function fetchAndParse(url) {
 
     const json = response.getContentText();
 
+    console.log('successful fetch', url);
     return JSON.parse(json);
 };
 
@@ -80,6 +82,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
         }
     };
 
+    console.log('before fetchAll', animalRequest.url, contactRequest.url);
     let [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
 
     if (animalResponse.getResponseCode() === UNAUTHORIZED || contactResponse.getResponseCode() === UNAUTHORIZED) {
@@ -113,6 +116,8 @@ function getAnimalInfoAndLastName(animalID, contactID) {
     const parsedContact = JSON.parse(contactJSON);
     const contactLastName = parsedContact.items.at(-1).contact.last_name;
 
+    console.log('successful fetchAll', animalRequest.url, contactRequest.url);
+
     return [animal.name, animalSpecies, contactLastName, isHostile]
 };
 
@@ -137,6 +142,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
         }
     };
 
+    console.log('before fetchAll', animalOneRequest.url, animalTwoRequest.url);
     let [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
 
     if (animalOneResponse.getResponseCode() === UNAUTHORIZED || animalTwoResponse.getResponseCode() === UNAUTHORIZED) {
@@ -168,6 +174,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
     const parsedAnimalTwo = JSON.parse(animalTwoJSON);
     const animalTwoContactID = parsedAnimalTwo.items.at(-1).animal.contact_id;
 
+    console.log('successful fetchAll', animalOneRequest.url, animalTwoRequest.url);
     return [animalOneContactID, animalTwoContactID];
 };
 
