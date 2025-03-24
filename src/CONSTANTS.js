@@ -286,6 +286,8 @@ const DT_DVM_RESOURCE_IDS = [ // non procedures dt columns
     1082, // dt DVM :15/:45
 ];
 
+const DT_TECH_RESOURCE_ID = 56;
+
 function CONTAINS_VALID_DT_NDA_IDS(resourceIds, apptTypeId) {
     return resourceIds.some(id => DT_DVM_RESOURCE_IDS.includes(Number(id))) // is in a DT exam column
         && DT_DVM_APPT_IDS.includes(Number(apptTypeId)); // is a dt doctor exam type
