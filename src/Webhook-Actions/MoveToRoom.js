@@ -191,8 +191,13 @@ function getRoomColor(appointment) {
   const resourceId = appointment.resources[0].id; // number
   const typeId = appointment.type_id; // number
 
-  const isInImColumn = IM_RESOURCE_IDS.includes(resourceId);
-  const typeCategory = isInImColumn ? IM_APPT_CATEGORY : TYPE_ID_TO_CATEGORY.get(typeId);
+  let typeCategory = TYPE_ID_TO_CATEGORY.get(typeId);
+  if (IM_RESOURCE_IDS.includes(resourceId)) {
+    typeCategory = IM_APPT_CATEGORY;
+  }
+  else if (SCHEDULED_DVM_APPTS_RESOURCE_IDS.includes(resourceId)) {
+    typeCategory = CH_AND_WC_SCHEDULED_APPT_CATEGORY;
+  }
 
   // if special type cateogry, use its color
   if (typeCategory?.color) return typeCategory.color;
