@@ -314,6 +314,7 @@ const NON_PROCEDURE_SCHEDULED_APPT_RESOURCE_IDS = [
 
 const IM_RESOURCE_IDS = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID];
 
+// dt
 const DT_DVM_APPT_IDS = [
     79, // downtown - appointment
     95, // Downtown - Appointment (:15/:45)
