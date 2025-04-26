@@ -282,6 +282,7 @@ const CH_DVM_4_APPTS_RESOURCE_ID = 1063;
 const CH_TECH_RESOURCE_ID = 28;
 const DT_PROCEDURE_1_RESOURCE_ID = 57;
 const DT_PROCEDURE_2_RESOURCE_ID = 58;
+const DT_TECH_RESOURCE_ID = 56;
 const WC_PROCEDURE_1_RESOURCE_ID = 61;
 const WC_PROCEDURE_2_RESOURCE_ID = 62;
 const WC_DVM_3_APPTS_RESOURCE_ID = 1384;
@@ -322,8 +323,6 @@ const DT_DVM_APPT_IDS = [
     95, // Downtown - Appointment (:15/:45)
     93, // Downtown - Same Day Sick
 ];
-
-const DT_TECH_RESOURCE_ID = 56;
 
 function CONTAINS_VALID_DT_NDA_IDS(resourceIds, apptTypeId) {
     return resourceIds.some(id => DT_DVM_RESOURCE_IDS.includes(Number(id))) // is in a DT exam column
