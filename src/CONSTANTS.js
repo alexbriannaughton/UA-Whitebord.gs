@@ -286,6 +286,10 @@ const WC_PROCEDURE_1_RESOURCE_ID = 61;
 const WC_PROCEDURE_2_RESOURCE_ID = 62;
 const WC_DVM_3_APPTS_RESOURCE_ID = 1384;
 const WC_TECH_RESOURCE_ID = 60;
+const DT_DVM_RESOURCE_IDS = [ // non procedures dt columns
+    35, // dt dvm 1
+    1082, // dt DVM :15/:45
+];
 
 const SCHEDULED_DVM_APPTS_RESOURCE_IDS = [
     CH_DVM_4_APPTS_RESOURCE_ID,
@@ -317,11 +321,6 @@ const DT_DVM_APPT_IDS = [
     79, // downtown - appointment
     95, // Downtown - Appointment (:15/:45)
     93, // Downtown - Same Day Sick
-];
-
-const DT_DVM_RESOURCE_IDS = [ // non procedures dt columns
-    35, // dt dvm 1
-    1082, // dt DVM :15/:45
 ];
 
 const DT_TECH_RESOURCE_ID = 56;
