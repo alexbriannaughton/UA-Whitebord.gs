@@ -28,18 +28,18 @@ const TECH_IN_ROOM_TEXT = ' (TECH)';
 
 const SPECIES_MAP = { 1: 'K9', 2: 'FEL' }; // ezyvet animal.species_id => species string
 
-const STANDARD_GREY = '#f3f3f3';
-const OTHER_APPT_COLOR = '#fce5cd';
+const STANDARD_GREY = '#f3f3f3'; // gray
+const OTHER_APPT_COLOR = '#fce5cd'; // light orange
 const OTHER_PROCEDURE_SORT_VALUE = 3;
 
 const UA_LOC_INPATIENT_DEFAULT_COLOR = new Map([
     [CH_SHEET_NAME, STANDARD_GREY], // gray for cap hill
-    [DT_SHEET_NAME, '#d0e0e3'], // cyan for downtown
-    [WC_SHEET_NAME, '#ead1dc']  // magenta for white center
+    [DT_SHEET_NAME, '#d0e0e3'], // cyan/light bluish for downtown
+    [WC_SHEET_NAME, '#ead1dc']  // magenta/pinkish for white center
 ]);
 
 const UA_LOC_TEXTED_COLOR = new Map([
-    [CH_SHEET_NAME, '#ff9fbd'],
+    [CH_SHEET_NAME, '#ff9fbd'], // carnation pink
     [WC_SHEET_NAME, 'yellow']
 ]);
 
@@ -104,7 +104,7 @@ const SX_APPT_CATEGORY = new ApptCategory(
         EZYVET_WC_SX_TYPE_ID,
     ],
     'sx',
-    '#fff2cc',
+    '#fff2cc', // light yellowish/orange
     0
 );
 
@@ -113,7 +113,7 @@ const EZYVET_DT_AUS_TYPE_ID = 91;
 const AUS_APPT_CATEGORY = new ApptCategory(
     [EZYVET_AUS_TYPE_ID, EZYVET_DT_AUS_TYPE_ID],
     'aus',
-    '#cfe2f3',
+    '#cfe2f3', // light blue
     1
 );
 
@@ -121,7 +121,7 @@ const EZYVET_ECHO_TYPE_ID = 30;
 const ECHO_APPT_CATEGORY = new ApptCategory(
     [EZYVET_ECHO_TYPE_ID],
     'echo',
-    '#f4cccc',
+    '#f4cccc', // light red
     2
 );
 
@@ -135,7 +135,7 @@ const DENTAL_APPT_CATEGORY = new ApptCategory(
         EZYVET_WC_THURS_DENTAL_TYPE_ID
     ],
     'dental',
-    '#d9ead3',
+    '#d9ead3', // light green
     4
 );
 
@@ -171,7 +171,7 @@ const SPECIAL_APPT_CATEGORY = new ApptCategory(
         EZYVET_COMFORT_AT_HOME_EUTH_TYPE_ID
     ],
     'special',
-    OTHER_APPT_COLOR,
+    OTHER_APPT_COLOR, // light orange
     6
 );
 
@@ -187,7 +187,7 @@ const IM_APPT_CATEGORY = new ApptCategory(
         EZYVET_IM_TECH_APPT_TYPE_ID
     ],
     'im',
-    '#d9d2e9',
+    '#d9d2e9', // light purple
     5
 );
 
@@ -196,7 +196,7 @@ const EZYVET_DT_TECH_APPT_TYPE_ID = 85;
 const TECH_APPT_CATEGORY = new ApptCategory(
     [EZYVET_TECH_APPT_TYPE_ID, EZYVET_DT_TECH_APPT_TYPE_ID],
     'tech',
-    '#90EE90',
+    '#90EE90', // pastel green
     OTHER_PROCEDURE_SORT_VALUE
 );
 
@@ -205,7 +205,7 @@ const EZYVET_DT_EUTH_APPT_ID = 87;
 const EUTH_APPT_CATEGORY = new ApptCategory(
     [EZYVET_EUTH_APPT_ID, EZYVET_DT_EUTH_APPT_ID],
     'euth',
-    '#cfe2f3',
+    '#cfe2f3', // light blue
     OTHER_PROCEDURE_SORT_VALUE
 );
 
@@ -233,6 +233,22 @@ const OTHER_APPT_CATEGORY = new ApptCategory(
     OTHER_PROCEDURE_SORT_VALUE,
 );
 
+const EZYVET_WELLNESS_APPT_ID = 115;
+const EZYVET_ILLNESS_APPT_ID = 116;
+const EZYVET_FU_ROUTINE_EYE_EAR_APPT_ID = 117;
+const EZYVET_FU_ILLNESS_APPT_ID = 122;
+const CH_AND_WC_SCHEDULED_APPT_CATEGORY = new ApptCategory(
+    [
+        EZYVET_WELLNESS_APPT_ID,
+        EZYVET_ILLNESS_APPT_ID,
+        EZYVET_FU_ROUTINE_EYE_EAR_APPT_ID,
+        EZYVET_FU_ILLNESS_APPT_ID
+    ],
+    'ch and wc non procedure dvm appointments',
+    '#ffdefc', // light pink
+    OTHER_PROCEDURE_SORT_VALUE
+);
+
 const APPT_CATEGORIES = [
     SX_APPT_CATEGORY,
     AUS_APPT_CATEGORY,
@@ -242,7 +258,8 @@ const APPT_CATEGORIES = [
     IM_APPT_CATEGORY,
     TECH_APPT_CATEGORY,
     EUTH_APPT_CATEGORY,
-    OTHER_APPT_CATEGORY
+    OTHER_APPT_CATEGORY,
+    CH_AND_WC_SCHEDULED_APPT_CATEGORY
 ];
 
 const TYPE_ID_TO_CATEGORY = new Map();
@@ -257,10 +274,24 @@ const CH_PROCEDURE_1_RESOURCE_ID = 29;
 const CH_PROCEDURE_2_RESOURCE_ID = 30;
 const CH_IM_RESOURCE_ID = 27;
 const CH_IM_PROCEDURE_RESOURCE_ID = 65;
+const CH_DVM_4_APPTS_RESOURCE_ID = 1063;
+const CH_TECH_RESOURCE_ID = 28;
 const DT_PROCEDURE_1_RESOURCE_ID = 57;
 const DT_PROCEDURE_2_RESOURCE_ID = 58;
+const DT_TECH_RESOURCE_ID = 56;
 const WC_PROCEDURE_1_RESOURCE_ID = 61;
 const WC_PROCEDURE_2_RESOURCE_ID = 62;
+const WC_DVM_3_APPTS_RESOURCE_ID = 1384;
+const WC_TECH_RESOURCE_ID = 60;
+const DT_DVM_RESOURCE_IDS = [ // non procedures dt columns
+    35, // dt dvm 1
+    1082, // dt DVM :15/:45
+];
+
+const SCHEDULED_DVM_APPTS_RESOURCE_IDS = [
+    CH_DVM_4_APPTS_RESOURCE_ID,
+    WC_DVM_3_APPTS_RESOURCE_ID
+];
 
 const SCHEDULED_PROCEDURES_RESOURCE_IDS = [
     CH_PROCEDURE_1_RESOURCE_ID,
@@ -273,20 +304,22 @@ const SCHEDULED_PROCEDURES_RESOURCE_IDS = [
     WC_PROCEDURE_2_RESOURCE_ID,
 ];
 
+const NON_PROCEDURE_SCHEDULED_APPT_RESOURCE_IDS = [
+    ...DT_DVM_RESOURCE_IDS,
+    ...SCHEDULED_DVM_APPTS_RESOURCE_IDS,
+    DT_TECH_RESOURCE_ID,
+    WC_TECH_RESOURCE_ID,
+    CH_TECH_RESOURCE_ID,
+];
+
 const IM_RESOURCE_IDS = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID];
 
+// dt
 const DT_DVM_APPT_IDS = [
     79, // downtown - appointment
     95, // Downtown - Appointment (:15/:45)
     93, // Downtown - Same Day Sick
 ];
-
-const DT_DVM_RESOURCE_IDS = [ // non procedures dt columns
-    35, // dt dvm 1
-    1082, // dt DVM :15/:45
-];
-
-const DT_TECH_RESOURCE_ID = 56;
 
 function CONTAINS_VALID_DT_NDA_IDS(resourceIds, apptTypeId) {
     return resourceIds.some(id => DT_DVM_RESOURCE_IDS.includes(Number(id))) // is in a DT exam column
