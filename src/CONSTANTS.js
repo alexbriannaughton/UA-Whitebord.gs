@@ -250,7 +250,7 @@ const CH_AND_WC_SCHEDULED_APPT_CATEGORY = new ApptCategory(
         EZYVET_FU_ILLNESS_APPT_ID
     ],
     'ch and wc non procedure dvm appointments',
-    '#ff6ccf', // flamingo pink
+    '#ff9fbd', // flamingo pink
     OTHER_PROCEDURE_SORT_VALUE
 );
 
