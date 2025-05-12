@@ -54,9 +54,9 @@ function handleAppointment(webhookType, appointment) {
             return addToWaitlist(appointment, uaLocSheetName);
         }
 
-        else if (EZYVET_TECH_APPT_TYPE_ID === apptTypeID || EZYVET_AGE_TNT_APPT_TYPE_ID === apptTypeID) {
-            return addTechAppt(appointment, uaLocSheetName);
-        }
+        // else if (EZYVET_TECH_APPT_TYPE_ID === apptTypeID || EZYVET_AGE_TNT_APPT_TYPE_ID === apptTypeID) {
+        //     return addTechAppt(appointment, uaLocSheetName);
+        // }
     }
 
     return;
