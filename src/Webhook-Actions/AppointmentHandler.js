@@ -54,8 +54,7 @@ function handleAppointment(webhookType, appointment) {
             return addToWaitlist(appointment, uaLocSheetName);
         }
 
-        // appointment type 19 is a tech appointment
-        else if (apptTypeID === 19) {
+        else if (EZYVET_TECH_APPT_TYPE_ID === apptTypeID || EZYVET_AGE_TNT_APPT_TYPE_ID === apptTypeID) {
             return addTechAppt(appointment, uaLocSheetName);
         }
     }
