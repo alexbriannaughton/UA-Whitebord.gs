@@ -39,7 +39,7 @@ function handleAppointment(webhookType, appointment) {
         22: handleReadyStatus, // 'ready'
         23: addTechAppt, // 'add to tech column'
         34: addInPatient, // 'inpatient'
-        44: addTechAppt, // in wc sx lobby
+        // 44: addTechAppt, // in wc sx lobby
     };
 
     const statusHandler = nonDtStatusHandlers[appointment.status_id];

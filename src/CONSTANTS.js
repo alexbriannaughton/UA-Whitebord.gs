@@ -335,6 +335,9 @@ function CONTAINS_VALID_DT_NDA_IDS(resourceIds, apptTypeId) {
         && DT_DVM_APPT_IDS.includes(Number(apptTypeId)); // is a dt doctor exam type
 };
 
+const WC_SX_LOBBY_STATUS_ID = 44;
+const CAT_LOBBY_STATUS_ID = 40;
+
 const ROOM_STATUS_LOCATION_TO_COORDS = {
     18: { // room 1
         [CH_SHEET_NAME]: 'C3:C11',
@@ -396,7 +399,7 @@ const ROOM_STATUS_LOCATION_TO_COORDS = {
         [DT_SHEET_NAME]: null,
         [WC_SHEET_NAME]: null
     },
-    40: { // cat lob
+    [CAT_LOBBY_STATUS_ID]: { // cat lob
         [CH_SHEET_NAME]: 'H3:H11', // first column
         [DT_SHEET_NAME]: null,
         [WC_SHEET_NAME]: null
@@ -416,10 +419,10 @@ const ROOM_STATUS_LOCATION_TO_COORDS = {
         [DT_SHEET_NAME]: null,
         [WC_SHEET_NAME]: 'E13:E21'
     },
-    // 44: { // wc sx lobby
-    //     [CH_SHEET_NAME]: null,
-    //     [DT_SHEET_NAME]: null,
-    //     [WC_SHEET_NAME]: ''
-    // }
+    [WC_SX_LOBBY_STATUS_ID]: { // wc sx lobby
+        [CH_SHEET_NAME]: null,
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: 'F13:F21' // first column
+    }
 
 };
