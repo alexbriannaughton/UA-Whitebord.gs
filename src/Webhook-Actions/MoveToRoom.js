@@ -12,15 +12,12 @@
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
 function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
-  const isWCSxRoom = new Set([41, 42, 43]).has(appointment.status_id);
+  const isWCSxRoom = new Set([41, 42, 43, 44]).has(appointment.status_id);
 
   const roomCoords = locationToRoomCoordsMap[uaLocSheetName]; // change this so it gets all 9 cells
 
   // if we're moving into a room that doesn't exist... don't do that
   if (!roomCoords) return stopMovingToRoom(appointment, uaLocSheetName);
-  // if ((appointment.status_id >= 31 && uaLocSheetName === 'DT') || (appointment.status_id >= 29 && uaLocSheetName === 'WC')) {
-  //   return stopMovingToRoom(appointment, uaLocSheetName);
-  // }
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
 
@@ -84,10 +81,10 @@ function parseTheRoom(
   uaLocSheetName,
   fullRoomRange,
   isWCSxRoom,
-  rangeForSecondCatLobbyColumn, // will be undefined unless the first cat lobby column is unavailable
+  rangeForSecondaryColumn, // will be undefined unless the original column unavailable
 ) {
 
-  const roomRange = rangeForSecondCatLobbyColumn ?? fullRoomRange;
+  const roomRange = rangeForSecondaryColumn ?? fullRoomRange;
   const allRoomVals = roomRange.getValues();
 
   const ptCell = roomRange.offset(1, 0, 1, 1);
@@ -108,36 +105,25 @@ function parseTheRoom(
 
   const roomValues = isWCSxRoom ? allRoomVals.slice(0, -6) : allRoomVals.slice(0, -3);
 
-  if (!roomIsOkToPopulateWithData(roomValues, uaLocSheetName)) {
-    const isFirstCatLobbyCol = appointment.status_id === 40 && roomRange.getColumn() === 8;
+  // return normal empty room stuff
+  if (roomIsOkToPopulateWithData(roomValues, uaLocSheetName)) {
+    return [roomRange, incomingAnimalText, allRoomVals];
+  }
 
-    // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
-    if (roomValues[1][0].includes(incomingAnimalText)) {
-      stopMovingToRoom(appointment, uaLocSheetName);
-      return;
-    }
+  // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
+  if (roomValues[1][0].includes(incomingAnimalText)) {
+    return stopMovingToRoom(appointment, uaLocSheetName);
+  }
 
-    if (!curLink) { // if theres not a link in the ptCell,
-      if (isFirstCatLobbyCol) { // and if we just checked the first cat lobby column,
-        return parseTheRoom( // check the second cat lobby column
-          sheet,
-          appointment,
-          uaLocSheetName,
-          fullRoomRange,
-          isWCSxRoom,
-          roomRange.offset(0, 1) // this is the range for the second cat lobby column
-        )
-      }
-      else stopMovingToRoom(appointment, uaLocSheetName); // otherwise we're done here bc we dont want to overwrite whatever is in the column
-      return;
-    }
+  const col = roomRange.getColumn();
+  const isFirstCatLobbyCol = appointment.status_id === CAT_LOBBY_STATUS_ID && col === 8;
+  const isFirstThreeWcSxCols = appointment.status_id === WC_SX_LOBBY_STATUS_ID && [6, 7, 8].includes(col);
 
-    // else we are checking a room which is not blank, that has a link that doesnt have the incoming appointment's consult id
-    // i.e. we are checking to see if this is a multiple pet room
+  if (curLink) { // if there's a link here, check if its a multiple pet room
     let alreadyMultiplePets = false;
     let curContactID;
 
-    // then, check if the animal currently in the room has the same contact ID (owner) as the incoming animal
+    // check if the animal currently in the room has the same contact ID (owner) as the incoming animal
 
     // if this link contains a contact id, that means there are already multiple pets in this room
     if (curLink.includes('Contact')) {
@@ -148,7 +134,7 @@ function parseTheRoom(
 
     // if that contact id matches the contact id of the appointment we're trying to move to this room, handle a multiple pet room
     if (Number(curContactID) === appointment.contact_id) {
-      handleMultiplePetRoom(
+      populateMultiplePetRoom(
         appointment,
         incomingAnimalText,
         ptCell,
@@ -162,29 +148,23 @@ function parseTheRoom(
 
       return;
     }
-
-    // else this is not a multiple pet room...
-
-
-    if (isFirstCatLobbyCol) {  // if we are checking the first cat lobby cell range
-      // we want to check the second cat lobby cell range
-      return parseTheRoom(
-        sheet,
-        appointment,
-        uaLocSheetName,
-        fullRoomRange,
-        isWCSxRoom,
-        roomRange.offset(0, 1) // this is the range for the second cat lobby column
-      );
-    }
-
-    // otherwise dont move to room because the room is not empty
-    stopMovingToRoom(appointment, uaLocSheetName);
-    return;
   }
 
-  // otherwise, this is a normal empty room
-  return [roomRange, incomingAnimalText, allRoomVals];
+  // else this is not a room that we can move into
+  if (isFirstCatLobbyCol || isFirstThreeWcSxCols) { // if were checking the first of multiple possible columns
+    return parseTheRoom( // check the next column over
+      sheet,
+      appointment,
+      uaLocSheetName,
+      fullRoomRange,
+      isWCSxRoom,
+      roomRange.offset(0, 1) // range for the next column over
+    );
+  }
+  
+  // otherwise we're done here bc we dont want to overwrite whatever is in the column
+  return stopMovingToRoom(appointment, uaLocSheetName);
+
 }
 
 function getRoomColor(appointment) {
@@ -221,7 +201,7 @@ function stopMovingToRoom(appointment, uaLocSheetName) {
   return;
 }
 
-function handleMultiplePetRoom(
+function populateMultiplePetRoom(
   appointment,
   incomingAnimalText,
   ptCell,
