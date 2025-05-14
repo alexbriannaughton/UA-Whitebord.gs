@@ -28,7 +28,7 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
         timeCell.setValue(timeCellVal);
 
         const reasonCell = range.offset(i, 3, 1, 1);
-        const descriptionString = removeVetstoriaDescriptionText(appointment.details.description)
+        const descriptionString = extractChckupClientNotes(appointment.details.description)
         reasonCell.setValue(descriptionString);
 
         const ptCell = range.offset(i, 1, 1, 1);

@@ -124,6 +124,16 @@ function removeVetstoriaDescriptionText(descriptionString) {
   else return descriptionString;
 }
 
+function extractChckupClientNotes(str) {
+  // This regex looks for “[Client Notes]:” then lazily grabs everything
+  // up to the next “, [” or the end of the string.
+  const regex = /\[Client Notes\]:\s*([\s\S]*?)(?=,\s*\[|$)/i;
+  const match = str.match(regex);
+  return match
+    ? match[1].trim()   // we found notes, so return just the inner text
+    : str.trim();       // no notes section—return the whole string
+}
+
 function simpleTextToRichText(text) {
   return SpreadsheetApp.newRichTextValue().setText(text).build();
 }
