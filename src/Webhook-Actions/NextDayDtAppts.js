@@ -62,7 +62,7 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
 
     const depositPaidRichtext = simpleTextToRichText(depositPaidText);
 
-    const reasonCellText = removeVetstoriaDescriptionText(appointment.description);
+    const reasonCellText = extractChckupClientNotes(appointment.description);
     const reasonCellRichText = simpleTextToRichText(reasonCellText);
 
     if (existingRow) {

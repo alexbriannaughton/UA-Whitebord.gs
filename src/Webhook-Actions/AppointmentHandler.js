@@ -26,7 +26,7 @@ function handleAppointment(webhookType, appointment) {
         return handleInactiveApptOnWaitlist(appointment, uaLocSheetName);
     }
 
-    appointment.description = removeVetstoriaDescriptionText(appointment.description);
+    appointment.description = extractChckupClientNotes(appointment.description);
 
     if (locationToRoomCoordsMap) {
         return moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap);
