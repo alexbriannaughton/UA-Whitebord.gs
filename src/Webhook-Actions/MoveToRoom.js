@@ -161,7 +161,7 @@ function parseTheRoom(
       roomRange.offset(0, 1) // range for the next column over
     );
   }
-  
+
   // otherwise we're done here bc we dont want to overwrite whatever is in the column
   return stopMovingToRoom(appointment, uaLocSheetName);
 
@@ -219,7 +219,10 @@ function populateMultiplePetRoom(
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
   if (!isWCSxRoom && (!reasonText.includes(TECH_IN_ROOM_TEXT) || !incomingAnimalText.includes(TECH_IN_ROOM_TEXT))) {
-    roomRange.offset(0, 0, 8, 1).setBackground(STANDARD_GREY);
+    const bgColor = CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id)
+      ? CH_AND_WC_SCHEDULED_APPT_CATEGORY.color // flamingo pink
+      : STANDARD_GREY;
+    roomRange.offset(0, 0, 8, 1).setBackground(bgColor);
   }
 
   // multiple pet room links take you to the owner's tab in ezyvet (the contact record)
