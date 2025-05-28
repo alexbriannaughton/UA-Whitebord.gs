@@ -32,6 +32,9 @@ function addTechAppt(appointment, uaLocSheetName) {
 
   rowRange.offset(0, 0, 1, 2).setRichTextValues(richTextVals);
 
+  const bgColor = TYPE_ID_TO_CATEGORY.get(appointment.type_id)?.color;
+  if (bgColor) rowRange.offset(0, 0, 1, 3).setBackground(bgColor);
+
   return;
 
 }

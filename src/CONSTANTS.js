@@ -191,18 +191,26 @@ const IM_APPT_CATEGORY = new ApptCategory(
     5
 );
 
-const EZYVET_TECH_APPT_TYPE_ID = 19;
+const EZYVET_SCHEDULED_TECH_APPT_TYPE_ID = 19;
 const EZYVET_DT_TECH_APPT_TYPE_ID = 85;
 const EZYVET_AGE_TNT_APPT_TYPE_ID = 121;
 const TECH_APPT_CATEGORY = new ApptCategory(
     [
-        EZYVET_TECH_APPT_TYPE_ID,
+        EZYVET_SCHEDULED_TECH_APPT_TYPE_ID,
         EZYVET_DT_TECH_APPT_TYPE_ID,
         EZYVET_AGE_TNT_APPT_TYPE_ID,
     ],
     'tech',
     '#90EE90', // pastel green
     OTHER_PROCEDURE_SORT_VALUE
+);
+
+const EZYVET_WORK_IN_TECH_APPT_TYPE_ID = 124;
+const WORK_IN_TECH_APPT_CATEGORY = new ApptCategory(
+    [EZYVET_WORK_IN_TECH_APPT_TYPE_ID],
+    'work-in tech',
+    'yellow',
+    OTHER_PROCEDURE_SORT_VALUE,
 );
 
 const EZYVET_EUTH_APPT_ID = 80;
