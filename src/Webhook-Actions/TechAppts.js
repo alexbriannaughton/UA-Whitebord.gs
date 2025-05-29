@@ -39,8 +39,7 @@ function addTechAppt(appointment, uaLocSheetName) {
     ? STANDARD_GREY // wc doesnt like the bright yellow for work in techs
     : apptTypeCategory?.color ?? STANDARD_GREY;
 
-  const techWidth = isWC ? 4 : 5;  // width is 4 at wc and 5 at ch
-  rowRange.offset(0, 0, 1, techWidth).setBackground(bgColor);
+  rowRange.setBackground(bgColor);
 
   return;
 }
