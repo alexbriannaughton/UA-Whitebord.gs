@@ -32,13 +32,17 @@ function addTechAppt(appointment, uaLocSheetName) {
 
   rowRange.offset(0, 0, 1, 2).setRichTextValues(richTextVals);
 
-  const bgColor = TYPE_ID_TO_CATEGORY.get(appointment.type_id)?.color;
-  if (bgColor) {
-    // width is 4 at wc and 5 at ch
-    const techWidth = uaLocSheetName === CH_SHEET_NAME ? 5 : 4;
-    rowRange.offset(0, 0, 1, techWidth).setBackground(bgColor);
-  }
+  const apptTypeCategory = TYPE_ID_TO_CATEGORY.get(appointment.type_id);
+
+  const isWC = uaLocSheetName === WC_SHEET_NAME;
+  const bgColor = isWC && apptTypeCategory === WORK_IN_TECH_APPT_CATEGORY
+    ? STANDARD_GREY
+    : apptTypeCategory?.color; // wc doesnt like the bright yellow for work in techs
+    
+  if (!bgColor) return;
+
+  const techWidth = isWC ? 4 : 5;  // width is 4 at wc and 5 at ch
+  rowRange.offset(0, 0, 1, techWidth).setBackground(bgColor);
 
   return;
-
 }
