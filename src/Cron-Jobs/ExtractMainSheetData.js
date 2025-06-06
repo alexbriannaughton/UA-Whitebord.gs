@@ -229,7 +229,7 @@ function extractStaffing(vals, sheetName, locationPossPositionNames) {
 
             if (i >= 8) {
                 if (rowVals[1]) {
-                    locationPossPositionNames[sheetName].kennels.push(rowVals[1]);
+                    locationPossPositionNames[sheetName].kennel.push(rowVals[1]);
                 }
             }
         }
