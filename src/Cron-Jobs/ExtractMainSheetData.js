@@ -24,10 +24,31 @@ function extractMainSheetData(sheets) {
     const numOfRoomsInUse = {};
 
     const staffingVals = [
-        extractRoomsDataAndGetStaffingVals(CH_SHEET_NAME, 'C3:I35', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
-        extractRoomsDataAndGetStaffingVals(DT_SHEET_NAME, 'C3:N11', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
-        extractRoomsDataAndGetStaffingVals(WC_SHEET_NAME, 'C3:N27', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets)
-    ]
+        extractRoomsDataAndGetStaffingVals(
+            CH_SHEET_NAME,
+            'C3:I35',
+            chRowFourIndexToStatusIDMap,
+            roomsWithLinks,
+            numOfRoomsInUse,
+            sheets
+        ),
+        extractRoomsDataAndGetStaffingVals(
+            DT_SHEET_NAME,
+            'C3:N11',
+            rowFourIndexToStatusIDMap,
+            roomsWithLinks,
+            numOfRoomsInUse,
+            sheets
+        ),
+        extractRoomsDataAndGetStaffingVals(
+            WC_SHEET_NAME,
+            'C3:N29',
+            rowFourIndexToStatusIDMap,
+            roomsWithLinks,
+            numOfRoomsInUse,
+            sheets
+        )
+    ];
 
     const locationPossPositionNames = {}
 
@@ -186,7 +207,7 @@ function extractStaffing(vals, sheetName, locationPossPositionNames) {
             if (rowVals[0]) {
                 locationPossPositionNames[sheetName].assts.push(rowVals[0]);
             }
-            if (rowVals[3]) {
+            if (rowVals[3] && i < 7) {
                 locationPossPositionNames[sheetName].foh.push(rowVals[3]);
             }
 
@@ -194,18 +215,21 @@ function extractStaffing(vals, sheetName, locationPossPositionNames) {
                 if (rowVals[1]) {
                     locationPossPositionNames[sheetName].leads.push(rowVals[1]);
                 }
-                if (rowVals[2]) {
-                    locationPossPositionNames[sheetName].dvms.push(rowVals[2]);
-                }
+            }
+
+            if (rowVals[2] && i !== 7) {
+                locationPossPositionNames[sheetName].dvms.push(rowVals[2]);
             }
 
             if (i === 6) {
                 if (rowVals[1]) {
-                    locationPossPositionNames[sheetName].kennel.push(rowVals[1]);
+                    locationPossPositionNames[sheetName].assts.push(rowVals[1]);
                 }
-                if (rowVals[2]) {
-                    locationPossPositionNames[sheetName].dvms.push(rowVals[2]);
+            }
 
+            if (i >= 8) {
+                if (rowVals[1]) {
+                    locationPossPositionNames[sheetName].kennel.push(rowVals[1]);
                 }
             }
         }

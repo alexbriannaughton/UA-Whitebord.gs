@@ -34,10 +34,13 @@ function addTechAppt(appointment, uaLocSheetName) {
 
   const apptTypeCategory = TYPE_ID_TO_CATEGORY.get(appointment.type_id);
 
+  let bgColor = apptTypeCategory?.color ?? STANDARD_GREY;
   const isWC = uaLocSheetName === WC_SHEET_NAME;
-  const bgColor = isWC && apptTypeCategory === WORK_IN_TECH_APPT_CATEGORY
-    ? STANDARD_GREY // wc doesnt like the bright yellow for work in techs
-    : apptTypeCategory?.color ?? STANDARD_GREY;
+  const isWorkInTech = apptTypeCategory === WORK_IN_TECH_APPT_CATEGORY;
+  if (isWC && isWorkInTech) bgColor = STANDARD_GREY;
+  const isCH = uaLocSheetName === CH_SHEET_NAME;
+  const isTNTAGE = appointment.type_id === EZYVET_AGE_TNT_APPT_TYPE_ID;
+  if (isCH && isTNTAGE) bgColor = '#ffd966'; // light yellow 1
 
   rowRange.setBackground(bgColor);
 

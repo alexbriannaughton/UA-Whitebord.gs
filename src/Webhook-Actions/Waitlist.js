@@ -18,7 +18,7 @@ function addToWaitlist(appointment, uaLocSheetName) {
 
   const [animalName, animalSpecies, contactLastName] = getAnimalInfoAndLastName(appointment.animal_id, appointment.contact_id);
 
-  const timeCellText = convertEpochToUserTimezone(appointment.created_at);
+  const timeCellText = convertEpochToUserTimezone(appointment.updated_at);
   const timeCellRichText = simpleTextToRichText(timeCellText);
 
   const patientText = `${animalName} ${contactLastName}`;
