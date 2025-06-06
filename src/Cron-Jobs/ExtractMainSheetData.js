@@ -42,7 +42,7 @@ function extractMainSheetData(sheets) {
         ),
         extractRoomsDataAndGetStaffingVals(
             WC_SHEET_NAME,
-            'C3:N27',
+            'C3:N29',
             rowFourIndexToStatusIDMap,
             roomsWithLinks,
             numOfRoomsInUse,
