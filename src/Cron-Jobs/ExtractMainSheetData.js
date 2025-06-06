@@ -24,10 +24,31 @@ function extractMainSheetData(sheets) {
     const numOfRoomsInUse = {};
 
     const staffingVals = [
-        extractRoomsDataAndGetStaffingVals(CH_SHEET_NAME, 'C3:I35', chRowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
-        extractRoomsDataAndGetStaffingVals(DT_SHEET_NAME, 'C3:N11', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets),
-        extractRoomsDataAndGetStaffingVals(WC_SHEET_NAME, 'C3:N27', rowFourIndexToStatusIDMap, roomsWithLinks, numOfRoomsInUse, sheets)
-    ]
+        extractRoomsDataAndGetStaffingVals(
+            CH_SHEET_NAME,
+            'C3:I35',
+            chRowFourIndexToStatusIDMap,
+            roomsWithLinks,
+            numOfRoomsInUse,
+            sheets
+        ),
+        extractRoomsDataAndGetStaffingVals(
+            DT_SHEET_NAME,
+            'C3:N11',
+            rowFourIndexToStatusIDMap,
+            roomsWithLinks,
+            numOfRoomsInUse,
+            sheets
+        ),
+        extractRoomsDataAndGetStaffingVals(
+            WC_SHEET_NAME,
+            'C3:N27',
+            rowFourIndexToStatusIDMap,
+            roomsWithLinks,
+            numOfRoomsInUse,
+            sheets
+        )
+    ];
 
     const locationPossPositionNames = {}
 
