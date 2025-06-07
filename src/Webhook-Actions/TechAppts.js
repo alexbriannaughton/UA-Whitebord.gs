@@ -33,7 +33,6 @@ function addTechAppt(appointment, uaLocSheetName) {
   rowRange.offset(0, 0, 1, 2).setRichTextValues(richTextVals);
 
   const apptTypeCategory = TYPE_ID_TO_CATEGORY.get(appointment.type_id);
-
   let bgColor = apptTypeCategory?.color ?? STANDARD_GREY;
 
   const isWC = uaLocSheetName === WC_SHEET_NAME;
