@@ -54,7 +54,7 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocShee
     [link],
     [reasonRichText],
     [simpleTextToRichText(allRoomVals[3])],
-    [allRoomVals[4]],
+    [simpleTextToRichText(allRoomVals[4])],
     [simpleTextToRichText(allRoomVals[5])],
     [simpleTextToRichText(allRoomVals[6])],
     [simpleTextToRichText(allRoomVals[7])],
