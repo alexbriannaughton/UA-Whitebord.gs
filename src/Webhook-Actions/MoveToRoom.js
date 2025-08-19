@@ -22,7 +22,14 @@ function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
 
   const fullRoomRange = sheet.getRange(roomCoords);
-  const [roomRange, incomingAnimalText, allRoomVals] = parseTheRoom(sheet, appointment, uaLocSheetName, fullRoomRange, isWCSxRoom) || [];
+  const [roomRange, incomingAnimalText, allRoomVals] =
+    parseTheRoom(
+      sheet,
+      appointment,
+      uaLocSheetName,
+      fullRoomRange,
+      isWCSxRoom
+    ) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
   if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom);

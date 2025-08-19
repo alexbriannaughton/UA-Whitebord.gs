@@ -46,7 +46,7 @@ const UA_LOC_TEXTED_COLOR = new Map([
 const UA_LOC_INPATIENT_COORDS = new Map([
     [CH_SHEET_NAME, 'R3:W36'],
     [DT_SHEET_NAME, 'B14:H42'],
-    [WC_SHEET_NAME, 'B20:I60']
+    [WC_SHEET_NAME, 'B24:I64']
 ]);
 
 const UA_LOC_MAX_ROOMS_CELL_COORDS = new Map([
