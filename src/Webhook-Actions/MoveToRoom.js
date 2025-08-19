@@ -12,6 +12,8 @@
 // status 40 = cat lobby = CH cells: H3, H4, H5 & I3, I4, I5
 // status 39 = dog lobby = CH cells: I13, I14, I15
 function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
+  const isWCSxRoom = new Set([41, 42, 43, 44]).has(appointment.status_id);
+  
   const roomCoords = locationToRoomCoordsMap[uaLocSheetName]; // change this so it gets all 9 cells
 
   // if we're moving into a room that doesn't exist... don't do that
@@ -26,17 +28,25 @@ function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
       appointment,
       uaLocSheetName,
       fullRoomRange,
+      isWCSxRoom,
     ) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals);
+  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom);
 
   return;
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals) {
-  roomRange.offset(0, 0, 8, 1).setBackground(getRoomColor(appointment));
+function populateEmptyRoom(
+  appointment,
+  roomRange,
+  incomingAnimalText,
+  uaLocSheetName,
+  allRoomVals,
+  isWCSxRoom
+) {
+  roomRange.offset(0, 0, 8, 1).setBackground(getRoomColor(appointment, isWCSxRoom));
 
   const timeText = convertEpochToUserTimezone(appointment.modified_at);
   const timeRichText = simpleTextToRichText(timeText);
@@ -83,6 +93,7 @@ function parseTheRoom(
   appointment,
   uaLocSheetName,
   fullRoomRange,
+  isWCSxRoom,
   rangeForSecondaryColumn, // will be undefined unless the original column unavailable
 ) {
 
@@ -143,6 +154,7 @@ function parseTheRoom(
         alreadyMultiplePets,
         roomRange,
         roomValues,
+        isWCSxRoom
       );
 
       deleteFromWaitlist(uaLocSheetName, appointment.consult_id);
@@ -158,6 +170,7 @@ function parseTheRoom(
       appointment,
       uaLocSheetName,
       fullRoomRange,
+      isWCSxRoom,
       roomRange.offset(0, 1) // range for the next column over
     );
   }
@@ -167,7 +180,7 @@ function parseTheRoom(
 
 }
 
-function getRoomColor(appointment) {
+function getRoomColor(appointment, isWCSxRoom) {
   const resourceId = appointment.resources[0].id; // number
   const typeId = appointment.type_id; // number
 
@@ -177,6 +190,7 @@ function getRoomColor(appointment) {
   }
   else if (SCHEDULED_DVM_APPTS_RESOURCE_IDS.includes(resourceId)) {
     typeCategory = CH_AND_WC_SCHEDULED_APPT_CATEGORY;
+    if (isWCSxRoom) return STANDARD_GREY;
   }
 
   // if special type cateogry, use its color
@@ -208,6 +222,7 @@ function populateMultiplePetRoom(
   alreadyMultiplePets,
   roomRange,
   roomValues,
+  isWCSxRoom
 ) {
   const curAnimalText = roomValues[1][0];
   const curAnimalReasonText = roomValues[2][0];
@@ -218,7 +233,8 @@ function populateMultiplePetRoom(
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
   if (!reasonText.includes(TECH_IN_ROOM_TEXT) || !incomingAnimalText.includes(TECH_IN_ROOM_TEXT)) {
-    const bgColor = CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id)
+    const isScheduledAppt = CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id);
+    const bgColor = isScheduledAppt && !isWCSxRoom
       ? CH_AND_WC_SCHEDULED_APPT_CATEGORY.color // flamingo pink
       : STANDARD_GREY;
     roomRange.offset(0, 0, 8, 1).setBackground(bgColor);
