@@ -13,7 +13,7 @@
 // status 39 = dog lobby = CH cells: I13, I14, I15
 function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
   const isWCSxRoom = new Set([41, 42, 43, 44]).has(appointment.status_id);
-
+  
   const roomCoords = locationToRoomCoordsMap[uaLocSheetName]; // change this so it gets all 9 cells
 
   // if we're moving into a room that doesn't exist... don't do that
@@ -22,7 +22,14 @@ function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
 
   const fullRoomRange = sheet.getRange(roomCoords);
-  const [roomRange, incomingAnimalText, allRoomVals] = parseTheRoom(sheet, appointment, uaLocSheetName, fullRoomRange, isWCSxRoom) || [];
+  const [roomRange, incomingAnimalText, allRoomVals] =
+    parseTheRoom(
+      sheet,
+      appointment,
+      uaLocSheetName,
+      fullRoomRange,
+      isWCSxRoom,
+    ) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
   if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom);
@@ -31,9 +38,15 @@ function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
 
 };
 
-function populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom) {
-  // if not white center surgery room, set bg color of room
-  if (!isWCSxRoom) roomRange.offset(0, 0, 8, 1).setBackground(getRoomColor(appointment));
+function populateEmptyRoom(
+  appointment,
+  roomRange,
+  incomingAnimalText,
+  uaLocSheetName,
+  allRoomVals,
+  isWCSxRoom
+) {
+  roomRange.offset(0, 0, 8, 1).setBackground(getRoomColor(appointment, isWCSxRoom));
 
   const timeText = convertEpochToUserTimezone(appointment.modified_at);
   const timeRichText = simpleTextToRichText(timeText);
@@ -51,11 +64,11 @@ function populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocShee
     [link],
     [reasonRichText],
     [simpleTextToRichText(allRoomVals[3])],
-    [isWCSxRoom ? simpleTextToRichText('d') : simpleTextToRichText(allRoomVals[4])],
+    [simpleTextToRichText(allRoomVals[4])],
     [simpleTextToRichText(allRoomVals[5])],
     [simpleTextToRichText(allRoomVals[6])],
     [simpleTextToRichText(allRoomVals[7])],
-    [isWCSxRoom ? simpleTextToRichText(allRoomVals[8]) : simpleTextToRichText('d')]
+    [simpleTextToRichText('d')]
   ];
 
   roomRange.offset(0, 0, 9, 1).setRichTextValues(richTextVals);
@@ -103,7 +116,7 @@ function parseTheRoom(
   const [animalName, animalSpecies] = getAnimalInfo(appointment.animal_id);
   const incomingAnimalText = `${animalName} (${animalSpecies})`;
 
-  const roomValues = isWCSxRoom ? allRoomVals.slice(0, -6) : allRoomVals.slice(0, -3);
+  const roomValues = allRoomVals.slice(0, -3);
 
   // return normal empty room stuff
   if (roomIsOkToPopulateWithData(roomValues, uaLocSheetName)) {
@@ -167,7 +180,7 @@ function parseTheRoom(
 
 }
 
-function getRoomColor(appointment) {
+function getRoomColor(appointment, isWCSxRoom) {
   const resourceId = appointment.resources[0].id; // number
   const typeId = appointment.type_id; // number
 
@@ -177,6 +190,7 @@ function getRoomColor(appointment) {
   }
   else if (SCHEDULED_DVM_APPTS_RESOURCE_IDS.includes(resourceId)) {
     typeCategory = CH_AND_WC_SCHEDULED_APPT_CATEGORY;
+    if (isWCSxRoom) return STANDARD_GREY;
   }
 
   // if special type cateogry, use its color
@@ -218,8 +232,9 @@ function populateMultiplePetRoom(
     ? `${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
-  if (!isWCSxRoom && (!reasonText.includes(TECH_IN_ROOM_TEXT) || !incomingAnimalText.includes(TECH_IN_ROOM_TEXT))) {
-    const bgColor = CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id)
+  if (!reasonText.includes(TECH_IN_ROOM_TEXT) || !incomingAnimalText.includes(TECH_IN_ROOM_TEXT)) {
+    const isScheduledAppt = CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id);
+    const bgColor = isScheduledAppt && !isWCSxRoom
       ? CH_AND_WC_SCHEDULED_APPT_CATEGORY.color // flamingo pink
       : STANDARD_GREY;
     roomRange.offset(0, 0, 8, 1).setBackground(bgColor);
