@@ -27,12 +27,20 @@ function findTargetCell(
 };
 
 function getLocationPtCellRanges(uaLocSheetName, sheet) {
-  // if location === WC_SHEET_NAME, these are the only coords
   const possCoords = ['C4:C4', 'D4:D4', 'E4:E4', 'F4:F4', 'G4:G4'];
-  if (uaLocSheetName === DT_SHEET_NAME) possCoords.push('H4:H4', 'I4:I4');
+
+  if (uaLocSheetName === DT_SHEET_NAME) {
+    possCoords.push('H4:H4', 'I4:I4');
+  }
+
   else if (uaLocSheetName === CH_SHEET_NAME) {
     possCoords.push('H4:H4', 'I4:I4', 'C14:C14', 'D14:D14', 'E14:E14', 'F14:F14', 'G14:G14', 'H14:H14', 'I14:I14');
   }
+
+  else if (uaLocSheetName === WC_SHEET_NAME) {
+    possCoords.push('C14:C14', 'D14:D14', 'E14:E14', 'F14:F14', 'G14:G14', 'H14:H14');
+  }
+
   return sheet.getRangeList(possCoords).getRanges();
 };
 
