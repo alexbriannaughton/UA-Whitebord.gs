@@ -1,5 +1,5 @@
 // Format.js
-function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
+function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLoc) {
     console.log('formatting next day range cells...');
 
     range.clearContent()
@@ -10,6 +10,11 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts) {
         .setBorder(false, false, false, false, false, false);
 
     range.offset(0, 0, numOfDtAppts).setBorder(true, true, true, true, true, true);
+
+    const dateCell = range.offset(-1, 0, 1, 1);
+    dateCell.setValue(
+        `${uaLoc} Next day appointments\n${targetDateStr}`
+    );
 
     const reasonColumn = range.offset(0, 3, numOfDtAppts, 1);
     reasonColumn.setWrap(false);

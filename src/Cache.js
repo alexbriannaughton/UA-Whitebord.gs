@@ -35,10 +35,15 @@ function getDaysAheadDT(cache) {
         const url = `${EV_PROXY}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
 
         const allTargetDayAppts = fetchAndParse(url);
-        
+
         const dtAppts = allTargetDayAppts.items
             .filter(({ appointment }) =>
-                CONTAINS_VALID_DT_NDA_IDS(appointment.details.resource_list, appointment.details.appointment_type_id));
+                containsValidNdaIds(
+                    DT_SCHED_RESOURCE_IDS,
+                    DT_NDA_APPT_IDS,
+                    appointment.details.resource_list,
+                    appointment.details.appointment_type_id
+                ));
 
         if (dtAppts.length) foundDay = true;
     }

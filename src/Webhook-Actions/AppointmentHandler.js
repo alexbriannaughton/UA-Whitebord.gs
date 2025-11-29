@@ -78,10 +78,14 @@ function handleEchoOrAUS(appointment, sheetName) {
 
 function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap) {
     const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfDtAppts(appointment);
-    const isValidDtNda = isOnNextDayOfDtAppts && CONTAINS_VALID_DT_NDA_IDS(
-        appointment.resources.map(({ id }) => id),
-        appointment.type_id
-    )
+    const incomingResourceIds = appointment.resources.map(({ id }) => id);
+    const incomingApptId = appointment.type_id;
+    const isValidDtNda = isOnNextDayOfDtAppts && containsValidNdaIds(
+        DT_SCHED_RESOURCE_IDS,
+        DT_NDA_APPT_IDS,
+        incomingResourceIds,
+        incomingApptId,
+    );
 
     if (isValidDtNda) return handleNextDayDtAppt(appointment, uaLocSheetName);
 
