@@ -1,8 +1,8 @@
-function handleNextDayAppt(appointment, uaLoc, targetDateStr) {
+function handleNextDayAppt(appointment, uaLoc) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLoc);
 
     // ⬇️ dynamic range for this location’s NDAs, A:I
-    const range = getNdaRangeForLoc(sheet, uaLoc, targetDateStr);
+    const range = getNdaRangeForLoc(sheet, uaLoc);
 
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
