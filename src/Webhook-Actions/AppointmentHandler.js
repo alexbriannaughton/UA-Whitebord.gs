@@ -76,7 +76,7 @@ function handleEchoOrAUS(appointment, sheetName) {
     return;
 }
 
-function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap) {
+function handleDTAppointment(appointment, uaLoc, locationToRoomCoordsMap) {
     const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfDtAppts(appointment);
     const incomingResourceIds = appointment.resources.map(({ id }) => id);
     const incomingApptId = appointment.type_id;
@@ -90,7 +90,7 @@ function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMa
     if (isValidDtNda) return handleNextDayAppt(appointment, uaLoc, targetDateStr);
 
     if (locationToRoomCoordsMap) { // this would mean that its a room status
-        return moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap);
+        return moveToRoom(appointment, uaLoc, locationToRoomCoordsMap);
     }
 
     const dtStatusHandlers = {
@@ -101,5 +101,5 @@ function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMa
 
     const handler = dtStatusHandlers[appointment.status_id];
 
-    return handler ? handler(appointment, uaLocSheetName) : null;
+    return handler ? handler(appointment, uaLoc) : null;
 }
