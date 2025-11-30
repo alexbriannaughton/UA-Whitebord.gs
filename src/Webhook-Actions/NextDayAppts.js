@@ -2,12 +2,13 @@ function handleNextDayAppt(appointment, uaLoc) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
 
     // ⬇️ dynamic range for this location’s NDAs, A:I
-    let range = getNdaRangeForLoc(sheet, uaLoc);
+    let range = getNdaRangeForLoc(sheet, uaLoc); // <-- make this 'let'
 
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
     if (!appointment.active) return handleDeleteRow(existingRow, range);
 
+    // --- ensure we have a rowRange; if none, insert a row at bottom of range ---
     let rowRange = existingRow ? existingRow : highestEmptyRow;
 
     if (!rowRange) {
@@ -68,8 +69,9 @@ function handleNextDayAppt(appointment, uaLoc) {
     let ptCellRichText;
     let fractiousCellRichText;
     let seeChartRichText;
-    if (highestEmptyRow) {
-        highestEmptyRow.setBorder(true, true, true, true, true, true);
+    if (highestEmptyRow || !existingRow) {
+        // treat newly inserted rows the same as "highestEmptyRow" rows
+        rowRange.setBorder(true, true, true, true, true, true);
         const { ptCellLink, isHostile, seeChartLink } = fetchForDataAndMakeLink(appointment);
         ptCellRichText = ptCellLink;
         const fractiousCellText = isHostile ? 'yes' : 'no';
@@ -98,7 +100,8 @@ function handleNextDayAppt(appointment, uaLoc) {
         ]);
     }
 
-    if (highestEmptyRow) {
+    if (!existingRow) {
+        // covers both highestEmptyRow and newly inserted row
         rowRange.offset(0, 1, 1, 7).setRichTextValues([
             [ptCellRichText, depositPaidRichtext, reasonCellRichText, seeChartRichText, seeChartRichText, fractiousCellRichText, seeChartRichText]
         ]);
@@ -106,10 +109,12 @@ function handleNextDayAppt(appointment, uaLoc) {
 
     rowRange.offset(0, 0, 1, 1).setValue(timeCellString);
 
+    // use the (possibly extended) range
     resortDtAppts(range);
 
     return;
 }
+
 
 
 function fetchForDataAndMakeLink(appointment) {
@@ -252,7 +257,8 @@ function handleDeleteRow(existingRow, range) {
     const numOfAppts = getNumOfApptRows(vals);
     if (!numOfAppts) return;
 
-    const existingRowIndexWithinRange = existingRow.getRow() - DT_NDA_ROW_START_NUMBER;
+    // make index relative to this range’s top row
+    const existingRowIndexWithinRange = existingRow.getRow() - range.getRow();
 
     const existingRowTimeValue = vals[existingRowIndexWithinRange][0];
     let nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
@@ -264,7 +270,11 @@ function handleDeleteRow(existingRow, range) {
             nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime][0];
         }
 
-        const rowsInSameFam = range.offset(existingRowIndexWithinRange + 1, 0, totalNumOfRowsPointingToExistingRowTime);
+        const rowsInSameFam = range.offset(
+            existingRowIndexWithinRange + 1,
+            0,
+            totalNumOfRowsPointingToExistingRowTime
+        );
         const nextRowRichText = rowsInSameFam.getRichTextValues();
         const animalIDs = [];
         for (let k = 0; k < nextRowRichText.length; k++) {
@@ -276,7 +286,6 @@ function handleDeleteRow(existingRow, range) {
         range.offset(existingRowIndexWithinRange + 1, 0, 1, 1).setValue(nextRowDate);
     }
 
-    // grab all the appointments below (if its not the last appointment) and paste them one row up
     const numOfApptsBelowDeleted = numOfAppts - 1 - existingRowIndexWithinRange;
     if (numOfApptsBelowDeleted > 0) {
         const rowsBelow = range.offset(
@@ -284,7 +293,6 @@ function handleDeleteRow(existingRow, range) {
             0,
             numOfApptsBelowDeleted
         );
-        // paste them in, starting from the existing row
         const targetRange = range.offset(
             existingRowIndexWithinRange,
             0,
@@ -293,15 +301,14 @@ function handleDeleteRow(existingRow, range) {
         rowsBelow.copyTo(targetRange);
     }
 
-    // delete the last appointment, reset its format
     range.offset(numOfAppts - 1, 0, 1)
         .clearContent()
         .setFontColor("black")
         .setBackground("white")
         .setFontLine("none")
         .setBorder(true, false, false, false, false, false);
-
 }
+
 
 function getActualStartTime(animalIDs) {
     const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextDtAppts);
