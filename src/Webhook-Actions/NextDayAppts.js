@@ -2,13 +2,41 @@ function handleNextDayAppt(appointment, uaLoc) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
 
     // ⬇️ dynamic range for this location’s NDAs, A:I
-    const range = getNdaRangeForLoc(sheet, uaLoc);
+    let range = getNdaRangeForLoc(sheet, uaLoc);
 
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
     if (!appointment.active) return handleDeleteRow(existingRow, range);
 
-    const rowRange = existingRow ? existingRow : highestEmptyRow;
+    let rowRange = existingRow ? existingRow : highestEmptyRow;
+
+    if (!rowRange) {
+        // insert a new row just after the current NDA block
+        const insertRowIndex = range.getLastRow() + 1;
+
+        // insert a row into the sheet; this pushes everything below down
+        sheet.insertRows(insertRowIndex, 1);
+
+        // extend the NDA range to include this new row
+        const newNumRows = range.getNumRows() + 1;
+        range = sheet.getRange(
+            range.getRow(),
+            range.getColumn(),
+            newNumRows,
+            range.getNumColumns()
+        );
+
+        // get the row range for the newly inserted row (A:I on that row)
+        rowRange = sheet.getRange(
+            insertRowIndex,
+            range.getColumn(),
+            1,
+            range.getNumColumns()
+        );
+
+        // optional: set border on the new row like other new rows
+        rowRange.setBorder(true, true, true, true, true, true);
+    }
 
     const existingRowRichText = rowRange.getRichTextValues();
 
@@ -292,14 +320,12 @@ function getActualStartTime(animalIDs) {
 
 function getNdaRangeForLoc(sheet, uaLoc) {
     const headerText = `${uaLoc}-\n`;
-    console.log('header text', headerText)
     const lastRow = sheet.getLastRow();
     if (!lastRow) {
         throw new Error('Sheet is empty when trying to find NDA range');
     }
 
     const colAValues = sheet.getRange(1, 1, lastRow, 1).getValues();
-    console.log(colAValues)
     // 1. Find the header row for this location/date
     let headerRow = null;
     for (let i = 0; i < colAValues.length; i++) {
