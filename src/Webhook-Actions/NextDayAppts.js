@@ -237,39 +237,55 @@ function handleDeleteRow(existingRow, range) {
     if (!existingRow) return;
 
     const vals = range.getValues();
+    const numOfAppts = range.getNumRows(); // whole range is appts now
+    if (numOfAppts === 0) return;
 
-    const numOfAppts = range.getNumRows();
-    if (!numOfAppts) return;
-
-    // make index relative to this range’s top row
+    // index of row inside this range (0-based)
     const existingRowIndexWithinRange = existingRow.getRow() - range.getRow();
 
-    const existingRowTimeValue = vals[existingRowIndexWithinRange][0];
-    let nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
-
-    if (nextRowTimeValue === SAME_FAM_STRING && existingRowTimeValue !== SAME_FAM_STRING) {
-        let totalNumOfRowsPointingToExistingRowTime = 0;
-        while (nextRowTimeValue === SAME_FAM_STRING) {
-            totalNumOfRowsPointingToExistingRowTime++;
-            nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime][0];
-        }
-
-        const rowsInSameFam = range.offset(
-            existingRowIndexWithinRange + 1,
-            0,
-            totalNumOfRowsPointingToExistingRowTime
-        );
-        const nextRowRichText = rowsInSameFam.getRichTextValues();
-        const animalIDs = [];
-        for (let k = 0; k < nextRowRichText.length; k++) {
-            const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[k][1]);
-            animalIDs.push(nextRowAnimalID);
-        }
-
-        const nextRowDate = getActualStartTime(animalIDs);
-        range.offset(existingRowIndexWithinRange + 1, 0, 1, 1).setValue(nextRowDate);
+    // sanity guard: if somehow outside, bail
+    if (existingRowIndexWithinRange < 0 || existingRowIndexWithinRange >= numOfAppts) {
+        return;
     }
 
+    const existingRowTimeValue = vals[existingRowIndexWithinRange][0];
+
+    // if it's the last row, there is no "next" row to inspect
+    if (existingRowIndexWithinRange < numOfAppts - 1) {
+        let nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
+
+        if (nextRowTimeValue === SAME_FAM_STRING && existingRowTimeValue !== SAME_FAM_STRING) {
+            let totalNumOfRowsPointingToExistingRowTime = 0;
+
+            // walk down while SAME_FAM_STRING and within bounds
+            while (
+                existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime < numOfAppts &&
+                nextRowTimeValue === SAME_FAM_STRING
+            ) {
+                totalNumOfRowsPointingToExistingRowTime++;
+                nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime][0];
+            }
+
+            const rowsInSameFam = range.offset(
+                existingRowIndexWithinRange + 1,
+                0,
+                totalNumOfRowsPointingToExistingRowTime
+            );
+            const nextRowRichText = rowsInSameFam.getRichTextValues();
+            const animalIDs = [];
+            for (let k = 0; k < nextRowRichText.length; k++) {
+                const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[k][1]);
+                animalIDs.push(nextRowAnimalID);
+            }
+
+            if (animalIDs.length > 0) {
+                const nextRowDate = getActualStartTime(animalIDs);
+                range.offset(existingRowIndexWithinRange + 1, 0, 1, 1).setValue(nextRowDate);
+            }
+        }
+    }
+
+    // grab all the appointments below (if its not the last appointment) and paste them one row up
     const numOfApptsBelowDeleted = numOfAppts - 1 - existingRowIndexWithinRange;
     if (numOfApptsBelowDeleted > 0) {
         const rowsBelow = range.offset(
@@ -280,11 +296,12 @@ function handleDeleteRow(existingRow, range) {
         const targetRange = range.offset(
             existingRowIndexWithinRange,
             0,
-            numOfAppts - 1 - existingRowIndexWithinRange
+            numOfApptsBelowDeleted
         );
         rowsBelow.copyTo(targetRange);
     }
 
+    // delete the last appointment, reset its format
     range.offset(numOfAppts - 1, 0, 1)
         .clearContent()
         .setFontColor("black")
@@ -292,6 +309,7 @@ function handleDeleteRow(existingRow, range) {
         .setFontLine("none")
         .setBorder(true, false, false, false, false, false);
 }
+
 
 
 function getActualStartTime(animalIDs) {
