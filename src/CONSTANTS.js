@@ -25,8 +25,8 @@ const USER_TIMEZONE = 'America/Los_Angeles';
 
 const DATE_STRING_PATTERN = 'EEEE MM/dd/yyyy';
 
-const DT_NDA_ROW_START_NUMBER = 15;
-const DT_NDA_COORDS = `K${DT_NDA_ROW_START_NUMBER}:R85`;
+// const DT_NDA_ROW_START_NUMBER = 15;
+// const DT_NDA_COORDS = `K${DT_NDA_ROW_START_NUMBER}:R85`;
 
 const SAME_FAM_STRING = '^same fam^';
 

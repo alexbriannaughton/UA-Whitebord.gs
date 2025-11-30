@@ -31,7 +31,7 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
     const firstDataRow = range.getRow();
     const uaLocValues = Array.from({ length: numOfDtAppts }, () => [uaLoc]);
 
-    sheet.getRange(firstDataRow, 8, numOfDtAppts, 1) // column 8 = H
+    sheet.getRange(firstDataRow, 9, numOfDtAppts, 1) // column 8 = I
         .setBackground(bgColor)
         .setValues(uaLocValues);
 

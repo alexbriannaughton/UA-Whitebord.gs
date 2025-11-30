@@ -4,7 +4,7 @@ async function executeNdaJobDt() {
     const startTime = new Date();
     console.log('running nda job for dt...');
     const ndaSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
-    ndaSheet.getRange("A3:H").clearContent()
+    ndaSheet.getRange("A2:H").clearContent()
         .setWrap(true)
         .setFontColor("black")
         .setBackground("white")
