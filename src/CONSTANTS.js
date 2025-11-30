@@ -10,6 +10,12 @@ const UA_LOC_SHEET_NAMES_MAP = {
     'White Center': WC_SHEET_NAME,
 };
 
+const UA_LOC_BG_COLOR_MAP = {
+    [CH_SHEET_NAME]: '#6d9eeb',
+    [DT_SHEET_NAME]: '#76a5af',
+    [WC_SHEET_NAME]: '#d5a6bd'
+}
+
 const EV_PROXY = 'https://api.ezyvet.com';
 const SITE_PREFIX = 'https://urbananimalnw.usw2.ezyvet.com';
 

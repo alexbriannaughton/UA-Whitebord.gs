@@ -1,4 +1,3 @@
-// Format.js
 function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLoc) {
     console.log('formatting next day range cells...');
 
@@ -11,10 +10,30 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
 
     range.offset(0, 0, numOfDtAppts).setBorder(true, true, true, true, true, true);
 
+    const bgColor = UA_LOC_BG_COLOR_MAP[uaLoc];
+
+    // ----- DATE CELL / HEADER ROW -----
     const dateCell = range.offset(-1, 0, 1, 1);
-    dateCell.setValue(
-        `${uaLoc} Next day appointments\n${targetDateStr}`
-    );
+    dateCell.setValue(`${uaLoc}\n${targetDateStr}`);
+
+    // Set the entire header row (for the range’s columns) to bgColor
+    const headerRow = dateCell.getRow();
+    const firstCol = range.getColumn();
+    const numCols = range.getNumColumns();
+    sheet.getRange(headerRow, firstCol, 1, numCols)
+        .setBackground(bgColor);
+
+    // (optional but explicit)
+    dateCell.setBackground(bgColor);
+
+    // ----- COLUMN H FOR THIS RANGE -----
+    // Make column H for all rows in this range have bgColor and text uaLoc
+    const firstDataRow = range.getRow();
+    const uaLocValues = Array.from({ length: numOfDtAppts }, () => [uaLoc]);
+
+    sheet.getRange(firstDataRow, 8, numOfDtAppts, 1) // column 8 = H
+        .setBackground(bgColor)
+        .setValues(uaLocValues);
 
     const reasonColumn = range.offset(0, 3, numOfDtAppts, 1);
     reasonColumn.setWrap(false);
