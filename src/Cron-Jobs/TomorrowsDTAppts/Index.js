@@ -21,12 +21,12 @@ async function executeNdaJobDt() {
         "Traz/gaba:",
         "Location:"
     ];
-    sheet.getRange(1, 1, 1, headerRow.length)
+    ndaSheet.getRange(1, 1, 1, headerRow.length)
         .setValues([headerRow])
         .setFontWeight("bold")
         .setBackground("#d9d9d9");
     // Freeze the header row
-    sheet.setFrozenRows(1);
+    ndaSheet.setFrozenRows(1);
 
     const uaLoc = DT_SHEET_NAME;
     const { appts, targetDateStr } = getNextDayAppts(uaLoc);
