@@ -1,5 +1,5 @@
-function handleNextDayAppt(appointment, sheetName, uaLoc, targetDateStr) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+function handleNextDayAppt(appointment, uaLoc, targetDateStr) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLoc);
 
     // ⬇️ dynamic range for this location’s NDAs, A:I
     const range = getNdaRangeForLoc(sheet, uaLoc, targetDateStr);
