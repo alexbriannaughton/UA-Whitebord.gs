@@ -289,3 +289,59 @@ function getActualStartTime(animalIDs) {
     const minStartTime = Math.min(...startTimes);
     return new Date(minStartTime * 1000);
 }
+
+function getNdaRangeForLoc(sheet, uaLoc) {
+    const headerText = `${uaLoc}-\n`;
+    console.log('header text', headerText)
+    const lastRow = sheet.getLastRow();
+    if (!lastRow) {
+        throw new Error('Sheet is empty when trying to find NDA range');
+    }
+
+    const colAValues = sheet.getRange(1, 1, lastRow, 1).getValues();
+
+    // 1. Find the header row for this location/date
+    let headerRow = null;
+    for (let i = 0; i < colAValues.length; i++) {
+        const cellVal = colAValues[i][0];
+        console.log('cell val', cellVal)
+        if (cellVal.startsWith(headerText)) {
+            headerRow = i + 1; // 1-based
+            break;
+        }
+    }
+
+    if (!headerRow) {
+        throw new Error(`Could not find NDA header for ${headerText} in column A`);
+    }
+
+    const startRow = headerRow + 1; // first NDA row
+
+    // 2. Find where this NDA block ends
+    let endRow = lastRow;
+    for (let i = startRow; i <= lastRow; i++) {
+        const cellVal = colAValues[i - 1][0];
+
+        // blank row -> end of block
+        if (cellVal === '' || cellVal === null) {
+            endRow = i - 1;
+            break;
+        }
+
+        // next header (any cell with a newline) -> end before this row
+        if (typeof cellVal === 'string' && cellVal.includes('\n') && i !== headerRow) {
+            endRow = i - 1;
+            break;
+        }
+    }
+
+    if (endRow < startRow) {
+        throw new Error(`No NDA rows found under header ${headerText}`);
+    }
+
+    const numRows = endRow - startRow + 1;
+    const FIRST_COL = 1;   // A
+    const NUM_COLS = 9;    // A:I
+
+    return sheet.getRange(startRow, FIRST_COL, numRows, NUM_COLS);
+}
