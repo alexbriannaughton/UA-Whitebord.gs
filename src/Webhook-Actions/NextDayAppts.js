@@ -1,6 +1,9 @@
-function handleNextDayDtAppt(appointment, uaLocSheetName) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
-    const range = sheet.getRange(DT_NDA_COORDS);
+function handleNextDayAppt(appointment, sheetName, uaLoc, targetDateStr) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+
+    // ⬇️ dynamic range for this location’s NDAs, A:I
+    const range = getNdaRangeForLoc(sheet, uaLoc, targetDateStr);
+
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
     if (!appointment.active) return handleDeleteRow(existingRow, range);
@@ -13,12 +16,11 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
     let timeCellString = incomingTimeValue;
     const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
     if (timeCellValBeforeUpdating === SAME_FAM_STRING) {
-        // get the value of the time were pointing to
         let foundCoorespondingTimeCellVal;
         let rowOffset = -1;
         while (!foundCoorespondingTimeCellVal || rowOffset < -10) {
             const rowRangeAbove = rowRange.offset(rowOffset, 0);
-            const timeCellVal = rowRangeAbove.getValue(); // note api call within a loop, not ideal
+            const timeCellVal = rowRangeAbove.getValue();
             if (timeCellVal !== SAME_FAM_STRING) {
                 foundCoorespondingTimeCellVal = timeCellVal;
                 break;
@@ -28,7 +30,6 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
         if (!foundCoorespondingTimeCellVal) {
             throw new Error(`unable to find corresponding time cell val at handleNextDayDtAppts(): ${appointment}`);
         }
-        // if the value is within 1 hour of the incoming value, keep the time cell val to have SAME_FAM_STRING
         const timeDifferenceMs = Math.abs(incomingTimeValue - foundCoorespondingTimeCellVal);
         const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
         if (timeDifferenceHours <= 1) {
@@ -46,11 +47,9 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
         const fractiousCellText = isHostile ? 'yes' : 'no';
         fractiousCellRichText = simpleTextToRichText(fractiousCellText);
         seeChartRichText = seeChartLink;
-    }
-    else if (existingRow) {
+    } else if (existingRow) {
         ptCellRichText = existingRowRichText[0][1];
-    }
-    else if (!ptCellRichText) {
+    } else if (!ptCellRichText) {
         throw new Error('couldnt make rich text value for incoming patient name');
     }
 
@@ -82,8 +81,8 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
     resortDtAppts(range);
 
     return;
-
 }
+
 
 function fetchForDataAndMakeLink(appointment) {
     const [

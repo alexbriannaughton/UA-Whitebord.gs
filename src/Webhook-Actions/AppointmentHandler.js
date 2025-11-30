@@ -87,7 +87,7 @@ function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMa
         incomingApptId,
     );
 
-    if (isValidDtNda) return handleNextDayDtAppt(appointment, uaLocSheetName);
+    if (isValidDtNda) return handleNextDayAppt(appointment, sheetName, uaLoc, targetDateStr);
 
     if (locationToRoomCoordsMap) { // this would mean that its a room status
         return moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap);
