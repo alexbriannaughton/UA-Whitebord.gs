@@ -14,7 +14,7 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
 
     // ----- DATE CELL / HEADER ROW -----
     const dateCell = range.offset(-1, 0, 1, 1);
-    dateCell.setValue(`${uaLoc}\n${targetDateStr}`);
+    dateCell.setValue(`-${uaLoc}-\n${targetDateStr}`);
 
     // Set the entire header row (for the range’s columns) to bgColor
     const headerRow = dateCell.getRow();
@@ -98,8 +98,8 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
     sheet.setConditionalFormatRules(rules);
 }
 
-function getNdaRangeForLoc(sheet, uaLoc, targetDateStr) {
-    const headerText = `${uaLoc}\n${targetDateStr}`;
+function getNdaRangeForLoc(sheet, uaLoc) {
+    const headerText = `-${uaLoc}-\n`;
     const lastRow = sheet.getLastRow();
     if (!lastRow) {
         throw new Error('Sheet is empty when trying to find NDA range');
@@ -111,7 +111,7 @@ function getNdaRangeForLoc(sheet, uaLoc, targetDateStr) {
     let headerRow = null;
     for (let i = 0; i < colAValues.length; i++) {
         const cellVal = colAValues[i][0];
-        if (cellVal === headerText) {
+        if (cellVal.startsWith(headerText)) {
             headerRow = i + 1; // 1-based
             break;
         }
