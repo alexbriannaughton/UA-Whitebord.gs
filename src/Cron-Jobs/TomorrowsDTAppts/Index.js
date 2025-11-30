@@ -30,10 +30,10 @@ async function executeNdaJobDt() {
 
     const uaLoc = DT_SHEET_NAME;
     const { appts, targetDateStr } = getNextDayAppts(uaLoc);
-    await getAllEzyVetData(appts, targetDateStr);
+    await getAllEzyVetData(appts, targetDateStr, uaLoc);
     const dtNdaRange = ndaSheet.getRange(`A3:H${appts.length}`);
     formatNextDayApptsCells(ndaSheet, dtNdaRange, appts.length, targetDateStr, uaLoc);
-    putDataOnSheet(appts, range);
+    putDataOnSheet(appts, dtNdaRange);
     const endTime = new Date();
     const executionTime = (endTime - startTime) / 1000;
     console.log(`finished nda job for dt at ${executionTime} seconds!`);
@@ -44,7 +44,7 @@ async function executeNdaJobCh() {
     const ndaSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
     const uaLoc = CH_SHEET_NAME;
     const { appts, targetDateStr } = getNextDayAppts(uaLoc);
-    await getAllEzyVetData(appts, targetDateStr);
+    await getAllEzyVetData(appts, targetDateStr, uaLoc);
     const lastRowWithData = ndaSheet.getLastRow();
     const chNdaRange = ndaSheet.getRange(lastRowWithData + 2, 1, appts.length, 8);;
     formatNextDayApptsCells(ndaSheet, chNdaRange, appts.length, targetDateStr, uaLoc);
@@ -119,10 +119,10 @@ function filterAndSortAppts(allTargetDayAppts, uaLoc) {
 };
 
 // fetch data for all appointments from all endpoints that we care about
-async function getAllEzyVetData(appts, targetDateStr) {
+async function getAllEzyVetData(appts, targetDateStr, uaLoc) {
     // ezyvet endpoints: animal, contact, consults, prescriptions, attachments of animal_id
     const animalAttachmentData = firstRoundOfFetches(appts);
-    const ezyVetFolder = driveFolderProcessing(targetDateStr);
+    const ezyVetFolder = driveFolderProcessing(targetDateStr, uaLoc);
     // get more data for every appointment for the following endponts:
     // prescription items, other animals of contact, attachments based on all of the animal's consults
     const consultAttachmentData = secondRoundOfFetches(appts);

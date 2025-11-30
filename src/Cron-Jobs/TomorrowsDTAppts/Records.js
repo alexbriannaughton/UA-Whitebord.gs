@@ -8,7 +8,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
 
     for (let i = 0; i < dtAppts.length; i++) {
         const animalName = `${dtAppts[i].animal.name} ${dtAppts[i].contact.last_name}`;
-        
+
         const consultAttachments = consultAttachmentData[i];
         const animalAttachments = animalAttachmentData[i];
         const numOfAttachments = animalAttachments.length + consultAttachments.length;
@@ -212,8 +212,8 @@ function getAttDLErrorDetails(fileNameInEzyVet, errorMessage = undefined) {
     }
 }
 
-function driveFolderProcessing(targetDateStr) {
-    const folderNamePrefix = 'ezyVet-attachments-';
+function driveFolderProcessing(targetDateStr, uaLoc) {
+    const folderNamePrefix = `ezyVet-attachments-${uaLoc}`;
     console.log('getting drive folders...');
     const rootFolders = DriveApp.getFolders();
 
