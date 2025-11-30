@@ -299,12 +299,11 @@ function getNdaRangeForLoc(sheet, uaLoc) {
     }
 
     const colAValues = sheet.getRange(1, 1, lastRow, 1).getValues();
-
+    console.log(colAValues)
     // 1. Find the header row for this location/date
     let headerRow = null;
     for (let i = 0; i < colAValues.length; i++) {
         const cellVal = colAValues[i][0];
-        console.log('cell val', cellVal)
         if (cellVal.startsWith(headerText)) {
             headerRow = i + 1; // 1-based
             break;
