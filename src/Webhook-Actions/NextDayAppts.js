@@ -110,7 +110,7 @@ function handleNextDayAppt(appointment, uaLoc) {
     rowRange.offset(0, 0, 1, 1).setValue(timeCellString);
 
     // use the (possibly extended) range
-    resortDtAppts(range);
+    resortAppts(range);
 
     return;
 }
@@ -131,11 +131,9 @@ function fetchForDataAndMakeLink(appointment) {
     return { ptCellLink, isHostile, seeChartLink };
 }
 
-function resortDtAppts(
-    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DT_SHEET_NAME).getRange(DT_NDA_COORDS)
-) {
+function resortAppts(range) {
     const vals = range.getValues();
-    const numOfAppts = getNumOfApptRows(vals);
+    const numOfAppts = range.getNumRows();
     const richTextVals = range.getRichTextValues();
 
     const apptRichTexts = richTextVals.slice(0, numOfAppts);
@@ -217,20 +215,6 @@ function resortDtAppts(
     range.offset(0, 0, range.getNumRows(), 1).setNumberFormat('h:mma/p');
 }
 
-function getNumOfApptRows(vals) {
-    let numOfAppts;
-    for (let i = 0; i < vals.length; i++) {
-        if (vals[i][0] === '') {
-            numOfAppts = i;
-            break;
-        }
-    }
-    if (!numOfAppts) {
-        throw new Error(`num of appts is ${numOfAppts} when trying to count the appointment rows`);
-    }
-    return numOfAppts;
-}
-
 function getFirstSameFamTime(apptVals, i) {
     let j = i - 1;
     while (j >= 0) {
@@ -254,7 +238,7 @@ function handleDeleteRow(existingRow, range) {
 
     const vals = range.getValues();
 
-    const numOfAppts = getNumOfApptRows(vals);
+    const numOfAppts = range.getNumRows();
     if (!numOfAppts) return;
 
     // make index relative to this range’s top row
