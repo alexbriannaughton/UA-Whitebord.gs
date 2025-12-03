@@ -26,12 +26,10 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
     // (optional but explicit)
     dateCell.setBackground(bgColor);
 
-    // ----- COLUMN H FOR THIS RANGE -----
-    // Make column H for all rows in this range have bgColor and text uaLoc
     const firstDataRow = range.getRow();
     const uaLocValues = Array.from({ length: numOfDtAppts }, () => [uaLoc]);
 
-    sheet.getRange(firstDataRow, 9, numOfDtAppts, 1) // column 8 = I
+    sheet.getRange(firstDataRow, 10, numOfDtAppts, 1) // column 8 = I
         .setBackground(bgColor)
         .setValues(uaLocValues);
 
@@ -91,6 +89,13 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
             .whenTextEqualTo("yes")
             .setBackground(highPriorityColor)
             .setRanges([range.offset(0, 6, numOfDtAppts, 1)])
+            .build(),
+
+        // appt type column
+        SpreadsheetApp.newConditionalFormatRule()
+            .whenTextContains('tech')
+            .setBackground('#d9ead3')
+            .setRanges([range.offset(0, 9, numOfDtAppts, 1)])
             .build(),
     ];
 
