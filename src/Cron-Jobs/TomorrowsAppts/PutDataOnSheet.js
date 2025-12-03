@@ -101,6 +101,17 @@ function putDataOnSheet(dtAppts, range) {
             sedCellVal = `${sedativeName} last filled ${dateString}`;
         }
         hasSedCell.setValue(sedCellVal);
+
+        const apptTypeCell = range.offset(i, 8, 1, 1);
+        let apptCellText = '';
+        if (ALL_NDA_DVM_APPT_IDS.has(Number(appointment.details.appointment_type_id))) {
+            apptCellText = 'DVM';
+        }
+        else if (ALL_NDA_TECH_APPT_IDS.has(Number(appointment.details.appointment_type_id))) {
+            apptCellText = 'tech';
+        }
+        apptTypeCell.setValue(apptCellText);
+        
     }
 }
 

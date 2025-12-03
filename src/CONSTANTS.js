@@ -289,6 +289,42 @@ APPT_CATEGORIES.forEach(category => {
     });
 });
 
+const DT_APPT_TYPE_ID = 79;// downtown - appointment
+const DT_15_45_APPT_TYPE_ID = 95; // Downtown - Appointment (:15/:45)
+const DT_SAME_DAY_SICK_APPT_TYPE_ID = 93;// Downtown - Same Day Sick
+const DT_TECH_APPT_TYPE_ID = 85; // dt tech appointment
+
+
+const DT_NDA_APPT_IDS = [
+    DT_APPT_TYPE_ID,
+    DT_15_45_APPT_TYPE_ID,
+    DT_SAME_DAY_SICK_APPT_TYPE_ID,
+    DT_TECH_APPT_TYPE_ID
+];
+
+const CH_AND_WC_APPT_IDS = [
+    ...CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds,
+    EZYVET_SCHEDULED_TECH_APPT_TYPE_ID,
+];
+
+const NDA_APPT_TYPES_MAP = {
+    [CH_SHEET_NAME]: CH_AND_WC_APPT_IDS,
+    [DT_SHEET_NAME]: DT_NDA_APPT_IDS,
+    [WC_SHEET_NAME]: CH_AND_WC_APPT_IDS,
+}
+
+const ALL_NDA_DVM_APPT_IDS = new Set([
+    ...CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds,
+    DT_APPT_TYPE_ID,
+    DT_15_45_APPT_TYPE_ID,
+    DT_SAME_DAY_SICK_APPT_TYPE_ID,
+]);
+
+const ALL_NDA_TECH_APPT_IDS = new Set([
+    DT_TECH_APPT_TYPE_ID,
+    EZYVET_SCHEDULED_TECH_APPT_TYPE_ID,
+]);
+
 // ezyvet resource ids
 const CH_PROCEDURE_1_RESOURCE_ID = 29;
 const CH_PROCEDURE_2_RESOURCE_ID = 30;
@@ -355,31 +391,6 @@ const NON_PROCEDURE_SCHEDULED_APPT_RESOURCE_IDS = [
 ];
 
 const IM_RESOURCE_IDS = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID];
-
-const DT_NDA_APPT_IDS = [
-    79, // downtown - appointment
-    95, // Downtown - Appointment (:15/:45)
-    93, // Downtown - Same Day Sick
-    85, // dt tech appointment
-];
-
-const CH_AND_WC_APPT_IDS = [
-    ...CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds,
-    EZYVET_SCHEDULED_TECH_APPT_TYPE_ID,
-];
-
-const NDA_APPT_TYPES_MAP = {
-    [CH_SHEET_NAME]: CH_AND_WC_APPT_IDS,
-    [DT_SHEET_NAME]: DT_NDA_APPT_IDS,
-    [WC_SHEET_NAME]: CH_AND_WC_APPT_IDS,
-}
-
-// function CONTAINS_VALID_DT_NDA_IDS(resourceIds, apptTypeId) {
-//     return resourceIds.some(id => DT_SCHED_RESOURCE_IDS.includes(Number(id)))
-//         // is in a DT exam or tech column
-//         && DT_NDA_APPT_IDS.includes(Number(apptTypeId));
-//     // is a dt doctor exam or dt tech appt type
-// };
 
 const WC_SX_LOBBY_STATUS_ID = 44;
 const CAT_LOBBY_STATUS_ID = 40;

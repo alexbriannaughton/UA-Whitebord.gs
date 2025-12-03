@@ -20,7 +20,7 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
     const headerRow = dateCell.getRow();
     const firstCol = range.getColumn();
     const numCols = range.getNumColumns();
-    sheet.getRange(headerRow, firstCol, 1, numCols + 1)
+    sheet.getRange(headerRow, firstCol, 1, numCols + 2)
         .setBackground(bgColor);
 
     // (optional but explicit)

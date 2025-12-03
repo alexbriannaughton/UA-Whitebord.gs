@@ -19,7 +19,8 @@ async function executeNdaJobDt() {
         "Records:",
         "Hx fractious:",
         "Traz/gaba:",
-        "Location:"
+        "Appt type:",
+        "Location:",
     ];
     ndaSheet.getRange(1, 1, 1, headerRow.length)
         .setValues([headerRow])
