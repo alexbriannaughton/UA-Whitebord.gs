@@ -4,7 +4,7 @@ async function executeNdaJobDt() {
     const startTime = new Date();
     console.log('running nda job for dt...');
     const ndaSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
-    ndaSheet.getRange("A2:H").clearContent()
+    ndaSheet.getRange("A2:J").clearContent()
         .setWrap(true)
         .setFontColor("black")
         .setBackground("white")
@@ -49,7 +49,7 @@ async function executeNdaJobCh() {
     const lastRowWithData = ndaSheet.getLastRow();
     const chNdaRange = ndaSheet.getRange(lastRowWithData + 2, 1, appts.length, 8);;
     formatNextDayApptsCells(ndaSheet, chNdaRange, appts.length, targetDateStr, uaLoc);
-    putDataOnSheet(appts, range);
+    putDataOnSheet(appts, chNdaRange);
     const endTime = new Date();
     const executionTime = (endTime - startTime) / 1000;
     console.log(`finished nda job for ch at ${executionTime} seconds!`);

@@ -95,7 +95,7 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
         SpreadsheetApp.newConditionalFormatRule()
             .whenTextContains('tech')
             .setBackground('#d9ead3')
-            .setRanges([range.offset(0, 9, numOfDtAppts, 1)])
+            .setRanges([range.offset(0, 8, numOfDtAppts, 1)])
             .build(),
     ];
 

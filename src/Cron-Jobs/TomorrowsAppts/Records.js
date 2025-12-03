@@ -15,7 +15,7 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
         console.log(`processing ${numOfAttachments} record(s) for ${animalName}...`);
 
         // if there's a ton of records, or if there's zero attachments,
-        if (numOfAttachments > 19) {
+        if (numOfAttachments > 10) {
             dtAppts[i].records = {
                 text: `${numOfAttachments} attachments...`,
             };
