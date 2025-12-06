@@ -8,7 +8,8 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
         .setFontLine("none")
         .setBorder(false, false, false, false, false, false);
 
-    range.offset(0, 0, numOfDtAppts).setBorder(true, true, true, true, true, true);
+    // Apply borders to the full NDA row (Time through Location)
+    range.offset(0, 0, numOfDtAppts, 10).setBorder(true, true, true, true, true, true);
 
     const bgColor = UA_LOC_BG_COLOR_MAP[uaLoc];
 
