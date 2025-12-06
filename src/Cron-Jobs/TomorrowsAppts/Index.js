@@ -4,30 +4,7 @@ async function executeNdaJobDt() {
     const startTime = new Date();
     console.log('running nda job for dt...');
     const ndaSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
-    ndaSheet.getRange("A2:J").clearContent()
-        .setWrap(true)
-        .setFontColor("black")
-        .setBackground("white")
-        .setFontLine("none")
-        .setBorder(false, false, false, false, false, false);
-    const headerRow = [
-        "Time:",
-        "Patient name:",
-        "Deposit paid:",
-        "Reason:",
-        "First time?",
-        "Records:",
-        "Hx fractious:",
-        "Traz/gaba:",
-        "Appt type:",
-        "Location:",
-    ];
-    ndaSheet.getRange(1, 1, 1, headerRow.length)
-        .setValues([headerRow])
-        .setFontWeight("bold")
-        .setBackground("#d9d9d9");
-    // Freeze the header row
-    ndaSheet.setFrozenRows(1);
+    setBaselineNdaConditionalFormatting(ndaSheet);
 
     const uaLoc = DT_SHEET_NAME;
     const { appts, targetDateStr } = getNextDayAppts(uaLoc);
