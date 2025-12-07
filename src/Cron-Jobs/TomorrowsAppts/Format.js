@@ -55,7 +55,7 @@ function setBaselineNdaConditionalFormatting(sheet) {
     const headerRow = [
         "Time:",
         "Patient name:",
-        "Deposit paid:",
+        "Deposit paid appt status?",
         "Reason:",
         "First time?",
         "Records:",

@@ -3,13 +3,15 @@ async function runAllNdaJobs() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const ndaSheet = ss.getSheetByName('NDAs');
 
-    // 1) Baseline formatting once at the top
+    // Baseline formatting once at the top
     setBaselineNdaConditionalFormatting(ndaSheet);
 
-    // 2) DT first, as the main block at A3
+    // get pdf lib
+
+    // DT first, as the main block at A3
     await executeNdaJob(ndaSheet, DT_SHEET_NAME, { isFirstSection: true });
 
-    // 3) Other locations appended below
+    // Other locations appended below
     const otherLocations = [CH_SHEET_NAME, WC_SHEET_NAME];
 
     for (const loc of otherLocations) {
