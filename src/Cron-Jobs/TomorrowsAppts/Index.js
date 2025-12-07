@@ -1,38 +1,49 @@
 // Index.js
-// dtJobMain is the main function for the job that grabs the next day of dt appointments
-async function executeNdaJobDt() {
-    const startTime = new Date();
-    console.log('running nda job for dt...');
-    const ndaSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
+async function runAllNdaJobs() {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ndaSheet = ss.getSheetByName('NDAs');
+
+    // 1) Baseline formatting once at the top
     setBaselineNdaConditionalFormatting(ndaSheet);
-    const uaLoc = DT_SHEET_NAME;
-    const { appts, targetDateStr } = getNextDayAppts(uaLoc);
-    await getAllEzyVetData(appts, targetDateStr, uaLoc);
-    const dtNdaRange = ndaSheet.getRange(`A3:H${appts.length}`);
-    formatNextDayApptsCells(ndaSheet, dtNdaRange, appts.length, targetDateStr, uaLoc);
-    putDataOnSheet(appts, dtNdaRange);
-    const endTime = new Date();
-    const executionTime = (endTime - startTime) / 1000;
-    console.log(`finished nda job for dt at ${executionTime} seconds!`);
+
+    // 2) DT first, as the main block at A3
+    await executeNdaJob(ndaSheet, DT_SHEET_NAME, { isFirstSection: true });
+
+    // 3) Other locations appended below
+    const otherLocations = ['CH', 'WC']; // add/remove as needed
+
+    for (const loc of otherLocations) {
+        await executeNdaJob(ndaSheet, loc);
+    }
 }
-async function executeNdaJobCh() {
+
+async function executeNdaJob(ndaSheet, sheetName, { isFirstSection = false } = {}) {
     const startTime = new Date();
-    console.log('running nda job for ch...');
-    const ndaSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
-    const uaLoc = CH_SHEET_NAME;
+    console.log(`running nda job for ${sheetName}...`);
+
+    const uaLoc = sheetName;
     const { appts, targetDateStr } = getNextDayAppts(uaLoc);
     await getAllEzyVetData(appts, targetDateStr, uaLoc);
-    const lastRowWithData = ndaSheet.getLastRow();
-    const chNdaRange = ndaSheet.getRange(lastRowWithData + 2, 1, appts.length, 8);;
-    formatNextDayApptsCells(ndaSheet, chNdaRange, appts.length, targetDateStr, uaLoc);
-    putDataOnSheet(appts, chNdaRange);
-    const endTime = new Date();
-    const executionTime = (endTime - startTime) / 1000;
-    console.log(`finished nda job for ch at ${executionTime} seconds!`);
+
+    let range;
+
+    if (isFirstSection) {
+        // DT-style section: fixed start at A3
+        // A3 with `appts.length` rows and 8 columns (A–H)
+        range = ndaSheet.getRange(3, 1, appts.length, 8);
+    } else {
+        // Other locations: append after existing data + 2 blank rows
+        const lastRowWithData = ndaSheet.getLastRow();
+        range = ndaSheet.getRange(lastRowWithData + 2, 1, appts.length, 8);
+    }
+
+    formatNextDayApptsCells(ndaSheet, range, appts.length, targetDateStr, uaLoc);
+    putDataOnSheet(appts, range);
+
+    const executionTime = (new Date() - startTime) / 1000;
+    console.log(`finished nda job for ${sheetName} at ${executionTime} seconds!`);
 }
-async function executeNdaJobWC() {
-    
-};
+
 
 function getNextDayAppts(uaLoc) {
     let appts = [];
