@@ -37,6 +37,7 @@ function handleNextDayAppt(appointment, uaLoc) {
 
         // optional: set border on the new row like other new rows
         rowRange.setBorder(true, true, true, true, true, true);
+        rowRange.setBackground('#ffffff');
     }
 
     const existingRowRichText = rowRange.getRichTextValues();
@@ -114,8 +115,6 @@ function handleNextDayAppt(appointment, uaLoc) {
 
     return;
 }
-
-
 
 function fetchForDataAndMakeLink(appointment) {
     const [
@@ -309,8 +308,6 @@ function handleDeleteRow(existingRow, range, uaLoc) {
         .setFontLine("none")
         .setBorder(true, false, false, false, false, false);
 }
-
-
 
 function getActualStartTime(animalIDs, uaLoc) {
     const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextApptsByUaLoc[uaLoc]);
