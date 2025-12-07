@@ -275,10 +275,11 @@ function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
         console.error(error);
         if (error.message.includes('too many requests recently')) {
             const secondsTilNextRetryMatch = error.message.match(/(\d+)\s+seconds/);
-            console.log('match: ', secondsTilNextRetryMatch);
-            console.error('seconds til next retry: ', secondsTilNextRetryMatch?.[1])
-            console.error('Rate limit error detected. Going to wait 1 minute.');
-            Utilities.sleep(60000);
+            const secondsTilNextRetry = secondsTilNextRetryMatch
+                ? Number(secondsTilNextRetryMatch[1])
+                : 60; // fallback if regex fails
+            console.error(`Rate limit error detected. Waiting ${secondsTilNextRetry} seconds...`);
+            Utilities.sleep(secondsTilNextRetry * 1000);
             outputItems = [];
             responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);
             if (outputItems.length) return outputItems;
