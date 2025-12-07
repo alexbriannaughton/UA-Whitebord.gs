@@ -375,7 +375,7 @@ function getNdaRangeForLoc(sheet, uaLoc) {
 
     const numRows = endRow - startRow + 1;
     const FIRST_COL = 1;   // A
-    const NUM_COLS = 9;    // A:I
+    const NUM_COLS = 10;    // A:I
 
     return sheet.getRange(startRow, FIRST_COL, numRows, NUM_COLS);
 }
