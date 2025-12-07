@@ -6,7 +6,7 @@ function handleNextDayAppt(appointment, uaLoc) {
 
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
-    if (!appointment.active) return handleDeleteRow(existingRow, range);
+    if (!appointment.active) return handleDeleteRow(existingRow, range, uaLoc);
 
     // --- ensure we have a rowRange; if none, insert a row at bottom of range ---
     let rowRange = existingRow ? existingRow : highestEmptyRow;
@@ -233,7 +233,7 @@ function getAnimaIdFromCellRichText(richText) {
     return curApptAnimalID;
 }
 
-function handleDeleteRow(existingRow, range) {
+function handleDeleteRow(existingRow, range, uaLoc) {
     if (!existingRow) return;
 
     const vals = range.getValues();
@@ -279,7 +279,7 @@ function handleDeleteRow(existingRow, range) {
             }
 
             if (animalIDs.length > 0) {
-                const nextRowDate = getActualStartTime(animalIDs);
+                const nextRowDate = getActualStartTime(animalIDs, uaLoc);
                 range.offset(existingRowIndexWithinRange + 1, 0, 1, 1).setValue(nextRowDate);
             }
         }
@@ -312,8 +312,8 @@ function handleDeleteRow(existingRow, range) {
 
 
 
-function getActualStartTime(animalIDs) {
-    const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextDtAppts);
+function getActualStartTime(animalIDs, uaLoc) {
+    const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextApptsByUaLoc[uaLoc]);
     const encodedTime = `start_time=${encodeURIComponent(JSON.stringify({ ">": targetDayStart, "<": targetDayEnd }))}`;
     const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": animalIDs }));
     const url = `${EV_PROXY}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}`;

@@ -81,8 +81,8 @@ function handleDTAppointment(appointment, uaLoc, locationToRoomCoordsMap) {
     const incomingResourceIds = appointment.resources.map(({ id }) => id);
     const incomingApptId = appointment.type_id;
     const isValidDtNda = isOnNextDayOfDtAppts && containsValidNdaIds(
-        DT_SCHED_RESOURCE_IDS,
-        DT_NDA_APPT_IDS,
+        NDA_SCHEDULED_RESOURCES_MAP[uaLoc],
+        NDA_APPT_TYPES_MAP[uaLoc],
         incomingResourceIds,
         incomingApptId,
     );
