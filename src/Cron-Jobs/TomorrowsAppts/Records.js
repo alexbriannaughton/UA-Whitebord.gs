@@ -213,22 +213,27 @@ function getAttDLErrorDetails(fileNameInEzyVet, errorMessage = undefined) {
 }
 
 function driveFolderProcessing(targetDateStr, uaLoc) {
-    const folderNamePrefix = `ezyVet-attachments-${uaLoc}`;
+    const folderPrefix = `ezyVet-attachments-${uaLoc}`;
+    const newFolderName = `${folderPrefix}${targetDateStr}`;
+
     console.log('getting drive folders...');
     const rootFolders = DriveApp.getFolders();
 
-    console.log('trashing old ezyvet folders...');
+    console.log('trashing old ezyvet folders for location:', uaLoc);
+
     while (rootFolders.hasNext()) {
         const folder = rootFolders.next();
-        const folderName = folder.getName();
-        if (folderName.includes(folderNamePrefix)) {
+        const name = folder.getName();
+
+        // Only trash folders for THIS location AND not today's folder
+        if (name.startsWith(folderPrefix) && name !== newFolderName) {
             folder.setTrashed(true);
         }
     }
 
     console.log(`creating new drive folder for ${targetDateStr}...`);
-    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + targetDateStr);
-    ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    const newFolder = DriveApp.createFolder(newFolderName);
+    newFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-    return ezyVetFolder;
+    return newFolder;
 }
