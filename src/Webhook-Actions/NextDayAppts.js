@@ -335,6 +335,7 @@ function getNdaRangeForLoc(sheet, uaLoc) {
     }
 
     const colAValues = sheet.getRange(1, 1, lastRow, 1).getValues();
+    console.log('colavals', colAValues)
     // 1. Find the header row for this location/date
     let headerRow = null;
     for (let i = 0; i < colAValues.length; i++) {
