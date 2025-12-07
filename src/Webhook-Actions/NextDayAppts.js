@@ -340,7 +340,7 @@ function getNdaRangeForLoc(sheet, uaLoc) {
     let headerRow = null;
     for (let i = 0; i < colAValues.length; i++) {
         const cellVal = colAValues[i][0];
-        if (!cellVal) console.log('----',i,colAValues[i])
+        console.log(i,cellVal)
         if (cellVal.startsWith(headerText)) {
             headerRow = i + 1; // 1-based
             break;
