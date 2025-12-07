@@ -5,7 +5,6 @@ async function executeNdaJobDt() {
     console.log('running nda job for dt...');
     const ndaSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
     setBaselineNdaConditionalFormatting(ndaSheet);
-
     const uaLoc = DT_SHEET_NAME;
     const { appts, targetDateStr } = getNextDayAppts(uaLoc);
     await getAllEzyVetData(appts, targetDateStr, uaLoc);
@@ -31,15 +30,8 @@ async function executeNdaJobCh() {
     const executionTime = (endTime - startTime) / 1000;
     console.log(`finished nda job for ch at ${executionTime} seconds!`);
 }
-async function ndaJobMain(range, targetDateStr) {
-    // const { appts, targetDateStr } = getNextDayAppts(uaLoc);
-    // await getAllEzyVetData(appts, targetDateStr);
-    // const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DT_SHEET_NAME);
-    // const range = sheet.getRange(DT_NDA_COORDS);
-    // const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
-    // const range = sheet.getRange(`A3:H${appts.length + 10}`);
-    // formatNextDayApptsCells(sheet, range, appts.length);
-    // putDataOnSheet(appts, range, targetDateStr);
+async function executeNdaJobWC() {
+    
 };
 
 function getNextDayAppts(uaLoc) {

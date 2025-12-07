@@ -21,11 +21,12 @@ function getCacheVals() {
     daysToNextApptsByUaLoc = {}; // reset
 
     ALL_LOCATION_SHEETS.forEach(uaLoc => {
-        const keyName = ndaUaLocTokenName(uaLoc);
-        let val = cacheVals[keyName];
-        if (!val) val = getDaysAhead(cache, uaLoc);  // this function already writes to cache
-        else val = Number(val);
-        daysToNextApptsByUaLoc[uaLoc] = val;
+        let uaLocDaysToNextAppt = cacheVals[ndaUaLocTokenName(uaLoc)];
+        if (!uaLocDaysToNextAppt) {
+            uaLocDaysToNextAppt = getDaysAhead(cache, uaLoc);  // this function already writes to cache
+        }
+        else uaLocDaysToNextAppt = Number(uaLocDaysToNextAppt);
+        daysToNextApptsByUaLoc[uaLoc] = uaLocDaysToNextAppt;
     });
 
     const mapJson = cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME];
