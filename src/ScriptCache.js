@@ -4,9 +4,6 @@ const ALL_LOCS_DAYS_TO_NDA_KEY_NAMES = ALL_LOCATION_SHEETS.map(uaLoc => ndaUaLoc
 const EZYVET_RESOURCE_TO_UA_LOC_NAME = 'ezyvet_resource_to_ua_loc';
 
 let token;
-let daysToNextDtAppts;
-let daysToNextChAppts;
-let daysToNextWcAppts;
 let ezyVetResourceToUaLoc;
 let daysToNextApptsByUaLoc = {};
 

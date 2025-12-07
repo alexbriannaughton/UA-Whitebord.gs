@@ -9,10 +9,10 @@ function isTodayInUserTimezone(appointment) {
     return userTimeZoneDate === todaysDate;
 }
 
-function checkIfIsOnNextDayOfDtAppts(appointment) {
+function checkIfIsOnNextDayOfAppts(appointment, uaLoc) {
     const userTimeZoneDate = convertEpochToUserTimezoneDate(appointment.start_at);
     const date = new Date();
-    date.setDate(date.getDate() + daysToNextDtAppts);
+    date.setDate(date.getDate() + daysToNextApptsByUaLoc[uaLoc]);
 
     const nextDTApptDateFormatted = Utilities.formatDate(
         date,
