@@ -213,7 +213,7 @@ function getAttDLErrorDetails(fileNameInEzyVet, errorMessage = undefined) {
 }
 
 function driveFolderProcessing(targetDateStr, uaLoc) {
-    const folderPrefix = `ezyVet-attachments-${uaLoc}`;
+    const folderPrefix = `ezyVet-attachments-${uaLoc}-`;
     const newFolderName = `${folderPrefix}${targetDateStr}`;
 
     console.log('getting drive folders...');
@@ -225,8 +225,8 @@ function driveFolderProcessing(targetDateStr, uaLoc) {
         const folder = rootFolders.next();
         const name = folder.getName();
 
-        // Only trash folders for THIS location AND not today's folder
-        if (name.startsWith(folderPrefix) && name !== newFolderName) {
+        // Only trash folders for THIS location
+        if (name.startsWith(folderPrefix)) {
             folder.setTrashed(true);
         }
     }
