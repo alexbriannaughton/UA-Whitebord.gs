@@ -69,6 +69,5 @@ function getDaysAhead(cache, uaLoc) {
 
     console.log(`putting ${daysAhead} as ${ndaUaLocTokenName(uaLoc)} into cache...`);
     cache.put(ndaUaLocTokenName(uaLoc), daysAhead, 21600);
-
     return daysAhead;
 };
