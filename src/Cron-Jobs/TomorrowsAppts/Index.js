@@ -10,7 +10,7 @@ async function runAllNdaJobs() {
     await executeNdaJob(ndaSheet, DT_SHEET_NAME, { isFirstSection: true });
 
     // 3) Other locations appended below
-    const otherLocations = ['CH', 'WC']; // add/remove as needed
+    const otherLocations = [CH_SHEET_NAME, WC_SHEET_NAME];
 
     for (const loc of otherLocations) {
         await executeNdaJob(ndaSheet, loc);
