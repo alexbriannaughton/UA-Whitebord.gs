@@ -306,12 +306,9 @@ function handleDeleteRow(existingRow, range, uaLoc) {
     }
 
     // delete the last appointment, reset its format
-    range.offset(numOfAppts - 1, 0, 1)
-        .clearContent()
-        .setFontColor("black")
-        .setBackground("white")
-        .setFontLine("none")
-        .setBorder(true, false, false, false, false, false);
+    // remove the now-empty trailing row so the section doesn't leave a gap
+    const lastRowIndex = range.getRow() + numOfAppts - 1;
+    range.getSheet().deleteRow(lastRowIndex);
 }
 
 function getActualStartTime(animalIDs, uaLoc) {
