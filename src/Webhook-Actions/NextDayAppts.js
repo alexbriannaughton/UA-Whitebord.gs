@@ -40,6 +40,11 @@ function handleNextDayAppt(appointment, uaLoc) {
         rowRange.setBackground('#ffffff');
     }
 
+    const locationCell = rowRange.offset(0, 9, 1, 1); // column J = location
+    const locationBgColor = UA_LOC_BG_COLOR_MAP[uaLoc];
+    locationCell.setValue(uaLoc);
+    if (locationBgColor) locationCell.setBackground(locationBgColor);
+
     const existingRowRichText = rowRange.getRichTextValues();
 
     const incomingTimeValue = new Date(appointment.start_at * 1000);
