@@ -34,8 +34,8 @@ function formatNextDayApptsCells(sheet, range, numOfDtAppts, targetDateStr, uaLo
         .setBackground(bgColor)
         .setValues(uaLocValues);
 
-    const reasonColumn = range.offset(0, 3, numOfDtAppts, 1);
-    reasonColumn.setWrap(false);
+    // const reasonColumn = range.offset(0, 3, numOfDtAppts, 1);
+    // reasonColumn.setWrap(false);
 
     range.offset(0, 0, numOfDtAppts, 1).setNumberFormat('h:mma/p');
 
@@ -59,7 +59,7 @@ function setBaselineNdaConditionalFormatting(sheet) {
         "Reason:",
         "First time?",
         "Records:",
-        "Hx fractious:",
+        "Demeanor alerts?",
         "Traz/gaba:",
         "Appt type:",
         "Location:",
