@@ -1,11 +1,6 @@
 // PutDataOnSheet.js
 const unmatchedVetstoriaContactID = '72038';
-function putDataOnSheet(dtAppts, range, targetDateStr) {
-    const dateCell = range.offset(-2, 0, 1, 1);
-    dateCell.setValue(
-        `Next day DVM appointments\n${targetDateStr}`
-    );
-
+function putDataOnSheet(dtAppts, range) {
     for (let i = 0; i < dtAppts.length; i++) {
         const {
             appointment,
@@ -106,6 +101,17 @@ function putDataOnSheet(dtAppts, range, targetDateStr) {
             sedCellVal = `${sedativeName} last filled ${dateString}`;
         }
         hasSedCell.setValue(sedCellVal);
+
+        const apptTypeCell = range.offset(i, 8, 1, 1);
+        let apptCellText = '';
+        if (ALL_NDA_DVM_APPT_IDS.has(Number(appointment.details.appointment_type_id))) {
+            apptCellText = 'DVM';
+        }
+        else if (ALL_NDA_TECH_APPT_IDS.has(Number(appointment.details.appointment_type_id))) {
+            apptCellText = 'tech';
+        }
+        apptTypeCell.setValue(apptCellText);
+        
     }
 }
 

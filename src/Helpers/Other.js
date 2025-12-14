@@ -145,3 +145,15 @@ function extractChckupClientNotes(str) {
 function simpleTextToRichText(text) {
   return SpreadsheetApp.newRichTextValue().setText(text).build();
 }
+
+function containsValidNdaIds(
+  allPossResourceIds,
+  allPossApptIds,
+  incomingResourceIds,
+  incomingApptId,
+) {
+  return incomingResourceIds.some(id => allPossResourceIds.includes(Number(id)))
+    // is in a scheduled appt column
+    && allPossApptIds.includes(Number(incomingApptId));
+  // is a scheduled appt type
+}

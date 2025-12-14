@@ -10,6 +10,12 @@ const UA_LOC_SHEET_NAMES_MAP = {
     'White Center': WC_SHEET_NAME,
 };
 
+const UA_LOC_BG_COLOR_MAP = {
+    [CH_SHEET_NAME]: '#6d9eeb',
+    [DT_SHEET_NAME]: '#76a5af',
+    [WC_SHEET_NAME]: '#d5a6bd'
+}
+
 const EV_PROXY = 'https://api.ezyvet.com';
 const SITE_PREFIX = 'https://urbananimalnw.usw2.ezyvet.com';
 
@@ -19,8 +25,8 @@ const USER_TIMEZONE = 'America/Los_Angeles';
 
 const DATE_STRING_PATTERN = 'EEEE MM/dd/yyyy';
 
-const DT_NDA_ROW_START_NUMBER = 15;
-const DT_NDA_COORDS = `K${DT_NDA_ROW_START_NUMBER}:R85`;
+// const DT_NDA_ROW_START_NUMBER = 15;
+// const DT_NDA_COORDS = `K${DT_NDA_ROW_START_NUMBER}:R85`;
 
 const SAME_FAM_STRING = '^same fam^';
 
@@ -283,12 +289,48 @@ APPT_CATEGORIES.forEach(category => {
     });
 });
 
+const DT_APPT_TYPE_ID = 79;// downtown - appointment
+const DT_15_45_APPT_TYPE_ID = 95; // Downtown - Appointment (:15/:45)
+const DT_SAME_DAY_SICK_APPT_TYPE_ID = 93;// Downtown - Same Day Sick
+const DT_TECH_APPT_TYPE_ID = 85; // dt tech appointment
+
+
+const DT_NDA_APPT_IDS = [
+    DT_APPT_TYPE_ID,
+    DT_15_45_APPT_TYPE_ID,
+    DT_SAME_DAY_SICK_APPT_TYPE_ID,
+    DT_TECH_APPT_TYPE_ID
+];
+
+const CH_AND_WC_APPT_IDS = [
+    ...CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds,
+    EZYVET_SCHEDULED_TECH_APPT_TYPE_ID,
+];
+
+const NDA_APPT_TYPES_MAP = {
+    [CH_SHEET_NAME]: CH_AND_WC_APPT_IDS,
+    [DT_SHEET_NAME]: DT_NDA_APPT_IDS,
+    [WC_SHEET_NAME]: CH_AND_WC_APPT_IDS,
+}
+
+const ALL_NDA_DVM_APPT_IDS = new Set([
+    ...CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds,
+    DT_APPT_TYPE_ID,
+    DT_15_45_APPT_TYPE_ID,
+    DT_SAME_DAY_SICK_APPT_TYPE_ID,
+]);
+
+const ALL_NDA_TECH_APPT_IDS = new Set([
+    DT_TECH_APPT_TYPE_ID,
+    EZYVET_SCHEDULED_TECH_APPT_TYPE_ID,
+]);
+
 // ezyvet resource ids
 const CH_PROCEDURE_1_RESOURCE_ID = 29;
 const CH_PROCEDURE_2_RESOURCE_ID = 30;
 const CH_IM_RESOURCE_ID = 27;
 const CH_IM_PROCEDURE_RESOURCE_ID = 65;
-const CH_DVM_4_APPTS_RESOURCE_ID = 1063;
+const CH_DVM_4_APPTS_RESOURCE_ID = 1063; // scheduled appointments
 const CH_TECH_RESOURCE_ID = 28;
 const CH_TNT_AGE_RESOURCE_ID = 1066;
 const WC_TNT_AGE_RESOURCE_ID = 973;
@@ -308,6 +350,24 @@ const SCHEDULED_DVM_APPTS_RESOURCE_IDS = [
     CH_DVM_4_APPTS_RESOURCE_ID,
     WC_DVM_3_APPTS_RESOURCE_ID
 ];
+
+const DT_SCHED_RESOURCE_IDS = [...DT_DVM_RESOURCE_IDS, DT_TECH_RESOURCE_ID];
+
+const CH_SCHED_RESOURCE_IDS = [
+    CH_DVM_4_APPTS_RESOURCE_ID,
+    CH_TECH_RESOURCE_ID
+];
+
+const WC_SCHED_RESOURCE_IDS = [
+    WC_DVM_3_APPTS_RESOURCE_ID,
+    WC_TECH_RESOURCE_ID,
+];
+
+const NDA_SCHEDULED_RESOURCES_MAP = {
+    [CH_SHEET_NAME]: CH_SCHED_RESOURCE_IDS,
+    [DT_SHEET_NAME]: DT_SCHED_RESOURCE_IDS,
+    [WC_SHEET_NAME]: WC_SCHED_RESOURCE_IDS,
+}
 
 const SCHEDULED_PROCEDURES_RESOURCE_IDS = [
     CH_PROCEDURE_1_RESOURCE_ID,
@@ -331,18 +391,6 @@ const NON_PROCEDURE_SCHEDULED_APPT_RESOURCE_IDS = [
 ];
 
 const IM_RESOURCE_IDS = [CH_IM_RESOURCE_ID, CH_IM_PROCEDURE_RESOURCE_ID];
-
-// dt
-const DT_DVM_APPT_IDS = [
-    79, // downtown - appointment
-    95, // Downtown - Appointment (:15/:45)
-    93, // Downtown - Same Day Sick
-];
-
-function CONTAINS_VALID_DT_NDA_IDS(resourceIds, apptTypeId) {
-    return resourceIds.some(id => DT_DVM_RESOURCE_IDS.includes(Number(id))) // is in a DT exam column
-        && DT_DVM_APPT_IDS.includes(Number(apptTypeId)); // is a dt doctor exam type
-};
 
 const WC_SX_LOBBY_STATUS_ID = 44;
 const CAT_LOBBY_STATUS_ID = 40;

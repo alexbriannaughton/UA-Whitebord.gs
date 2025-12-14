@@ -8,14 +8,14 @@ async function processRecords(animalAttachmentData, consultAttachmentData, dtApp
 
     for (let i = 0; i < dtAppts.length; i++) {
         const animalName = `${dtAppts[i].animal.name} ${dtAppts[i].contact.last_name}`;
-        
+
         const consultAttachments = consultAttachmentData[i];
         const animalAttachments = animalAttachmentData[i];
         const numOfAttachments = animalAttachments.length + consultAttachments.length;
         console.log(`processing ${numOfAttachments} record(s) for ${animalName}...`);
 
         // if there's a ton of records, or if there's zero attachments,
-        if (numOfAttachments > 19) {
+        if (numOfAttachments > 10) {
             dtAppts[i].records = {
                 text: `${numOfAttachments} attachments...`,
             };
@@ -212,23 +212,28 @@ function getAttDLErrorDetails(fileNameInEzyVet, errorMessage = undefined) {
     }
 }
 
-function driveFolderProcessing(targetDateStr) {
-    const folderNamePrefix = 'ezyVet-attachments-';
+function driveFolderProcessing(targetDateStr, uaLoc) {
+    const folderPrefix = `ezyVet-attachments-${uaLoc}-`;
+    const newFolderName = `${folderPrefix}${targetDateStr}`;
+
     console.log('getting drive folders...');
     const rootFolders = DriveApp.getFolders();
 
-    console.log('trashing old ezyvet folders...');
+    console.log('trashing old ezyvet folders for location:', uaLoc);
+
     while (rootFolders.hasNext()) {
         const folder = rootFolders.next();
-        const folderName = folder.getName();
-        if (folderName.includes(folderNamePrefix)) {
+        const name = folder.getName();
+
+        // Only trash folders for THIS location
+        if (name.startsWith(folderPrefix)) {
             folder.setTrashed(true);
         }
     }
 
     console.log(`creating new drive folder for ${targetDateStr}...`);
-    const ezyVetFolder = DriveApp.createFolder(folderNamePrefix + targetDateStr);
-    ezyVetFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    const newFolder = DriveApp.createFolder(newFolderName);
+    newFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
 
-    return ezyVetFolder;
+    return newFolder;
 }

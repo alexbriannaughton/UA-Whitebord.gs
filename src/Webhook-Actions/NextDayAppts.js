@@ -1,11 +1,49 @@
-function handleNextDayDtAppt(appointment, uaLocSheetName) {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
-    const range = sheet.getRange(DT_NDA_COORDS);
+function handleNextDayAppt(appointment, uaLoc) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
+
+    // ⬇️ dynamic range for this location’s NDAs, A:I
+    let range = getNdaRangeForLoc(sheet, uaLoc); // <-- make this 'let'
+
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
-    if (!appointment.active) return handleDeleteRow(existingRow, range);
+    if (!appointment.active) return handleDeleteRow(existingRow, range, uaLoc);
 
-    const rowRange = existingRow ? existingRow : highestEmptyRow;
+    // --- ensure we have a rowRange; if none, insert a row at bottom of range ---
+    let rowRange = existingRow ? existingRow : highestEmptyRow;
+
+    if (!rowRange) {
+        // insert a new row just after the current NDA block
+        const insertRowIndex = range.getLastRow() + 1;
+
+        // insert a row into the sheet; this pushes everything below down
+        sheet.insertRows(insertRowIndex, 1);
+
+        // extend the NDA range to include this new row
+        const newNumRows = range.getNumRows() + 1;
+        range = sheet.getRange(
+            range.getRow(),
+            range.getColumn(),
+            newNumRows,
+            range.getNumColumns()
+        );
+
+        // get the row range for the newly inserted row (A:I on that row)
+        rowRange = sheet.getRange(
+            insertRowIndex,
+            range.getColumn(),
+            1,
+            range.getNumColumns()
+        );
+
+        // optional: set border on the new row like other new rows
+        rowRange.setBorder(true, true, true, true, true, true);
+        rowRange.setBackground('#ffffff');
+    }
+
+    const locationCell = rowRange.offset(0, 9, 1, 1); // column J = location
+    const locationBgColor = UA_LOC_BG_COLOR_MAP[uaLoc];
+    locationCell.setValue(uaLoc);
+    if (locationBgColor) locationCell.setBackground(locationBgColor);
 
     const existingRowRichText = rowRange.getRichTextValues();
 
@@ -13,12 +51,11 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
     let timeCellString = incomingTimeValue;
     const timeCellValBeforeUpdating = existingRowRichText[0][0].getText();
     if (timeCellValBeforeUpdating === SAME_FAM_STRING) {
-        // get the value of the time were pointing to
         let foundCoorespondingTimeCellVal;
         let rowOffset = -1;
         while (!foundCoorespondingTimeCellVal || rowOffset < -10) {
             const rowRangeAbove = rowRange.offset(rowOffset, 0);
-            const timeCellVal = rowRangeAbove.getValue(); // note api call within a loop, not ideal
+            const timeCellVal = rowRangeAbove.getValue();
             if (timeCellVal !== SAME_FAM_STRING) {
                 foundCoorespondingTimeCellVal = timeCellVal;
                 break;
@@ -28,7 +65,6 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
         if (!foundCoorespondingTimeCellVal) {
             throw new Error(`unable to find corresponding time cell val at handleNextDayDtAppts(): ${appointment}`);
         }
-        // if the value is within 1 hour of the incoming value, keep the time cell val to have SAME_FAM_STRING
         const timeDifferenceMs = Math.abs(incomingTimeValue - foundCoorespondingTimeCellVal);
         const timeDifferenceHours = timeDifferenceMs / (1000 * 60 * 60);
         if (timeDifferenceHours <= 1) {
@@ -39,18 +75,17 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
     let ptCellRichText;
     let fractiousCellRichText;
     let seeChartRichText;
-    if (highestEmptyRow) {
-        highestEmptyRow.setBorder(true, true, true, true, true, true);
+    if (highestEmptyRow || !existingRow) {
+        // treat newly inserted rows the same as "highestEmptyRow" rows
+        rowRange.setBorder(true, true, true, true, true, true);
         const { ptCellLink, isHostile, seeChartLink } = fetchForDataAndMakeLink(appointment);
         ptCellRichText = ptCellLink;
         const fractiousCellText = isHostile ? 'yes' : 'no';
         fractiousCellRichText = simpleTextToRichText(fractiousCellText);
         seeChartRichText = seeChartLink;
-    }
-    else if (existingRow) {
+    } else if (existingRow) {
         ptCellRichText = existingRowRichText[0][1];
-    }
-    else if (!ptCellRichText) {
+    } else if (!ptCellRichText) {
         throw new Error('couldnt make rich text value for incoming patient name');
     }
 
@@ -71,7 +106,8 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
         ]);
     }
 
-    if (highestEmptyRow) {
+    if (!existingRow) {
+        // covers both highestEmptyRow and newly inserted row
         rowRange.offset(0, 1, 1, 7).setRichTextValues([
             [ptCellRichText, depositPaidRichtext, reasonCellRichText, seeChartRichText, seeChartRichText, fractiousCellRichText, seeChartRichText]
         ]);
@@ -79,10 +115,10 @@ function handleNextDayDtAppt(appointment, uaLocSheetName) {
 
     rowRange.offset(0, 0, 1, 1).setValue(timeCellString);
 
-    resortDtAppts(range);
+    // use the (possibly extended) range
+    resortAppts(range);
 
     return;
-
 }
 
 function fetchForDataAndMakeLink(appointment) {
@@ -99,11 +135,9 @@ function fetchForDataAndMakeLink(appointment) {
     return { ptCellLink, isHostile, seeChartLink };
 }
 
-function resortDtAppts(
-    range = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(DT_SHEET_NAME).getRange(DT_NDA_COORDS)
-) {
+function resortAppts(range) {
     const vals = range.getValues();
-    const numOfAppts = getNumOfApptRows(vals);
+    const numOfAppts = range.getNumRows();
     const richTextVals = range.getRichTextValues();
 
     const apptRichTexts = richTextVals.slice(0, numOfAppts);
@@ -185,20 +219,6 @@ function resortDtAppts(
     range.offset(0, 0, range.getNumRows(), 1).setNumberFormat('h:mma/p');
 }
 
-function getNumOfApptRows(vals) {
-    let numOfAppts;
-    for (let i = 0; i < vals.length; i++) {
-        if (vals[i][0] === '') {
-            numOfAppts = i;
-            break;
-        }
-    }
-    if (!numOfAppts) {
-        throw new Error(`num of appts is ${numOfAppts} when trying to count the appointment rows`);
-    }
-    return numOfAppts;
-}
-
 function getFirstSameFamTime(apptVals, i) {
     let j = i - 1;
     while (j >= 0) {
@@ -217,36 +237,56 @@ function getAnimaIdFromCellRichText(richText) {
     return curApptAnimalID;
 }
 
-function handleDeleteRow(existingRow, range) {
+function handleDeleteRow(existingRow, range, uaLoc) {
     if (!existingRow) return;
 
     const vals = range.getValues();
+    const numOfAppts = range.getNumRows(); // whole range is appts now
+    if (numOfAppts === 0) return;
 
-    const numOfAppts = getNumOfApptRows(vals);
-    if (!numOfAppts) return;
+    // index of row inside this range (0-based)
+    const existingRowIndexWithinRange = existingRow.getRow() - range.getRow();
 
-    const existingRowIndexWithinRange = existingRow.getRow() - DT_NDA_ROW_START_NUMBER;
+    // sanity guard: if somehow outside, bail
+    if (existingRowIndexWithinRange < 0 || existingRowIndexWithinRange >= numOfAppts) {
+        return;
+    }
 
     const existingRowTimeValue = vals[existingRowIndexWithinRange][0];
-    let nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
 
-    if (nextRowTimeValue === SAME_FAM_STRING && existingRowTimeValue !== SAME_FAM_STRING) {
-        let totalNumOfRowsPointingToExistingRowTime = 0;
-        while (nextRowTimeValue === SAME_FAM_STRING) {
-            totalNumOfRowsPointingToExistingRowTime++;
-            nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime][0];
+    // if it's the last row, there is no "next" row to inspect
+    if (existingRowIndexWithinRange < numOfAppts - 1) {
+        let nextRowTimeValue = vals[existingRowIndexWithinRange + 1][0];
+
+        if (nextRowTimeValue === SAME_FAM_STRING && existingRowTimeValue !== SAME_FAM_STRING) {
+            let totalNumOfRowsPointingToExistingRowTime = 0;
+
+            // walk down while SAME_FAM_STRING and within bounds
+            while (
+                existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime < numOfAppts &&
+                nextRowTimeValue === SAME_FAM_STRING
+            ) {
+                totalNumOfRowsPointingToExistingRowTime++;
+                nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime][0];
+            }
+
+            const rowsInSameFam = range.offset(
+                existingRowIndexWithinRange + 1,
+                0,
+                totalNumOfRowsPointingToExistingRowTime
+            );
+            const nextRowRichText = rowsInSameFam.getRichTextValues();
+            const animalIDs = [];
+            for (let k = 0; k < nextRowRichText.length; k++) {
+                const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[k][1]);
+                animalIDs.push(nextRowAnimalID);
+            }
+
+            if (animalIDs.length > 0) {
+                const nextRowDate = getActualStartTime(animalIDs, uaLoc);
+                range.offset(existingRowIndexWithinRange + 1, 0, 1, 1).setValue(nextRowDate);
+            }
         }
-
-        const rowsInSameFam = range.offset(existingRowIndexWithinRange + 1, 0, totalNumOfRowsPointingToExistingRowTime);
-        const nextRowRichText = rowsInSameFam.getRichTextValues();
-        const animalIDs = [];
-        for (let k = 0; k < nextRowRichText.length; k++) {
-            const nextRowAnimalID = getAnimaIdFromCellRichText(nextRowRichText[k][1]);
-            animalIDs.push(nextRowAnimalID);
-        }
-
-        const nextRowDate = getActualStartTime(animalIDs);
-        range.offset(existingRowIndexWithinRange + 1, 0, 1, 1).setValue(nextRowDate);
     }
 
     // grab all the appointments below (if its not the last appointment) and paste them one row up
@@ -257,27 +297,22 @@ function handleDeleteRow(existingRow, range) {
             0,
             numOfApptsBelowDeleted
         );
-        // paste them in, starting from the existing row
         const targetRange = range.offset(
             existingRowIndexWithinRange,
             0,
-            numOfAppts - 1 - existingRowIndexWithinRange
+            numOfApptsBelowDeleted
         );
         rowsBelow.copyTo(targetRange);
     }
 
     // delete the last appointment, reset its format
-    range.offset(numOfAppts - 1, 0, 1)
-        .clearContent()
-        .setFontColor("black")
-        .setBackground("white")
-        .setFontLine("none")
-        .setBorder(true, false, false, false, false, false);
-
+    // remove the now-empty trailing row so the section doesn't leave a gap
+    const lastRowIndex = range.getRow() + numOfAppts - 1;
+    range.getSheet().deleteRow(lastRowIndex);
 }
 
-function getActualStartTime(animalIDs) {
-    const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextDtAppts);
+function getActualStartTime(animalIDs, uaLoc) {
+    const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(daysToNextApptsByUaLoc[uaLoc]);
     const encodedTime = `start_time=${encodeURIComponent(JSON.stringify({ ">": targetDayStart, "<": targetDayEnd }))}`;
     const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": animalIDs }));
     const url = `${EV_PROXY}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}`;
@@ -289,4 +324,57 @@ function getActualStartTime(animalIDs) {
     const startTimes = appts.map(({ appointment }) => Number(appointment.start_time));
     const minStartTime = Math.min(...startTimes);
     return new Date(minStartTime * 1000);
+}
+
+function getNdaRangeForLoc(sheet, uaLoc) {
+    const headerText = `${uaLoc}-\n`;
+    const lastRow = sheet.getLastRow();
+    if (!lastRow) {
+        throw new Error('Sheet is empty when trying to find NDA range');
+    }
+
+    const colAValues = sheet.getRange(1, 1, lastRow, 1).getValues();
+    // 1. Find the header row for this location/date
+    let headerRow = null;
+    for (let i = 0; i < colAValues.length; i++) {
+        const cellVal = colAValues[i][0];
+        if (typeof cellVal === "string" && cellVal.startsWith(headerText)) {
+            headerRow = i + 1; // 1-based
+            break;
+        }
+    }
+
+    if (!headerRow) {
+        throw new Error(`Could not find NDA header for ${headerText} in column A`);
+    }
+
+    const startRow = headerRow + 1; // first NDA row
+
+    // 2. Find where this NDA block ends
+    let endRow = lastRow;
+    for (let i = startRow; i <= lastRow; i++) {
+        const cellVal = colAValues[i - 1][0];
+
+        // blank row -> end of block
+        if (cellVal === '' || cellVal === null) {
+            endRow = i - 1;
+            break;
+        }
+
+        // next header (any cell with a newline) -> end before this row
+        if (typeof cellVal === 'string' && cellVal.includes('\n') && i !== headerRow) {
+            endRow = i - 1;
+            break;
+        }
+    }
+
+    if (endRow < startRow) {
+        throw new Error(`No NDA rows found under header ${headerText}`);
+    }
+
+    const numRows = endRow - startRow + 1;
+    const FIRST_COL = 1;   // A
+    const NUM_COLS = 10;    // A:I
+
+    return sheet.getRange(startRow, FIRST_COL, numRows, NUM_COLS);
 }

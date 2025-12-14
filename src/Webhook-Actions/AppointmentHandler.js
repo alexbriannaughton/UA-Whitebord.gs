@@ -10,26 +10,38 @@ function handleAppointment(webhookType, appointment) {
     // below here is for this sheet
     if (UNHANDLED_APPT_TYPE_IDS.includes(appointment.type_id)) return;
 
-    const uaLoc = whichLocation(appointment.resources[0].id);
-    const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc];
+    const uaLocFullName = whichLocation(appointment.resources[0].id);
+    const uaLoc = UA_LOC_SHEET_NAMES_MAP[uaLocFullName];
 
-    const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
+    const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfAppts(appointment, uaLoc);
+    const incomingResourceIds = appointment.resources.map(({ id }) => id);
+    const incomingApptId = appointment.type_id;
+    const isValidDtNda = isOnNextDayOfDtAppts && containsValidNdaIds(
+        NDA_SCHEDULED_RESOURCES_MAP[uaLoc],
+        NDA_APPT_TYPES_MAP[uaLoc],
+        incomingResourceIds,
+        incomingApptId,
+    );
 
-    if (uaLocSheetName === DT_SHEET_NAME) {
-        return handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap);
-    }
+    if (isValidDtNda) return handleNextDayAppt(appointment, uaLoc);
 
     const isToday = isTodayInUserTimezone(appointment);
     if (!isToday) return;
 
+    const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
+
+    if (uaLoc === DT_SHEET_NAME) {
+        return handleDTAppointment(appointment, uaLoc, locationToRoomCoordsMap);
+    }
+
     if (!appointment.active) {
-        return handleInactiveApptOnWaitlist(appointment, uaLocSheetName);
+        return handleInactiveApptOnWaitlist(appointment, uaLoc);
     }
 
     appointment.description = extractChckupClientNotes(appointment.description);
 
     if (locationToRoomCoordsMap) {
-        return moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap);
+        return moveToRoom(appointment, uaLoc, locationToRoomCoordsMap);
     }
 
     const nonDtStatusHandlers = {
@@ -44,18 +56,18 @@ function handleAppointment(webhookType, appointment) {
 
     const statusHandler = nonDtStatusHandlers[appointment.status_id];
 
-    if (statusHandler) return statusHandler(appointment, uaLocSheetName);
+    if (statusHandler) return statusHandler(appointment, uaLoc);
 
     if (webhookType === 'appointment_created') {
         const apptTypeID = appointment.type_id;
 
         // appointment type 37 is a walk in and appointment type 77 is a new client walk in
         if (apptTypeID === 37 || apptTypeID === 77) {
-            return addToWaitlist(appointment, uaLocSheetName);
+            return addToWaitlist(appointment, uaLoc);
         }
 
         else if (EZYVET_WORK_IN_TECH_APPT_TYPE_ID === apptTypeID) {
-            return addTechAppt(appointment, uaLocSheetName);
+            return addTechAppt(appointment, uaLoc);
         }
     }
 
@@ -76,17 +88,9 @@ function handleEchoOrAUS(appointment, sheetName) {
     return;
 }
 
-function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMap) {
-    const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfDtAppts(appointment);
-    const isValidDtNda = isOnNextDayOfDtAppts && CONTAINS_VALID_DT_NDA_IDS(
-        appointment.resources.map(({ id }) => id),
-        appointment.type_id
-    )
-
-    if (isValidDtNda) return handleNextDayDtAppt(appointment, uaLocSheetName);
-
+function handleDTAppointment(appointment, uaLoc, locationToRoomCoordsMap) {
     if (locationToRoomCoordsMap) { // this would mean that its a room status
-        return moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap);
+        return moveToRoom(appointment, uaLoc, locationToRoomCoordsMap);
     }
 
     const dtStatusHandlers = {
@@ -97,5 +101,5 @@ function handleDTAppointment(appointment, uaLocSheetName, locationToRoomCoordsMa
 
     const handler = dtStatusHandlers[appointment.status_id];
 
-    return handler ? handler(appointment, uaLocSheetName) : null;
+    return handler ? handler(appointment, uaLoc) : null;
 }
