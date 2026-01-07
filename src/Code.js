@@ -7,13 +7,13 @@ function doPost(e) {
     getCacheVals();
 
     for (const { appointment } of apptItems) {
-      const secondsSinceModified = (Math.floor(Date.now() / 1000)) - appointment.modified_at;
+      // const secondsSinceModified = (Math.floor(Date.now() / 1000)) - appointment.modified_at;
 
-      if (secondsSinceModified > 60) {
-        console.log('Appointment modified more than 1 minute ago');
-        console.log('Params:', params);
-        console.log('Appointment:', appointment);
-      }
+      // if (secondsSinceModified > 60) {
+      //   console.log('Appointment modified more than 1 minute ago');
+      //   console.log('Params:', params);
+      //   console.log('Appointment:', appointment);
+      // }
       handleAppointment(params.meta.event, appointment);
     }
 
