@@ -7,6 +7,10 @@ function doPost(e) {
     getCacheVals();
 
     for (const { appointment } of apptItems) {
+      if (appointment.animal_id === 112078) {
+        console.log(params);
+        console.log(appointment);
+      }
       handleAppointment(params.meta.event, appointment);
     }
 
