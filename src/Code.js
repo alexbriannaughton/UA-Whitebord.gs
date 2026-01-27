@@ -2,21 +2,10 @@
 function doPost(e) {
   try {
     const params = JSON.parse(e.postData.contents);
-    const apptItems = params.items;
 
     getCacheVals();
 
-    const metaTimestamp = params?.meta?.timestamp;
-    for (const { appointment } of apptItems) {
-      const secondsFromMetaToModified = Math.abs(metaTimestamp - appointment.modified_at);
-
-      if (secondsFromMetaToModified > 60) {
-        console.log('Meta timestamp more than 1 minute from appointment modified_at');
-        console.log('Params:', params);
-        console.log('Appointment:', appointment);
-      }
-      handleAppointment(params.meta.event, appointment);
-    }
+    processAppointments(params);
 
     return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
   }
@@ -27,12 +16,8 @@ function doPost(e) {
     Utilities.sleep(3000);
     try {
       const params = JSON.parse(e.postData.contents);
-      console.log('second try appointment objects: ', params?.items);
-      const apptItems = params.items;
-
-      for (const { appointment } of apptItems) {
-        handleAppointment(params.meta.event, appointment);
-      }
+      console.log('second try doPost');
+      processAppointments(params);
 
       return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
     }
@@ -45,6 +30,23 @@ function doPost(e) {
   }
 
 };
+
+function processAppointments(params) {
+  const apptItems = params.items;
+  const metaTimestamp = params?.meta?.timestamp;
+
+  for (const { appointment } of apptItems) {
+    const secondsFromMetaToModified = Math.abs(metaTimestamp - appointment.modified_at);
+    const isToday = isTodayInUserTimezone(appointment);
+
+    if (secondsFromMetaToModified > 60 && isToday) {
+      console.log('Meta timestamp more than 1 minute from appointment modified_at');
+      console.log('Params:', params);
+      console.log('Appointment:', appointment);
+    }
+    handleAppointment(params.meta.event, appointment, isToday);
+  }
+}
 
 function doGet(_e) {
   try {
