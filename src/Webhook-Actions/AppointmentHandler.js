@@ -1,4 +1,4 @@
-function handleAppointment(webhookType, appointment) {
+function handleAppointment(webhookType, appointment, isToday) {
     // first, send to aus/echo tracker sheet/script if its an echo or aus
     if (ECHO_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id)) {
         handleEchoOrAUS(appointment, 'Echos');
@@ -25,7 +25,6 @@ function handleAppointment(webhookType, appointment) {
 
     if (isValidDtNda) return handleNextDayAppt(appointment, uaLoc);
 
-    const isToday = isTodayInUserTimezone(appointment);
     if (!isToday) return;
 
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
