@@ -6,14 +6,15 @@ function doPost(e) {
 
     getCacheVals();
 
+    const metaTimestamp = params?.meta?.timestamp;
     for (const { appointment } of apptItems) {
-      // const secondsSinceModified = (Math.floor(Date.now() / 1000)) - appointment.modified_at;
+      const secondsFromMetaToModified = Math.abs(metaTimestamp - appointment.modified_at);
 
-      // if (secondsSinceModified > 60) {
-      //   console.log('Appointment modified more than 1 minute ago');
-      //   console.log('Params:', params);
-      //   console.log('Appointment:', appointment);
-      // }
+      if (secondsFromMetaToModified > 60) {
+        console.log('Meta timestamp more than 1 minute from appointment modified_at');
+        console.log('Params:', params);
+        console.log('Appointment:', appointment);
+      }
       handleAppointment(params.meta.event, appointment);
     }
 
