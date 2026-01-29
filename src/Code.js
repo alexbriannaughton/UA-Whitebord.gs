@@ -2,11 +2,8 @@
 function doPost(e) {
   try {
     const params = JSON.parse(e.postData.contents);
-
     getCacheVals();
-
     processAppointments(params);
-
     return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -18,7 +15,6 @@ function doPost(e) {
       const params = JSON.parse(e.postData.contents);
       console.log('second try doPost');
       processAppointments(params);
-
       return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -39,8 +35,9 @@ function processAppointments(params) {
     const secondsFromMetaToModified = Math.abs(metaTimestamp - appointment.modified_at);
     const isToday = isTodayInUserTimezone(appointment);
 
-    if (secondsFromMetaToModified > 60 && isToday) {
-      console.log('Meta timestamp more than 1 minute from appointment modified_at');
+    if (secondsFromMetaToModified > (60 * 5)) {
+      if (isToday) console.log('IS TODAY!');
+      console.log('More than five minute delay!');
       console.log('Params:', params);
       console.log('Appointment:', appointment);
     }
