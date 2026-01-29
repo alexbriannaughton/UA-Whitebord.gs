@@ -6,8 +6,6 @@ async function runAllNdaJobs() {
     // Baseline formatting once at the top
     setBaselineNdaConditionalFormatting(ndaSheet);
 
-    // get pdf lib
-
     // DT first, as the main block at A3
     await executeNdaJob(ndaSheet, DT_SHEET_NAME, { isFirstSection: true });
 
