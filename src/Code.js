@@ -29,17 +29,19 @@ function doPost(e) {
 
 function processAppointments(params) {
   const apptItems = params.items;
-  const metaTimestamp = params?.meta?.timestamp;
+  const metaTimestamp = params.meta.timestamp;
+  const isCreatedAppt = params.meta.event === 'appointment_created';
 
   for (const { appointment } of apptItems) {
     const secondsFromMetaToModified = Math.abs(metaTimestamp - appointment.modified_at);
     const isToday = isTodayInUserTimezone(appointment);
-
-    if (secondsFromMetaToModified > (60 * 5)) {
-      if (isToday) console.log('IS TODAY!');
-      console.log('More than five minute delay!');
+    const isMoreThanFiveMinsDelayed = secondsFromMetaToModified > (60 * 5);
+    if (isToday && isMoreThanFiveMinsDelayed && isCreatedAppt) {
+      console.log('MORE THAN 5 MINS DELAY!');
       console.log('Params:', params);
-      console.log('Appointment:', appointment);
+      apptItems.forEach(({appointment}, i) => {
+        console.log(`appt ${i}:`, appointment);
+      });
     }
     handleAppointment(params.meta.event, appointment, isToday);
   }
