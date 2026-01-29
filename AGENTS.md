@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+## Workspace Defaults
+- Also follow the shared workspace rules in `../AGENTS.md`.
+
 ## Project Structure & Module Organization
 - Google Apps Script project; entrypoints in `src/Code.js` (`doPost` for ezyVet webhooks, `doGet` for sheet reads).
 - Shared configuration and token helpers live in `src/Config.js`, cache handling in `src/Cache.js`, constants in `src/CONSTANTS.js`.
