@@ -184,19 +184,27 @@ function getRoomColor(appointment, isWCSxRoom) {
   const resourceId = appointment.resources[0].id; // number
   const typeId = appointment.type_id; // number
 
+  // Base color derives from appointment type category.
   let typeCategory = TYPE_ID_TO_CATEGORY.get(typeId);
+  // Resource-based overrides for IM and scheduled DVM buckets.
   if (IM_RESOURCE_IDS.includes(resourceId)) {
     typeCategory = IM_APPT_CATEGORY;
   }
   else if (SCHEDULED_DVM_APPTS_RESOURCE_IDS.includes(resourceId)) {
     typeCategory = CH_AND_WC_SCHEDULED_APPT_CATEGORY;
+    // WC surgery rooms always render scheduled DVM as standard grey.
     if (isWCSxRoom) return STANDARD_GREY;
   }
 
-  // if special type cateogry, use its color
+  // CH DVM 3 scheduled gets its own teal to differentiate from standard scheduled DVM.
+  if (typeCategory === CH_AND_WC_SCHEDULED_APPT_CATEGORY && resourceId === CH_DVM_3_APPTS_RESOURCE_ID) {
+    return '#7fc7b5';
+  }
+
+  // If the category defines a color, use it directly.
   if (typeCategory?.color) return typeCategory.color;
 
-  // if in proecure column make it orangish, else make it grey
+  // Otherwise: procedures get orange; all other rooms default to grey.
   return SCHEDULED_PROCEDURES_RESOURCE_IDS.includes(resourceId)
     ? OTHER_APPT_COLOR : STANDARD_GREY;
 }
