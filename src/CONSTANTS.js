@@ -330,6 +330,7 @@ const CH_PROCEDURE_1_RESOURCE_ID = 29;
 const CH_PROCEDURE_2_RESOURCE_ID = 30;
 const CH_IM_RESOURCE_ID = 27;
 const CH_IM_PROCEDURE_RESOURCE_ID = 65;
+const CH_DVM_3_APPTS_RESOURCE_ID = 26; // sometimes scheduled appointments
 const CH_DVM_4_APPTS_RESOURCE_ID = 1063; // scheduled appointments
 const CH_TECH_RESOURCE_ID = 28;
 const CH_TNT_AGE_RESOURCE_ID = 1066;
