@@ -13,7 +13,7 @@
 // status 39 = dog lobby = CH cells: I13, I14, I15
 function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
   const isWCSxRoom = new Set([41, 42, 43, 44]).has(appointment.status_id);
-  
+
   const roomCoords = locationToRoomCoordsMap[uaLocSheetName]; // change this so it gets all 9 cells
 
   // if we're moving into a room that doesn't exist... don't do that
@@ -197,7 +197,7 @@ function getRoomColor(appointment, isWCSxRoom) {
   }
 
   // CH DVM 3 scheduled gets its own teal to differentiate from standard scheduled DVM.
-  if (typeCategory === CH_AND_WC_SCHEDULED_APPT_CATEGORY && resourceId === CH_DVM_3_APPTS_RESOURCE_ID) {
+  if (IS_CH_EXTRA_APPT_COLUMN(typeCategory, resourceId)) {
     return '#7fc7b5';
   }
 

@@ -16,12 +16,15 @@ function processProcedures(apptItems) {
     apptItems.sort((a, b) => a.appointment.start_time - b.appointment.start_time);
 
     apptItems.forEach(({ appointment }) => {
-        const resourceID = Number(appointment.details.resource_list[0]);
-        const isScheduledNonProcedure = NON_PROCEDURE_SCHEDULED_APPT_RESOURCE_IDS.includes(resourceID);
+        const resourceId = Number(appointment.details.resource_list[0]);
+        const isScheduledNonProcedure = NON_PROCEDURE_SCHEDULED_APPT_RESOURCE_IDS.includes(resourceId);
         if (isScheduledNonProcedure) return;
-        if (UNHANDLED_APPT_TYPE_IDS.includes(Number(appointment.details.appointment_type_id))) return;
-        const uaLoc = whichLocation(resourceID);
-        const procedure = getColorAndSortValue(appointment.details, resourceID);
+        const typeId = Number(appointment.details.appointment_type_id);
+        const typeCategory = TYPE_ID_TO_CATEGORY.get(typeId);
+        if (IS_CH_EXTRA_APPT_COLUMN(typeCategory, resourceId)) return;
+        if (UNHANDLED_APPT_TYPE_IDS.includes(typeId)) return;
+        const uaLoc = whichLocation(resourceId);
+        const procedure = getColorAndSortValue(appointment.details, resourceId);
         const uaLocSheetName = UA_LOC_SHEET_NAMES_MAP[uaLoc];
         allLocationProcedures.get(uaLocSheetName).push(procedure);
     });
