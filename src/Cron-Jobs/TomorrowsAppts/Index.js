@@ -103,7 +103,9 @@ function filterAndSortAppts(allTargetDayAppts, uaLoc) {
 async function getAllEzyVetData(appts, targetDateStr, uaLoc) {
     // ezyvet endpoints: animal, contact, consults, prescriptions, attachments of animal_id
     const animalAttachmentData = firstRoundOfFetches(appts);
-    const ezyVetFolder = driveFolderProcessing(targetDateStr, uaLoc);
+    const ezyVetFolder = ENABLE_NDA_ATTACHMENT_DOWNLOADS
+        ? driveFolderProcessing(targetDateStr, uaLoc)
+        : null;
     // get more data for every appointment for the following endponts:
     // prescription items, other animals of contact, attachments based on all of the animal's consults
     const consultAttachmentData = secondRoundOfFetches(appts);
