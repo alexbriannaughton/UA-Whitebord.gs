@@ -1,6 +1,19 @@
 // Records.js
 async function processRecords(animalAttachmentData, consultAttachmentData, dtAppts, ezyVetFolder) {
     console.log('processing all records...')
+    if (!ENABLE_NDA_ATTACHMENT_DOWNLOADS) {
+        for (let i = 0; i < dtAppts.length; i++) {
+            const consultAttachments = consultAttachmentData[i];
+            const animalAttachments = animalAttachmentData[i];
+            const numOfAttachments = animalAttachments.length + consultAttachments.length;
+
+            dtAppts[i].records = numOfAttachments < 1
+                ? { text: 'no attachments' }
+                : { text: `${numOfAttachments} attachment${numOfAttachments > 1 ? 's' : ''}` };
+        }
+        return;
+    }
+
     const cdnjs = "https://cdn.jsdelivr.net/npm/pdf-lib/dist/pdf-lib.min.js";
     console.log('loading PDFLib...');
     eval(UrlFetchApp.fetch(cdnjs).getContentText().replace(/setTimeout\(.*?,.*?(\d*?)\)/g, "Utilities.sleep($1);return t();"));
