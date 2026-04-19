@@ -429,6 +429,11 @@ const ROOM_STATUS_LOCATION_TO_COORDS = {
         [DT_SHEET_NAME]: 'G3:G11',
         [WC_SHEET_NAME]: 'G3:G11'
     },
+    21: { // "in lobby" status. currently only trigger's WC's "Lobby" column
+        [CH_SHEET_NAME]: null,
+        [DT_SHEET_NAME]: null,
+        [WC_SHEET_NAME]: 'H3:H11'
+    },
     29: { // room 6
         [CH_SHEET_NAME]: 'C13:C21',
         [DT_SHEET_NAME]: 'H3:H11',
