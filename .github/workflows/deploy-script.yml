@@ -16,17 +16,13 @@ jobs:
     steps:
       - name: Install clasp
         id: install-clasp
-        run: sudo npm install @google/clasp@2.4.1 -g
+        run: sudo npm install @google/clasp@3.3.0 -g
 
       - name: Write CLASPRC_JSON secret to .clasprc.json file
         id: write-clasprc
-        run: echo "$CLASPRC_JSON_SECRET" >> ~/.clasprc.json
+        run: printf '%s' "$CLASPRC_JSON_SECRET" > ~/.clasprc.json
         env:
           CLASPRC_JSON_SECRET: ${{ secrets.CLASPRC_JSON }}
-
-      - name: Check clasp login status
-        id: clasp_login
-        run: clasp login --status
 
       - name: Save current .clasprc.json contents to CLASPRC_JSON_FILE environment variable
         id: save-clasprc

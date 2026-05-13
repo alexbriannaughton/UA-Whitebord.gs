@@ -241,9 +241,10 @@ function populateMultiplePetRoom(
     : `${curAnimalText.split(" (")[0]}: ${curAnimalReasonText}//\n${incomingAnimalText.split(" (")[0]}: ${appointment.description}${techText(appointment.type_id)}`;
 
   if (!reasonText.includes(TECH_IN_ROOM_TEXT) || !incomingAnimalText.includes(TECH_IN_ROOM_TEXT)) {
-    const isScheduledAppt = CH_AND_WC_SCHEDULED_APPT_CATEGORY.ezyVetTypeIds.includes(appointment.type_id);
-    const bgColor = isScheduledAppt && !isWCSxRoom
-      ? CH_AND_WC_SCHEDULED_APPT_CATEGORY.color // flamingo pink
+    const incomingColor = getRoomColor(appointment, isWCSxRoom);
+    const currentColor = roomRange.offset(0, 0, 1, 1).getBackground();
+    const bgColor = currentColor === incomingColor
+      ? currentColor
       : STANDARD_GREY;
     roomRange.offset(0, 0, 8, 1).setBackground(bgColor);
   }
