@@ -36,7 +36,6 @@ function processAppointments(params) {
     const secondsFromMetaToModified = Math.abs(metaTimestamp - appointment.modified_at);
     const isToday = isTodayInUserTimezone(appointment);
     const isMoreThanFiveMinsDelayed = secondsFromMetaToModified > (60 * 5);
-    
     if (isToday && isMoreThanFiveMinsDelayed && isCreatedAppt) {
       console.log('MORE THAN 5 MINS DELAY!');
       console.log('Params:', params);
