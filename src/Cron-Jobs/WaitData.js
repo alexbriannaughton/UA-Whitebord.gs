@@ -1,5 +1,9 @@
+const WAITLIST_CAP_MANUAL_MODE_PROPERTY = 'waitlist_cap_manual_mode';
+
 function getWaitData(numOfRoomsInUse, sheets) {
-    const desiredCapText = getDesiredWaitlistCapText();
+    const desiredCapText = isManualWaitlistCapMode()
+        ? null
+        : getDesiredWaitlistCapText();
     const waitData = [
         getWaitValsForLocation(CH_SHEET_NAME, numOfRoomsInUse, sheets, desiredCapText),
         getWaitValsForLocation(WC_SHEET_NAME, numOfRoomsInUse, sheets, desiredCapText)
@@ -12,9 +16,9 @@ function getWaitValsForLocation(uaLocSheetName, numOfRoomsInUse, sheets, desired
     const waitlistRange = waitlistSheet.getRange('C2:D4');
     const waitlistVals = waitlistRange.getValues();
     const currentCapText = waitlistVals[0][1];
-    const capText = currentCapText === desiredCapText ? currentCapText : desiredCapText;
+    const capText = desiredCapText === null ? currentCapText : desiredCapText;
 
-    if (currentCapText !== desiredCapText) {
+    if (desiredCapText !== null && currentCapText !== desiredCapText) {
         waitlistRange.offset(0, 1, 1, 1).setValue(desiredCapText);
     }
 
@@ -41,6 +45,12 @@ function checkForCap(capText) {
     const soft_cap = capText === 'Cancellation List Only';
     const hard_cap = capText.includes('Not Currently Accepting Walk-ins');
     return { soft_cap, hard_cap };
+}
+
+function isManualWaitlistCapMode() {
+    return PropertiesService
+        .getScriptProperties()
+        .getProperty(WAITLIST_CAP_MANUAL_MODE_PROPERTY) === 'true';
 }
 
 function getDesiredWaitlistCapText(date = new Date()) {
