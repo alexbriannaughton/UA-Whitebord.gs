@@ -5,7 +5,7 @@
 
 ## Project Structure & Module Organization
 - Google Apps Script project; entrypoints in `src/Code.js` (`doPost` for ezyVet webhooks, `doGet` for sheet reads).
-- Shared configuration and token helpers live in `src/Config.js`, cache handling in `src/Cache.js`, constants in `src/CONSTANTS.js`.
+- Shared configuration and token helpers live in `src/Config.js`, cache handling in `src/ScriptCache.js`, constants in `src/CONSTANTS.js`.
 - Domain logic is split by concern: webhook handlers in `src/Webhook-Actions/`, cron jobs in `src/Cron-Jobs/` (with `TomorrowsAppts/` submodules), and shared utilities in `src/Helpers/`.
 - `src/appsscript.json` defines script metadata; keep it in sync with Apps Script when pushing/pulling.
 
