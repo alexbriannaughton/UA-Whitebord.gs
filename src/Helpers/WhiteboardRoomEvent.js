@@ -27,7 +27,14 @@ function sendRoomPopulatedEvent(appointment, uaLocSheetName) {
 
     const responseCode = response.getResponseCode();
     if (responseCode < 200 || responseCode >= 300) {
-      console.error(`room populated event failed: ${responseCode}`);
+      console.error(
+        `room populated event failed: ${responseCode} ${response.getContentText()}`
+      );
+    }
+    else {
+      console.log(
+        `room populated event sent: ${payload.uaLoc} ${payload.roomLabel} ${payload.eventKey}`
+      );
     }
   }
   catch (error) {
