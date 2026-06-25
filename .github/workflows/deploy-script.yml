@@ -14,9 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Install clasp
         id: install-clasp
-        run: sudo npm install @google/clasp@3.3.0 -g
+        run: npm install @google/clasp@3.3.0 -g
 
       - name: Write CLASPRC_JSON secret to .clasprc.json file
         id: write-clasprc
