@@ -75,6 +75,7 @@ function populateEmptyRoom(
 
   // delete from the waitlist
   deleteFromWaitlist(uaLocSheetName, appointment.consult_id);
+  sendRoomPopulatedEvent(appointment, uaLocSheetName);
 
   return;
 }
@@ -154,7 +155,8 @@ function parseTheRoom(
         alreadyMultiplePets,
         roomRange,
         roomValues,
-        isWCSxRoom
+        isWCSxRoom,
+        uaLocSheetName
       );
 
       deleteFromWaitlist(uaLocSheetName, appointment.consult_id);
@@ -230,7 +232,8 @@ function populateMultiplePetRoom(
   alreadyMultiplePets,
   roomRange,
   roomValues,
-  isWCSxRoom
+  isWCSxRoom,
+  uaLocSheetName
 ) {
   const curAnimalText = roomValues[1][0];
   const curAnimalReasonText = roomValues[2][0];
@@ -258,6 +261,7 @@ function populateMultiplePetRoom(
 
   const reasonCell = roomRange.offset(2, 0, 1, 1);
   reasonCell.setValue(reasonText);
+  sendRoomPopulatedEvent(appointment, uaLocSheetName);
 
   return;
 }
