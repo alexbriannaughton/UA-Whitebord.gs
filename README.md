@@ -2,4 +2,9 @@ I develop and maintain a Google Apps Script for [Urban Animal](https://urbananim
 
 The tool is a Google Sheet that we call the "White Board", and it functions as a real-time tracker for the 20-70 onsite pets actively under the care of Urban Animal. The spreadsheet is used across its three Seattle locations by over 100 employees.
 
-The project utilizes Google Cloud Platform, webhooks from ezyVet's fab API, Github Actions and Javascript. 
+The project utilizes Google Cloud Platform, webhooks from ezyVet's fab API, Github Actions and Javascript.
+
+Room-populated events can also be emitted to the Supabase Edge Function
+`whiteboard-room-event` for location-specific TV sounds. Configure
+`whiteboard_room_event_url` and `whiteboard_room_event_secret` as Apps Script
+properties; the event payload is intentionally minimal and non-PHI.

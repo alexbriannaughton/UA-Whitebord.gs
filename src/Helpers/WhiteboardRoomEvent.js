@@ -31,11 +31,6 @@ function sendRoomPopulatedEvent(appointment, uaLocSheetName) {
         `room populated event failed: ${responseCode} ${response.getContentText()}`
       );
     }
-    else {
-      console.log(
-        `room populated event sent: ${payload.uaLoc} ${payload.roomLabel} ${payload.eventKey}`
-      );
-    }
   }
   catch (error) {
     console.error(`room populated event error: ${error.message}`);
