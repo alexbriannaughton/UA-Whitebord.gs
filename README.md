@@ -10,3 +10,7 @@ SpeakerHub. Adding another pet to an occupied multiple-pet room does not play a
 sound. Apps Script authenticates directly with the YoLink Cloud API; credentials
 and location-to-device-name mappings are kept in Script Properties, and sound
 delivery is best-effort so it cannot interrupt whiteboard updates.
+
+As of 2026-07-14, CH announcement playback is configured and validated at
+volume 1. DT and WC destination mappings are implemented, but those locations
+do not have SpeakerHubs configured and therefore remain silent.
