@@ -39,5 +39,7 @@
   properties. Location-specific device-name properties are
   `yolink_speakerhub_ch_name`, `yolink_speakerhub_dt_name`, and
   `yolink_speakerhub_wc_name`; a location without a configured name remains
-  silent. Playback payloads must remain generic and non-PHI, and playback
-  failures must never make a successful room write fail.
+  silent. Playback announces the animal's ezyVet first name and mapped
+  destination space, so never log playback payloads or add client identifiers
+  or appointment descriptions. Playback failures must never make a successful
+  room write fail.

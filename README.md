@@ -4,9 +4,9 @@ The tool is a Google Sheet that we call the "White Board", and it functions as a
 
 The project utilizes Google Cloud Platform, webhooks from ezyVet's fab API, Github Actions and Javascript.
 
-Successfully populating a previously empty room can play a generic notification
-on a location-specific YoLink SpeakerHub. Adding another pet to an occupied
-multiple-pet room does not play a sound. Apps Script authenticates directly
-with the YoLink Cloud API; credentials and location-to-device-name mappings are
-kept in Script Properties, and sound delivery is best-effort so it cannot
-interrupt whiteboard updates.
+Successfully populating a previously empty room can announce the animal's
+ezyVet first name and destination space on a location-specific YoLink
+SpeakerHub. Adding another pet to an occupied multiple-pet room does not play a
+sound. Apps Script authenticates directly with the YoLink Cloud API; credentials
+and location-to-device-name mappings are kept in Script Properties, and sound
+delivery is best-effort so it cannot interrupt whiteboard updates.

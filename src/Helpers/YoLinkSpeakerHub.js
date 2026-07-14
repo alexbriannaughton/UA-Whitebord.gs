@@ -5,15 +5,53 @@ const YOLINK_UAC_SECRET_PROPERTY = 'yolink_uac_secret';
 const YOLINK_ACCESS_TOKEN_CACHE_KEY = 'yolink_access_token';
 const YOLINK_CACHE_MAX_SECONDS = 21600;
 const YOLINK_DEFAULT_TOKEN_CACHE_SECONDS = 3300;
-const YOLINK_ROOM_MESSAGE = 'Room ready';
 const YOLINK_ROOM_VOLUME = 1;
+const YOLINK_TEST_MESSAGE = 'Test animal in Room 1';
 const YOLINK_SPEAKERHUB_NAME_PROPERTY_BY_LOCATION = {
   CH: 'yolink_speakerhub_ch_name',
   DT: 'yolink_speakerhub_dt_name',
   WC: 'yolink_speakerhub_wc_name'
 };
+const YOLINK_SPACE_NAME_BY_LOCATION_AND_STATUS = {
+  CH: {
+    18: 'Room 1',
+    25: 'Room 2',
+    26: 'Room 3',
+    27: 'Room 4',
+    28: 'Room 5',
+    29: 'Room 6',
+    30: 'Room 7',
+    31: 'Room 8',
+    32: 'Room 9',
+    33: 'Room 10',
+    36: 'Room 11',
+    39: 'Dog Lobby',
+    40: 'Cat Lobby'
+  },
+  DT: {
+    18: 'Room 1',
+    25: 'Room 2',
+    26: 'Room 3',
+    27: 'Room 4',
+    28: 'Room 5',
+    29: 'Room 6',
+    30: 'Room 7'
+  },
+  WC: {
+    18: 'Walk-in Room 1',
+    25: 'Walk-in Room 2',
+    26: 'Walk-in Room 3',
+    27: 'Walk-in Room 4',
+    28: 'Walk-in Room 5',
+    21: 'Walk-in Lobby',
+    43: 'Appointment Room 1',
+    42: 'Appointment Room 2',
+    41: 'Appointment Room 3',
+    44: 'Appointment Lobby'
+  }
+};
 
-function playRoomPopulatedSound(uaLocSheetName) {
+function playRoomPopulatedSound(uaLocSheetName, statusId, animalName) {
   try {
     // Phase 1: a location is enabled only when its device-name property exists.
     // This lets CH run the pilot while DT and WC remain intentionally silent.
@@ -35,10 +73,15 @@ function playRoomPopulatedSound(uaLocSheetName) {
       uaLocSheetName,
       deviceName
     );
+    const message = getYoLinkRoomMessage_(
+      uaLocSheetName,
+      statusId,
+      animalName
+    );
 
-    // Phase 3: send only a generic spoken message. Sound failures are contained
-    // here and can never unwind an otherwise successful whiteboard room write.
-    playYoLinkSpeakerHub_(accessToken, speakerHub);
+    // Phase 3: announce the animal and its new space. Sound failures are
+    // contained here and can never unwind a successful whiteboard room write.
+    playYoLinkSpeakerHub_(accessToken, speakerHub, message);
     return true;
   }
   catch (error) {
@@ -50,7 +93,7 @@ function playRoomPopulatedSound(uaLocSheetName) {
 }
 
 function testChYoLinkRoomSound() {
-  if (!playRoomPopulatedSound('CH')) {
+  if (!playRoomPopulatedSound('CH', 18, 'Test animal')) {
     throw new Error('CH YoLink room sound test failed; check the execution log');
   }
 }
@@ -81,10 +124,13 @@ function testYoLinkSpeakerHub() {
     );
   }
 
-  // Phase 3: use the same generic message and minimum volume as production.
-  // Do not include patient or appointment data in sound requests.
+  // Phase 3: use a synthetic message and the same minimum volume as production.
   const speakerHub = speakerHubs[0];
-  const playResponse = playYoLinkSpeakerHub_(accessToken, speakerHub);
+  const playResponse = playYoLinkSpeakerHub_(
+    accessToken,
+    speakerHub,
+    YOLINK_TEST_MESSAGE
+  );
 
   console.log(`YoLink SpeakerHub smoke test succeeded: ${speakerHub.name}`);
   return playResponse;
@@ -181,7 +227,24 @@ function getYoLinkSpeakerHub_(accessToken, uaLocSheetName, deviceName) {
   return speakerHub;
 }
 
-function playYoLinkSpeakerHub_(accessToken, speakerHub) {
+function getYoLinkRoomMessage_(uaLocSheetName, statusId, animalName) {
+  const spaceName =
+    YOLINK_SPACE_NAME_BY_LOCATION_AND_STATUS[uaLocSheetName]?.[statusId];
+  if (!spaceName) {
+    throw new Error(
+      `No YoLink space name for ${uaLocSheetName} status ${statusId}`
+    );
+  }
+
+  const trimmedAnimalName = String(animalName || '').trim();
+  if (!trimmedAnimalName) {
+    throw new Error('Cannot build a YoLink room message without an animal name');
+  }
+
+  return `${trimmedAnimalName} in ${spaceName}`;
+}
+
+function playYoLinkSpeakerHub_(accessToken, speakerHub, message) {
   return sendYoLinkApiRequest_(
     accessToken,
     {
@@ -190,7 +253,7 @@ function playYoLinkSpeakerHub_(accessToken, speakerHub) {
       targetDevice: speakerHub.deviceId,
       token: speakerHub.token,
       params: {
-        message: YOLINK_ROOM_MESSAGE,
+        message,
         volume: YOLINK_ROOM_VOLUME,
         repeat: 1
       }

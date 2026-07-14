@@ -22,7 +22,7 @@ function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(uaLocSheetName);
 
   const fullRoomRange = sheet.getRange(roomCoords);
-  const [roomRange, incomingAnimalText, allRoomVals] =
+  const [roomRange, incomingAnimalText, allRoomVals, animalName] =
     parseTheRoom(
       sheet,
       appointment,
@@ -32,7 +32,15 @@ function moveToRoom(appointment, uaLocSheetName, locationToRoomCoordsMap) {
     ) || [];
 
   // if parseTheRoom returns us a truthy roomRange, we're good to handle a normal, empty room
-  if (roomRange) populateEmptyRoom(appointment, roomRange, incomingAnimalText, uaLocSheetName, allRoomVals, isWCSxRoom);
+  if (roomRange) populateEmptyRoom(
+    appointment,
+    roomRange,
+    incomingAnimalText,
+    animalName,
+    uaLocSheetName,
+    allRoomVals,
+    isWCSxRoom
+  );
 
   return;
 
@@ -42,6 +50,7 @@ function populateEmptyRoom(
   appointment,
   roomRange,
   incomingAnimalText,
+  animalName,
   uaLocSheetName,
   allRoomVals,
   isWCSxRoom
@@ -75,7 +84,11 @@ function populateEmptyRoom(
 
   // delete from the waitlist
   deleteFromWaitlist(uaLocSheetName, appointment.consult_id);
-  playRoomPopulatedSound(uaLocSheetName);
+  playRoomPopulatedSound(
+    uaLocSheetName,
+    appointment.status_id,
+    animalName
+  );
 
   return;
 }
@@ -84,10 +97,11 @@ function populateEmptyRoom(
 // grabs the range for the room
 // checks if the room is occupied
 // checks if we are handling a multiple pet room and, if so, handles it
-// if parseTheRoom() finds that this is a normal, empty room, it will return 3 things:
+// if parseTheRoom() finds that this is a normal, empty room, it will return 4 things:
 // 1 - the range for the room (range object)
 // 2 - the incoming patient name text (string)
-// 3 - the range for the patient name cell (range object)
+// 3 - all values in the selected room column (array)
+// 4 - the animal's ezyVet first name (string)
 // if this is not a normal, empty room, parseTheRoom() will return undefined
 function parseTheRoom(
   sheet,
@@ -121,7 +135,7 @@ function parseTheRoom(
 
   // return normal empty room stuff
   if (roomIsOkToPopulateWithData(roomValues, uaLocSheetName)) {
-    return [roomRange, incomingAnimalText, allRoomVals];
+    return [roomRange, incomingAnimalText, allRoomVals, animalName];
   }
 
   // another check to see if incoming appointment is already in the room, as multiple pet room will not carry the consult id
