@@ -75,6 +75,7 @@ function populateEmptyRoom(
 
   // delete from the waitlist
   deleteFromWaitlist(uaLocSheetName, appointment.consult_id);
+  playRoomPopulatedSound(uaLocSheetName);
 
   return;
 }
