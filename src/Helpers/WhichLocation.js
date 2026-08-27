@@ -25,8 +25,6 @@ function fetchAndBuildEzyVetResourceMap(cache = CacheService.getScriptCache()) {
 
     cache.put(EZYVET_RESOURCE_TO_UA_LOC_NAME, JSON.stringify(ezyVetResourceMap), 7200);
     
-    console.log('successfully fetched / built / cached new ezyvet resource map.');
-
     return ezyVetResourceMap;
 }
 

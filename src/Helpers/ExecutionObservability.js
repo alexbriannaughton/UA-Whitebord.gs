@@ -1,4 +1,4 @@
-const OBSERVABILITY_VERSION = '2026-08-27-phase-0';
+const OBSERVABILITY_VERSION = '2026-08-27-phase-0.1';
 const SLOW_PHASE_LOG_THRESHOLD_MS = 2000;
 
 let activeExecutionContext = null;
@@ -9,10 +9,26 @@ function beginObservedExecution(entrypoint) {
     requestId: Utilities.getUuid(),
     startedAtMs: Date.now(),
     observedExternalCallCount: 0,
+    phaseMetrics: {},
+    summary: {},
+    requestReceivedLogged: false,
   };
 
-  logObservedEvent('request_received');
   return activeExecutionContext;
+}
+
+function logObservedRequestReceived(details = {}) {
+  if (!activeExecutionContext || activeExecutionContext.requestReceivedLogged) {
+    return;
+  }
+
+  activeExecutionContext.requestReceivedLogged = true;
+  logObservedEvent('request_received', details);
+}
+
+function setObservedSummary(key, value) {
+  if (!activeExecutionContext) return;
+  activeExecutionContext.summary[key] = value;
 }
 
 function finishObservedExecution(outcome, details = {}) {
@@ -21,31 +37,36 @@ function finishObservedExecution(outcome, details = {}) {
     outcome,
     observedExternalCallCount:
       activeExecutionContext?.observedExternalCallCount ?? 0,
+    phaseMetrics: activeExecutionContext?.phaseMetrics ?? {},
+    summary: activeExecutionContext?.summary ?? {},
   });
+  activeExecutionContext = null;
 }
 
-function observePhase(phase, callback, details = {}, alwaysLog = false) {
+function observePhase(phase, callback, details = {}) {
   const phaseStartedAtMs = Date.now();
-  if (alwaysLog) logObservedEvent('phase_started', { ...details, phase });
 
   try {
     const result = callback();
     const phaseElapsedMs = Date.now() - phaseStartedAtMs;
-    if (alwaysLog || phaseElapsedMs >= SLOW_PHASE_LOG_THRESHOLD_MS) {
+    recordObservedPhase(phase, phaseElapsedMs);
+    if (phaseElapsedMs >= SLOW_PHASE_LOG_THRESHOLD_MS) {
       logObservedEvent('phase_finished', {
         ...details,
         phase,
         phaseElapsedMs,
-        slow: phaseElapsedMs >= SLOW_PHASE_LOG_THRESHOLD_MS,
+        slow: true,
       });
     }
     return result;
   }
   catch (error) {
+    const phaseElapsedMs = Date.now() - phaseStartedAtMs;
+    recordObservedPhase(phase, phaseElapsedMs);
     logObservedEvent('phase_failed', {
       ...details,
       phase,
-      phaseElapsedMs: Date.now() - phaseStartedAtMs,
+      phaseElapsedMs,
       ...observedErrorDetails(error),
     }, true);
     throw error;
@@ -56,20 +77,32 @@ function observeSpreadsheetCall(
   operation,
   label,
   callback,
-  details = {},
-  alwaysLog = false
+  details = {}
 ) {
   return observePhase(
     `spreadsheet_${operation}`,
     callback,
     { ...details, label },
-    alwaysLog,
   );
 }
 
 function observeExternalCall(label, callback, details = {}) {
   if (activeExecutionContext) activeExecutionContext.observedExternalCallCount++;
   return observePhase('external_call', callback, { ...details, label });
+}
+
+function recordObservedPhase(phase, elapsedMs) {
+  if (!activeExecutionContext) return;
+
+  const metric = activeExecutionContext.phaseMetrics[phase] || {
+    count: 0,
+    totalMs: 0,
+    maxMs: 0,
+  };
+  metric.count++;
+  metric.totalMs += elapsedMs;
+  metric.maxMs = Math.max(metric.maxMs, elapsedMs);
+  activeExecutionContext.phaseMetrics[phase] = metric;
 }
 
 function logObservedEvent(event, details = {}, isError = false) {
