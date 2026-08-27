@@ -1,25 +1,58 @@
 // receive appointment webhook events here
 function doPost(e) {
+  beginObservedExecution('doPost');
+  let params;
+
   try {
-    const params = JSON.parse(e.postData.contents);
-    getCacheVals();
-    processAppointments(params);
+    params = observePhase(
+      'payload_parse',
+      () => JSON.parse(e.postData.contents),
+    );
+    logObservedEvent('payload_summary', {
+      eventType: params.meta?.event || 'unknown',
+      itemCount: Array.isArray(params.items) ? params.items.length : 0,
+    });
+    observePhase('cache_initialize', getCacheVals, {}, true);
+    observePhase(
+      'appointments_process',
+      () => processAppointments(params, 1),
+      { attempt: 1 },
+      true,
+    );
+    finishObservedExecution('success', { attempt: 1 });
     return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
   }
 
   catch (error) {
     // wait 3 seconds and try a second time if we get an error
-    console.error('error after the first try:', error);
+    logObservedEvent('retry_scheduled', {
+      attempt: 1,
+      retryDelayMs: 3000,
+      ...observedErrorDetails(error),
+    }, true);
     Utilities.sleep(3000);
     try {
-      const params = JSON.parse(e.postData.contents);
-      console.log('second try doPost');
-      processAppointments(params);
+      params = observePhase(
+        'payload_parse',
+        () => JSON.parse(e.postData.contents),
+        { attempt: 2 },
+      );
+      logObservedEvent('retry_started', { attempt: 2 });
+      observePhase(
+        'appointments_process',
+        () => processAppointments(params, 2),
+        { attempt: 2 },
+        true,
+      );
+      finishObservedExecution('success', { attempt: 2 });
       return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
     }
 
     catch (error) {
-      console.error('second error hit:', error);
+      finishObservedExecution('failure', {
+        attempt: 2,
+        ...observedErrorDetails(error),
+      });
       throw error;
     };
 
@@ -27,40 +60,66 @@ function doPost(e) {
 
 };
 
-function processAppointments(params) {
+function processAppointments(params, attempt) {
   const apptItems = params.items;
   const metaTimestamp = params.meta.timestamp;
   const isCreatedAppt = params.meta.event === 'appointment_created';
 
+  let itemIndex = 0;
   for (const { appointment } of apptItems) {
     const secondsFromMetaToModified = Math.abs(metaTimestamp - appointment.modified_at);
     const isToday = isTodayInUserTimezone(appointment);
     const isMoreThanFiveMinsDelayed = secondsFromMetaToModified > (60 * 5);
     
     if (isToday && isMoreThanFiveMinsDelayed && isCreatedAppt) {
-      console.log('MORE THAN 5 MINS DELAY!');
-      console.log('Params:', params);
-      apptItems.forEach(({appointment}, i) => {
-        console.log(`appt ${i}:`, appointment);
+      logObservedEvent('delayed_webhook_item', {
+        attempt,
+        itemIndex,
+        delaySeconds: secondsFromMetaToModified,
       });
     }
-    handleAppointment(params.meta.event, appointment, isToday);
+    observePhase(
+      'appointment_item',
+      () => handleAppointment(params.meta.event, appointment, isToday),
+      {
+        attempt,
+        itemIndex,
+        appointmentTypeId: appointment.type_id,
+        appointmentStatusId: appointment.status_id,
+        isToday,
+      },
+    );
+    itemIndex++;
   }
 }
 
 function doGet(_e) {
+  beginObservedExecution('doGet');
+
   try {
-    return attemptGet();
+    const response = attemptGet(1);
+    finishObservedExecution('success', { attempt: 1 });
+    return response;
   }
 
   catch (error) {
-    console.error('First doGet attempt failed: ' + error.message);
+    logObservedEvent('retry_scheduled', {
+      attempt: 1,
+      retryDelayMs: 3000,
+      ...observedErrorDetails(error),
+    }, true);
     Utilities.sleep(3000);
     try {
-      return attemptGet();
+      logObservedEvent('retry_started', { attempt: 2 });
+      const response = attemptGet(2);
+      finishObservedExecution('success', { attempt: 2 });
+      return response;
     }
     catch (error) {
-      console.error('Second doGet attempt failed: ' + error.message);
+      finishObservedExecution('handled_failure', {
+        attempt: 2,
+        ...observedErrorDetails(error),
+      });
       return ContentService.createTextOutput(
         JSON.stringify({ error: error.message })
       ).setMimeType(ContentService.MimeType.JSON);
@@ -68,22 +127,37 @@ function doGet(_e) {
   }
 }
 
-function attemptGet() {
-  const sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+function attemptGet(attempt) {
+  const sheets = observeSpreadsheetCall(
+    'open',
+    'active_spreadsheet_sheets',
+    () => SpreadsheetApp.getActiveSpreadsheet().getSheets(),
+    { attempt },
+    true,
+  );
 
+  const mainSheetData = observeSpreadsheetCall(
+    'read',
+    'whiteboard_main_ranges',
+    () => extractMainSheetData(sheets),
+    { attempt },
+    true,
+  );
   const {
     roomsWithLinks,
     numOfRoomsInUse,
     locationPossPositionNames
-  } = extractMainSheetData(sheets);
+  } = mainSheetData;
 
-  const wait = getWaitData(numOfRoomsInUse, sheets);
+  const wait = observeSpreadsheetCall(
+    'read_write',
+    'whiteboard_wait_ranges',
+    () => getWaitData(numOfRoomsInUse, sheets),
+    { attempt },
+    true,
+  );
 
   const output = { roomsWithLinks, wait, locationPossPositionNames };
-
-  if ([15, 35, 55].includes(new Date().getMinutes())) {
-    console.log('do get output-->', output);
-  }
 
   return ContentService.createTextOutput(
     JSON.stringify(output)

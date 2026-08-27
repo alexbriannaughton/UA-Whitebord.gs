@@ -151,17 +151,20 @@ function getYoLinkAccessToken_() {
     );
   }
 
-  const response = UrlFetchApp.fetch(
-    YOLINK_TOKEN_URL,
-    {
-      method: 'post',
-      payload: {
-        grant_type: 'client_credentials',
-        client_id: uaid,
-        client_secret: uacSecret
-      },
-      muteHttpExceptions: true
-    }
+  const response = observeExternalCall(
+    'yolink_token',
+    () => UrlFetchApp.fetch(
+      YOLINK_TOKEN_URL,
+      {
+        method: 'post',
+        payload: {
+          grant_type: 'client_credentials',
+          client_id: uaid,
+          client_secret: uacSecret
+        },
+        muteHttpExceptions: true
+      }
+    )
   );
   const responseCode = response.getResponseCode();
   const responseBody = parseYoLinkJson_(response.getContentText());
@@ -262,17 +265,20 @@ function playYoLinkSpeakerHub_(accessToken, speakerHub, message) {
 }
 
 function sendYoLinkApiRequest_(accessToken, requestBody) {
-  const response = UrlFetchApp.fetch(
-    YOLINK_API_URL,
-    {
-      method: 'post',
-      contentType: 'application/json',
-      headers: {
-        Authorization: `Bearer ${accessToken}`
-      },
-      payload: JSON.stringify(requestBody),
-      muteHttpExceptions: true
-    }
+  const response = observeExternalCall(
+    `yolink_${requestBody.method}`,
+    () => UrlFetchApp.fetch(
+      YOLINK_API_URL,
+      {
+        method: 'post',
+        contentType: 'application/json',
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        },
+        payload: JSON.stringify(requestBody),
+        muteHttpExceptions: true
+      }
+    )
   );
   const responseCode = response.getResponseCode();
   const responseBody = parseYoLinkJson_(response.getContentText());

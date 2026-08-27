@@ -83,7 +83,10 @@ function handleEchoOrAUS(appointment, sheetName) {
         contentType: 'application/json',
         payload: JSON.stringify(data)
     };
-    UrlFetchApp.fetch(url, options);
+    observeExternalCall(
+        'echo_ultrasound_tracker',
+        () => UrlFetchApp.fetch(url, options),
+    );
     return;
 }
 

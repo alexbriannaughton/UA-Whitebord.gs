@@ -13,20 +13,39 @@ function fetchAndParse(url) {
         }
     };
 
-    let response = UrlFetchApp.fetch(url, options);
+    const apiLabel = observedApiLabel(url);
+    let response = observeExternalCall(
+        apiLabel,
+        () => UrlFetchApp.fetch(url, options),
+        { externalAttempt: 1 },
+    );
+    if (response.getResponseCode() !== OK) {
+        logObservedEvent('external_non_ok_response', {
+            label: apiLabel,
+            externalAttempt: 1,
+            responseCode: response.getResponseCode(),
+        });
+    }
 
     if (response.getResponseCode() === UNAUTHORIZED) {
         options.headers.authorization = updateToken();
-        response = UrlFetchApp.fetch(url, options);
+        response = observeExternalCall(
+            apiLabel,
+            () => UrlFetchApp.fetch(url, options),
+            { externalAttempt: 2, retryReason: 'unauthorized' },
+        );
     }
 
     if (response.getResponseCode() !== OK) {
         console.error(`Response Code: ${response.getResponseCode()}`);
-        console.error(`Response Text: ${response.getContentText()}`);
 
         if (response.getResponseCode() === TOO_MANY_REQUESTS) {
             waitOn429(response);
-            response = UrlFetchApp.fetch(url, options);
+            response = observeExternalCall(
+                apiLabel,
+                () => UrlFetchApp.fetch(url, options),
+                { externalAttempt: 3, retryReason: 'rate_limited' },
+            );
         }
     }
 
@@ -80,26 +99,36 @@ function getAnimalInfoAndLastName(animalID, contactID) {
         }
     };
 
-    let [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
+    let [animalResponse, contactResponse] = observeExternalCall(
+        'ezyvet_animal_contact',
+        () => UrlFetchApp.fetchAll([animalRequest, contactRequest]),
+        { externalAttempt: 1 },
+    );
 
     if (animalResponse.getResponseCode() === UNAUTHORIZED || contactResponse.getResponseCode() === UNAUTHORIZED) {
         animalRequest.headers.authorization = updateToken();
         contactRequest.headers.authorization = token;
-        [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
+        [animalResponse, contactResponse] = observeExternalCall(
+            'ezyvet_animal_contact',
+            () => UrlFetchApp.fetchAll([animalRequest, contactRequest]),
+            { externalAttempt: 2, retryReason: 'unauthorized' },
+        );
     }
 
     if (animalResponse.getResponseCode() !== OK || contactResponse.getResponseCode() !== OK) {
         console.error(`Request failed: Animal response code: ${animalResponse.getResponseCode()}`);
         console.error(`Contact response code: ${contactResponse.getResponseCode()}`);
-        console.error(`Animal response text: ${animalResponse.getContentText()}`);
-        console.error(`Contact response text: ${contactResponse.getContentText()}`);
 
         const animalResponseIs429 = animalResponse.getResponseCode() === TOO_MANY_REQUESTS;
         const contactResponseIs429 = contactResponse.getResponseCode() === TOO_MANY_REQUESTS;
         if (animalResponseIs429 || contactResponseIs429) {
             if (animalResponseIs429) waitOn429(animalResponse);
             else if (contactResponseIs429) waitOn429(contactResponse);
-            [animalResponse, contactResponse] = UrlFetchApp.fetchAll([animalRequest, contactRequest]);
+            [animalResponse, contactResponse] = observeExternalCall(
+                'ezyvet_animal_contact',
+                () => UrlFetchApp.fetchAll([animalRequest, contactRequest]),
+                { externalAttempt: 3, retryReason: 'rate_limited' },
+            );
         }
     }
 
@@ -137,26 +166,36 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
         }
     };
 
-    let [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
+    let [animalOneResponse, animalTwoResponse] = observeExternalCall(
+        'ezyvet_two_animals',
+        () => UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]),
+        { externalAttempt: 1 },
+    );
 
     if (animalOneResponse.getResponseCode() === UNAUTHORIZED || animalTwoResponse.getResponseCode() === UNAUTHORIZED) {
         animalOneRequest.headers.authorization = updateToken();
         animalTwoRequest.headers.authorization = token;
-        [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
+        [animalOneResponse, animalTwoResponse] = observeExternalCall(
+            'ezyvet_two_animals',
+            () => UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]),
+            { externalAttempt: 2, retryReason: 'unauthorized' },
+        );
     }
 
     if (animalOneResponse.getResponseCode() !== OK || animalTwoResponse.getResponseCode() !== OK) {
         console.error(`Request failed: Animal 1 response code: ${animalOneResponse.getResponseCode()}`);
         console.error(`Animal 2 response code: ${animalTwoResponse.getResponseCode()}`);
-        console.error(`Animal 1 response text: ${animalOneResponse.getContentText()}`);
-        console.error(`Animal 2 response text: ${animalTwoResponse.getContentText()}`);
 
         const animalOneResponseIs429 = animalOneResponse.getResponseCode() === TOO_MANY_REQUESTS;
         const animalTwoResponseIs429 = animalTwoResponse.getResponseCode() === TOO_MANY_REQUESTS;
         if (animalOneResponseIs429 || animalTwoResponseIs429) {
             if (animalOneResponseIs429) waitOn429(animalOneResponse);
             else if (animalTwoResponseIs429) waitOn429(animalTwoResponse);
-            [animalOneResponse, animalTwoResponse] = UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]);
+            [animalOneResponse, animalTwoResponse] = observeExternalCall(
+                'ezyvet_two_animals',
+                () => UrlFetchApp.fetchAll([animalOneRequest, animalTwoRequest]),
+                { externalAttempt: 3, retryReason: 'rate_limited' },
+            );
         }
     }
 
@@ -173,10 +212,13 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
 function waitOn429(response) {
     const secondsTilNextRetryMatch = response.getContentText().match(/(\d+)\s+seconds/);
-    console.log('match: ', secondsTilNextRetryMatch);
     const secondsTilNextRetry = secondsTilNextRetryMatch?.[1];
     console.error('seconds til next retry: ', secondsTilNextRetry);
     if (secondsTilNextRetry) {
+        logObservedEvent('external_retry_scheduled', {
+            retryDelayMs: Number(secondsTilNextRetry) * 1000,
+            retryReason: 'rate_limited',
+        });
         Utilities.sleep(Number(secondsTilNextRetry) * 1000);
     }
 }
