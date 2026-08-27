@@ -8,16 +8,15 @@ function doPost(e) {
       'payload_parse',
       () => JSON.parse(e.postData.contents),
     );
-    logObservedEvent('payload_summary', {
+    logObservedRequestReceived({
       eventType: params.meta?.event || 'unknown',
       itemCount: Array.isArray(params.items) ? params.items.length : 0,
     });
-    observePhase('cache_initialize', getCacheVals, {}, true);
+    observePhase('cache_initialize', getCacheVals);
     observePhase(
       'appointments_process',
       () => processAppointments(params, 1),
       { attempt: 1 },
-      true,
     );
     finishObservedExecution('success', { attempt: 1 });
     return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
@@ -37,12 +36,15 @@ function doPost(e) {
         () => JSON.parse(e.postData.contents),
         { attempt: 2 },
       );
+      logObservedRequestReceived({
+        eventType: params.meta?.event || 'unknown',
+        itemCount: Array.isArray(params.items) ? params.items.length : 0,
+      });
       logObservedEvent('retry_started', { attempt: 2 });
       observePhase(
         'appointments_process',
         () => processAppointments(params, 2),
         { attempt: 2 },
-        true,
       );
       finishObservedExecution('success', { attempt: 2 });
       return ContentService.createTextOutput("ok").setMimeType(ContentService.MimeType.JSON);
@@ -95,6 +97,7 @@ function processAppointments(params, attempt) {
 
 function doGet(_e) {
   beginObservedExecution('doGet');
+  logObservedRequestReceived();
 
   try {
     const response = attemptGet(1);
@@ -133,7 +136,6 @@ function attemptGet(attempt) {
     'active_spreadsheet_sheets',
     () => SpreadsheetApp.getActiveSpreadsheet().getSheets(),
     { attempt },
-    true,
   );
 
   const mainSheetData = observeSpreadsheetCall(
@@ -141,7 +143,6 @@ function attemptGet(attempt) {
     'whiteboard_main_ranges',
     () => extractMainSheetData(sheets),
     { attempt },
-    true,
   );
   const {
     roomsWithLinks,
@@ -154,7 +155,6 @@ function attemptGet(attempt) {
     'whiteboard_wait_ranges',
     () => getWaitData(numOfRoomsInUse, sheets),
     { attempt },
-    true,
   );
 
   const output = { roomsWithLinks, wait, locationPossPositionNames };

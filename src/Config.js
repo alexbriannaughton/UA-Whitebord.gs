@@ -19,10 +19,7 @@ function updateToken(cache = CacheService.getScriptCache()) {
     );
     const { token_type, access_token } = JSON.parse(response.getContentText());
     token = `${token_type} ${access_token}`;
-    console.log('successfully grabbed new ezyvet token.');
-
     cache.put(TOKEN_NAME, token, 21600);
-    console.log('put new token in cache.')
 
     return token;
 };

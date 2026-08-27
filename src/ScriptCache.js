@@ -17,7 +17,7 @@ function getCacheVals() {
     const missingDayKeys = ALL_LOCS_DAYS_TO_NDA_KEY_NAMES
         .filter(key => !cacheVals[key]);
 
-    logObservedEvent('cache_summary', {
+    setObservedSummary('cache', {
         tokenHit: Boolean(cacheVals[TOKEN_NAME]),
         resourceMapHit: Boolean(cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME]),
         missingDayKeyCount: missingDayKeys.length,
@@ -77,7 +77,6 @@ function getDaysAhead(cache, uaLoc) {
         throw new Error('unable to find next day of dt appts in Cache.js');
     }
 
-    console.log(`putting ${daysAhead} as ${ndaUaLocTokenName(uaLoc)} into cache...`);
     cache.put(ndaUaLocTokenName(uaLoc), daysAhead, 21600);
     return daysAhead;
 };

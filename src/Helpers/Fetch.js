@@ -213,7 +213,6 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 function waitOn429(response) {
     const secondsTilNextRetryMatch = response.getContentText().match(/(\d+)\s+seconds/);
     const secondsTilNextRetry = secondsTilNextRetryMatch?.[1];
-    console.error('seconds til next retry: ', secondsTilNextRetry);
     if (secondsTilNextRetry) {
         logObservedEvent('external_retry_scheduled', {
             retryDelayMs: Number(secondsTilNextRetry) * 1000,
