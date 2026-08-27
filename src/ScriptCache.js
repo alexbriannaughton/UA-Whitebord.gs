@@ -14,6 +14,14 @@ function ndaUaLocTokenName(uaLoc) {
 function getCacheVals() {
     const cache = CacheService.getScriptCache();
     const cacheVals = cache.getAll([TOKEN_NAME, ...ALL_LOCS_DAYS_TO_NDA_KEY_NAMES, EZYVET_RESOURCE_TO_UA_LOC_NAME]);
+    const missingDayKeys = ALL_LOCS_DAYS_TO_NDA_KEY_NAMES
+        .filter(key => !cacheVals[key]);
+
+    logObservedEvent('cache_summary', {
+        tokenHit: Boolean(cacheVals[TOKEN_NAME]),
+        resourceMapHit: Boolean(cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME]),
+        missingDayKeyCount: missingDayKeys.length,
+    });
 
     token = cacheVals[TOKEN_NAME];
     if (!token) token = updateToken(cache);
@@ -47,7 +55,11 @@ function getDaysAhead(cache, uaLoc) {
 
         const url = `${EV_PROXY}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
 
-        const allTargetDayAppts = fetchAndParse(url);
+        const allTargetDayAppts = observePhase(
+            'cache_day_lookup',
+            () => fetchAndParse(url),
+            { daysAhead, location: uaLoc },
+        );
 
         const appts = allTargetDayAppts.items
             .filter(({ appointment }) =>

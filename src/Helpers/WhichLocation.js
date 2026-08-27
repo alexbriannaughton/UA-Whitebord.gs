@@ -51,26 +51,36 @@ function getSeparationsAndResources() {
         }
     };
 
-    let [separationsResponse, resourcesResponse] = UrlFetchApp.fetchAll([separationsRequest, resourcesRequest]);
+    let [separationsResponse, resourcesResponse] = observeExternalCall(
+        'ezyvet_locations',
+        () => UrlFetchApp.fetchAll([separationsRequest, resourcesRequest]),
+        { externalAttempt: 1 },
+    );
 
     if (separationsResponse.getResponseCode() === UNAUTHORIZED || resourcesResponse.getResponseCode() === UNAUTHORIZED) {
         separationsRequest.headers.authorization = updateToken();
         resourcesRequest.headers.authorization = token;
-        [separationsResponse, resourcesResponse] = UrlFetchApp.fetchAll([separationsRequest, resourcesRequest]);
+        [separationsResponse, resourcesResponse] = observeExternalCall(
+            'ezyvet_locations',
+            () => UrlFetchApp.fetchAll([separationsRequest, resourcesRequest]),
+            { externalAttempt: 2, retryReason: 'unauthorized' },
+        );
     }
 
     if (separationsResponse.getResponseCode() !== OK || resourcesResponse.getResponseCode() !== OK) {
         console.error(`Request failed: separations response code: ${separationsResponse.getResponseCode()}`);
         console.error(`resources response code: ${resourcesResponse.getResponseCode()}`);
-        console.error(`separations response text: ${separationsResponse.getContentText()}`);
-        console.error(`resources response text: ${resourcesResponse.getContentText()}`);
 
         const separationsResponseIs429 = separationsResponse.getResponseCode() === TOO_MANY_REQUESTS;
         const resourcesResponseIs429 = resourcesResponse.getResponseCode() === TOO_MANY_REQUESTS;
         if (separationsResponseIs429 || resourcesResponseIs429) {
             if (separationsResponseIs429) waitOn429(separationsResponse);
             else if (resourcesResponseIs429) waitOn429(resourcesResponse);
-            [separationsResponse, resourcesResponse] = UrlFetchApp.fetchAll([separationsRequest, resourcesRequest]);
+            [separationsResponse, resourcesResponse] = observeExternalCall(
+                'ezyvet_locations',
+                () => UrlFetchApp.fetchAll([separationsRequest, resourcesRequest]),
+                { externalAttempt: 3, retryReason: 'rate_limited' },
+            );
         }
     }
 

@@ -13,7 +13,10 @@ function updateToken(cache = CacheService.getScriptCache()) {
         payload
     };
 
-    const response = UrlFetchApp.fetch(url, options);
+    const response = observeExternalCall(
+        'ezyvet_token',
+        () => UrlFetchApp.fetch(url, options),
+    );
     const { token_type, access_token } = JSON.parse(response.getContentText());
     token = `${token_type} ${access_token}`;
     console.log('successfully grabbed new ezyvet token.');
@@ -27,14 +30,17 @@ function updateToken(cache = CacheService.getScriptCache()) {
 function getEvCreds() {
     const props = PropertiesService.getScriptProperties();
     const api = `https://secretmanager.googleapis.com/v1/projects/${props.getProperty('gcp_id')}/secrets/${props.getProperty('secret_name')}/versions/${props.getProperty('secret_version')}:access`;
-    const response = UrlFetchApp.fetch(api, {
-        method: 'GET',
-        headers: {
-            Authorization: `Bearer ${ScriptApp.getOAuthToken()}`,
-            'Content-Type': 'application/json',
-        },
-        muteHttpExceptions: true,
-    });
+    const response = observeExternalCall(
+        'secret_manager',
+        () => UrlFetchApp.fetch(api, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${ScriptApp.getOAuthToken()}`,
+                'Content-Type': 'application/json',
+            },
+            muteHttpExceptions: true,
+        }),
+    );
 
     const { error, payload } = JSON.parse(response.getContentText());
 

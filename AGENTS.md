@@ -35,6 +35,12 @@
 ## Security & Configuration Tips
 - Secrets are pulled from Secret Manager via script properties (`gcp_id`, `secret_name`, `secret_version`); never commit raw tokens or sheet IDs.
 - Keep cached tokens isolated in `CacheService` and avoid logging payload contents containing PHI; rotate credentials promptly after incidents.
-- Room-populated sound events use script properties `whiteboard_room_event_url`
-  and `whiteboard_room_event_secret`; payloads must stay non-PHI because they
-  flow to Supabase Realtime for TV Chrome extensions.
+- YoLink SpeakerHub playback uses `yolink_uaid` and `yolink_uac_secret` script
+  properties. Location-specific device-name properties are
+  `yolink_speakerhub_ch_name`, `yolink_speakerhub_dt_name`, and
+  `yolink_speakerhub_wc_name`; a location without a configured name remains
+  silent. Currently only CH has a configured and validated device; DT and WC
+  have mappings in code but no devices. Playback announces the animal's ezyVet
+  first name and mapped destination space, so never log playback payloads or add
+  client identifiers or appointment descriptions. Playback failures must never
+  make a successful room write fail.

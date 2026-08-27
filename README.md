@@ -4,7 +4,13 @@ The tool is a Google Sheet that we call the "White Board", and it functions as a
 
 The project utilizes Google Cloud Platform, webhooks from ezyVet's fab API, Github Actions and Javascript.
 
-Room-populated events can also be emitted to the Supabase Edge Function
-`whiteboard-room-event` for location-specific TV sounds. Configure
-`whiteboard_room_event_url` and `whiteboard_room_event_secret` as Apps Script
-properties; the event payload is intentionally minimal and non-PHI.
+Successfully populating a previously empty room can announce the animal's
+ezyVet first name and destination space on a location-specific YoLink
+SpeakerHub. Adding another pet to an occupied multiple-pet room does not play a
+sound. Apps Script authenticates directly with the YoLink Cloud API; credentials
+and location-to-device-name mappings are kept in Script Properties, and sound
+delivery is best-effort so it cannot interrupt whiteboard updates.
+
+As of 2026-07-14, CH announcement playback is configured and validated at
+volume 1. DT and WC destination mappings are implemented, but those locations
+do not have SpeakerHubs configured and therefore remain silent.
