@@ -100,7 +100,7 @@ function doGet(_e) {
   logObservedRequestReceived();
 
   try {
-    const response = attemptGet(1);
+    const response = attemptGet(1, _e);
     finishObservedExecution('success', { attempt: 1 });
     return response;
   }
@@ -114,7 +114,7 @@ function doGet(_e) {
     Utilities.sleep(3000);
     try {
       logObservedEvent('retry_started', { attempt: 2 });
-      const response = attemptGet(2);
+      const response = attemptGet(2, _e);
       finishObservedExecution('success', { attempt: 2 });
       return response;
     }
@@ -130,7 +130,7 @@ function doGet(_e) {
   }
 }
 
-function attemptGet(attempt) {
+function attemptGet(attempt, request) {
   const sheets = observeSpreadsheetCall(
     'open',
     'active_spreadsheet_sheets',
@@ -158,6 +158,11 @@ function attemptGet(attempt) {
   );
 
   const output = { roomsWithLinks, wait, locationPossPositionNames };
+
+  // Publish the same computed result before Google's response-delivery step.
+  // This is best-effort: callback failure must not repeat sheet extraction or
+  // prevent the ordinary ContentService response from returning.
+  publishWhiteboardDeliveryResult(request, output);
 
   return ContentService.createTextOutput(
     JSON.stringify(output)
