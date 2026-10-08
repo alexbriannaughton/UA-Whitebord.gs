@@ -14,7 +14,10 @@
 - Pull the latest script from Apps Script if collaborators edit in the cloud: `clasp pull --root src`.
 - Push local changes to the bound project: `clasp push --root src` (check that triggers and scopes remain correct).
 - Use the Apps Script editor’s “Deploy” to promote versions; mirror any trigger changes in source so `clasp push` stays authoritative.
-- NDA cron triggers: schedule `executeNdaJobDt` and `executeNdaJobCh` as separate time-based triggers, staggered overnight, so each has a full 6-minute window and avoids ezyVet rate pressure.
+- The NDA time-based trigger entrypoint is `runAllNdaJobs`, which fills the
+  `NDAs` sheet for DT, CH, and WC. Check the installed Apps Script triggers
+  before changing their schedule; the former `executeNdaJobDt` and
+  `executeNdaJobCh` functions have been removed.
 
 ## Coding Style & Naming Conventions
 - JavaScript, 2-space indent, prefer `const`/`let` over implicit globals; camelCase for functions/vars; UPPER_SNAKE_CASE for constants.
