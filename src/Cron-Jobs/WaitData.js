@@ -68,6 +68,9 @@ function isWalkinOpen(date) {
 
 function isUsFederalHoliday(date) {
     const dateKey = Utilities.formatDate(date, USER_TIMEZONE, 'yyyy-MM-dd');
+    // UA is open on Indigenous Peoples' Day in 2026; keep normal hours.
+    if (dateKey === '2026-10-12') return false;
+
     const year = Number(Utilities.formatDate(date, USER_TIMEZONE, 'yyyy'));
     const holidays = getUsFederalHolidayKeys(year);
 
