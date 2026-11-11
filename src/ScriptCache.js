@@ -1,9 +1,10 @@
-const TOKEN_NAME = 'ezyVet_token';
+const TOKEN_NAME = 'ezyVet_broker_token_v1';
 // const DAYS_TO_NDA_DT_APPTS_NAME = 'days_to_next_dt_appts';
 const ALL_LOCS_DAYS_TO_NDA_KEY_NAMES = ALL_LOCATION_SHEETS.map(uaLoc => ndaUaLocTokenName(uaLoc));
 const EZYVET_RESOURCE_TO_UA_LOC_NAME = 'ezyvet_resource_to_ua_loc';
 
 let token;
+let tokenCredential;
 let ezyVetResourceToUaLoc;
 let daysToNextApptsByUaLoc = {};
 
@@ -23,8 +24,7 @@ function getCacheVals() {
         missingDayKeyCount: missingDayKeys.length,
     });
 
-    token = cacheVals[TOKEN_NAME];
-    if (!token) token = updateToken(cache);
+    token = getToken();
 
     daysToNextApptsByUaLoc = {}; // reset
 
