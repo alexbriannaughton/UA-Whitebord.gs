@@ -27,10 +27,12 @@ function updateToken(cache = CacheService.getScriptCache(), rejected = true) {
     }
     const props = PropertiesService.getScriptProperties();
     const url = props.getProperty('ezyvet_token_broker_url');
-    const secret = props.getProperty('ezyvet_token_broker_secret');
-    if (!url || !/^https:\/\/[^/]+\/functions\/v1\/ezyvet-token-broker$/.test(url) || !secret) {
+    if (!url || !/^https:\/\/[^/]+\/functions\/v1\/ezyvet-token-broker$/.test(url)) {
       throw new Error('ezyVet token broker is not configured');
     }
+    // Fetch the broker credential through the existing Google identity boundary
+    // only on the cold/recovery path. Warm token reads never visit Secret Manager.
+    const secret = getBrokerSecret(props);
     const response = observeExternalCall('ezyvet_token_broker', () => UrlFetchApp.fetch(url, {
       method:'POST', contentType:'application/json', muteHttpExceptions:true,
       followRedirects:false,
@@ -47,6 +49,26 @@ function updateToken(cache = CacheService.getScriptCache(), rejected = true) {
     catch { /* Cache failure must not discard a valid token. */ }
     return token;
   }
+}
+
+function getBrokerSecret(props) {
+  const project = props.getProperty('gcp_id');
+  const name = props.getProperty('ezyvet_token_broker_secret_name');
+  const version = props.getProperty('ezyvet_token_broker_secret_version') || 'latest';
+  if (!project || !name || ![project, name, version].every(value => /^[A-Za-z0-9_-]+$/.test(value))) {
+    throw new Error('ezyVet broker Secret Manager reference is not configured');
+  }
+  const url = `https://secretmanager.googleapis.com/v1/projects/${project}/secrets/${name}/versions/${version}:access`;
+  const response = observeExternalCall('secret_manager', () => UrlFetchApp.fetch(url, {
+    method: 'GET', muteHttpExceptions: true, followRedirects: false,
+    headers: { Authorization: `Bearer ${ScriptApp.getOAuthToken()}` },
+  }));
+  if (response.getResponseCode() !== 200) throw new Error('ezyVet broker credential unavailable');
+  const payload = JSON.parse(response.getContentText()).payload;
+  if (!payload || typeof payload.data !== 'string') throw new Error('ezyVet broker credential invalid');
+  const secret = Utilities.newBlob(Utilities.base64Decode(payload.data)).getDataAsString('UTF-8').trim();
+  if (!secret || secret.length > 8192 || /\s/.test(secret)) throw new Error('ezyVet broker credential invalid');
+  return secret;
 }
 
 function isUsableEzyVetCredential(value) {

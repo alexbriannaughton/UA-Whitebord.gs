@@ -4,21 +4,28 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 const path=require('node:path');
 function fixture(){
- const values=new Map();let requests=0;let sent;
+ const values=new Map();let requests=0;let sent;const secretRequests=[];
  const credential={token:'Bearer shared',expiresAt:new Date(Date.now()+3600000).toISOString()};
  const cache={get:k=>values.get(k)||null,put:(k,v)=>values.set(k,v)};
  const context=vm.createContext({Date,JSON,Math,Error,
  CacheService:{getScriptCache:()=>cache},
- PropertiesService:{getScriptProperties:()=>({getProperty:k=>k==='ezyvet_token_broker_url'?'https://example.supabase.co/functions/v1/ezyvet-token-broker':'secret'})},
+ PropertiesService:{getScriptProperties:()=>({getProperty:k=>({ezyvet_token_broker_url:'https://example.supabase.co/functions/v1/ezyvet-token-broker',gcp_id:'fixture-project',ezyvet_token_broker_secret_name:'broker-key'})[k]||null})},
+ ScriptApp:{getOAuthToken:()=> 'google-fixture'},
+ Utilities:{base64Decode:s=>Buffer.from(s,'base64'),newBlob:bytes=>({getDataAsString:()=>Buffer.from(bytes).toString('utf8')})},
  observeExternalCall:(_,fn)=>fn(),
- UrlFetchApp:{fetch:(_,options)=>{requests++;sent=JSON.parse(options.payload);return {getResponseCode:()=>200,getContentText:()=>JSON.stringify(credential)};}}});
+ UrlFetchApp:{fetch:(url,options)=>{
+   if(url.startsWith('https://secretmanager.googleapis.com/')) {
+     secretRequests.push({url,options});return {getResponseCode:()=>context.secretStatus||200,getContentText:()=>JSON.stringify({payload:{data:Buffer.from('secret').toString('base64')}})};
+   }
+   requests++;sent=JSON.parse(options.payload);return {getResponseCode:()=>200,getContentText:()=>JSON.stringify(credential)};
+ }}});
  vm.runInContext("const TOKEN_NAME='broker';let token;let tokenCredential;"+fs.readFileSync(path.join(__dirname,'../src/Config.js'),'utf8'),context);
- return {context,values,credential,get requests(){return requests;},get sent(){return sent;}};
+ return {context,values,credential,secretRequests,get requests(){return requests;},get sent(){return sent;}};
 }
 test('valid cache hit and runtime hit require no broker request',()=>{
  const f=fixture();f.values.set('broker',JSON.stringify(f.credential));
  assert.equal(vm.runInContext('getToken()',f.context),'Bearer shared');
- assert.equal(vm.runInContext('getToken()',f.context),'Bearer shared');assert.equal(f.requests,0);
+ assert.equal(vm.runInContext('getToken()',f.context),'Bearer shared');assert.equal(f.requests,0);assert.equal(f.secretRequests.length,0);
 });
 test('cache eviction retrieves existing token without rejected token',()=>{
  const f=fixture();vm.runInContext('getToken()',f.context);assert.equal(f.requests,1);assert.deepEqual(f.sent,{});
@@ -36,6 +43,21 @@ test('expired runtime and cache token cannot bypass broker',()=>{
 test('cache write failure preserves the successfully retrieved token',()=>{
  const f=fixture();vm.runInContext("CacheService.getScriptCache().put=()=>{throw Error('cache unavailable')}",f.context);
  assert.equal(vm.runInContext('getToken()',f.context),'Bearer shared');assert.equal(f.requests,1);
+});
+test('cold path reads the dedicated Secret Manager secret using Google identity',()=>{
+ const f=fixture();assert.equal(vm.runInContext('getToken()',f.context),'Bearer shared');
+ assert.equal(f.secretRequests.length,1);assert.equal(f.requests,1);
+ assert.equal(f.secretRequests[0].url,'https://secretmanager.googleapis.com/v1/projects/fixture-project/secrets/broker-key/versions/latest:access');
+ assert.equal(f.secretRequests[0].options.headers.Authorization,'Bearer google-fixture');
+});
+test('Secret Manager rejection stops before broker or sheet activity',()=>{
+ const f=fixture();f.context.secretStatus=403;
+ assert.throws(()=>vm.runInContext('getToken()',f.context),/broker credential unavailable/);
+ assert.equal(f.requests,0);
+});
+test('warm cached token remains available when Secret Manager is unavailable',()=>{
+ const f=fixture();f.context.secretStatus=403;f.values.set('broker',JSON.stringify(f.credential));
+ assert.equal(vm.runInContext('getToken()',f.context),'Bearer shared');assert.equal(f.secretRequests.length,0);
 });
 
 // Local room replay: actual ezyVet read/retry and room-population functions;
