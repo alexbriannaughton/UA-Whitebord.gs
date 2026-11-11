@@ -10,10 +10,17 @@
 - `src/appsscript.json` defines script metadata; keep it in sync with Apps Script when pushing/pulling.
 
 ## Build, Deploy, and Development Commands
-- Install and auth clasp once per machine: `npm install -g @google/clasp` then `clasp login`.
-- Pull the latest script from Apps Script if collaborators edit in the cloud: `clasp pull --root src`.
-- Push local changes to the bound project: `clasp push --root src` (check that triggers and scopes remain correct).
-- Use the Apps Script editor’s “Deploy” to promote versions; mirror any trigger changes in source so `clasp push` stays authoritative.
+- Follow `README.md` -> "Connecting to Apps Script" for owner identity,
+  production/DEV editor links, the saved clasp login, API access and deployment
+  boundaries. Both projects belong to `urbananimal@urbananimal.com`.
+- On this WSL machine `/usr/bin/clasp` is unrelated software. Invoke the Google
+  npm package explicitly; do not replace a working login without verifying it.
+- The tracked `.clasp.json` has no script ID. Choose the target explicitly.
+  Prefer read-only Apps Script API source/deployment inspection; a pull writes
+  local files, and a push replaces all remote source. Use isolated local copies
+  for inspection and confirm the target before any authorized upload.
+- Pushing `main` or `develop` triggers the production or DEV deployment
+  respectively. Connection instructions do not authorize a runtime change.
 - The NDA time-based trigger entrypoint is `runAllNdaJobs`, which fills the
   `NDAs` sheet for DT, CH, and WC. Check the installed Apps Script triggers
   before changing their schedule; the former `executeNdaJobDt` and
