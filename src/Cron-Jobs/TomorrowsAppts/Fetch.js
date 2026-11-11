@@ -166,7 +166,7 @@ function firstRoundOfFetches(dtAppts) {
 
     const encodedAllApptAnimalIds = encodeURIComponent(JSON.stringify({ "in": allApptAnimalIds }));
     console.log('getting appointment animal data...');
-    const { items: apptAnimals } = fetchAndParse(`${EV_PROXY}/v1/animal?active=1&limit=200&id=${encodedAllApptAnimalIds}`);
+    const { items: apptAnimals } = fetchAndParse(`${EV_PROXY}/v1.1/animal?active=1&page_size=200&id=${encodedAllApptAnimalIds}`);
 
     const encodedAllApptContactIds = encodeURIComponent(JSON.stringify({ "in": allApptContactIds }));
     console.log('getting appointment contact data...');
@@ -218,7 +218,7 @@ function secondRoundOfFetches(dtAppts) {
             bodyForEzyVetGet(rxItemUrlBase + encodedPrescriptionIDs)
         );
         animalsOfContactRequests.push(
-            bodyForEzyVetGet(`${EV_PROXY}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
+            bodyForEzyVetGet(`${EV_PROXY}/v1.1/animal?active=1&contact_id=${appt.contact.id}&page_size=200`)
         );
     }
 
@@ -283,7 +283,7 @@ function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
             outputItems = [];
             responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);
             if (outputItems.length) return outputItems;
-            handleRespsForFetchAll(responses, outputItems, resourceName);
+            handleRespsForFetchAll(responses, outputItems, resourceName, requests);
         }
         else throw (error);
     }
@@ -294,7 +294,8 @@ function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
 function handleRespsForFetchAll(
     responses,
     outputItems,
-    resourceName
+    resourceName,
+    requests
 ) {
     for (let i = 0; i < responses.length; i++) {
         const response = responses[i];
@@ -307,7 +308,7 @@ function handleRespsForFetchAll(
             throw new Error(contentText);
         }
 
-        outputItems.push(data.items);
+        outputItems.push(completeAnimalPages(requests[i].url, data).items);
     }
 }
 

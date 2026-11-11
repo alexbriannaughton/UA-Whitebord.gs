@@ -3,6 +3,33 @@ const OK = 200;
 const TOO_MANY_REQUESTS = 429;
 
 function fetchAndParse(url) {
+    return completeAnimalPages(url, fetchAndParsePage(url));
+}
+
+// Preserve the original ID/contact filters on every v1.1 cursor request.
+// Single-animal room reads normally finish on the first page.
+function completeAnimalPages(url, firstPage) {
+    if (!String(url).startsWith(`${EV_PROXY}/v1.1/animal?`)) return firstPage;
+    const items = [];
+    const seen = new Set();
+    let data = firstPage;
+    for (let page = 0; page < 32; page++) {
+        if (!Array.isArray(data.items) || !data.meta ||
+            !(data.meta.next_token === null || typeof data.meta.next_token === 'string')) {
+            throw new Error('Invalid animal cursor response');
+        }
+        items.push(...data.items);
+        const cursor = data.meta.next_token;
+        if (!cursor) return { ...firstPage, items, meta: data.meta };
+        if (seen.has(cursor)) throw new Error('Repeated animal pagination cursor');
+        seen.add(cursor);
+        if (page === 31) break;
+        data = fetchAndParsePage(`${url}&next_token=${encodeURIComponent(cursor)}`);
+    }
+    throw new Error('Animal pagination exceeds 32 pages');
+}
+
+function fetchAndParsePage(url) {
     token = getToken();
 
     const options = {
@@ -56,7 +83,7 @@ function fetchAndParse(url) {
 
 // use fetchAndParse() to store pet name and species from /animal endpoint
 function getAnimalInfo(animalID) {
-    const url = `${EV_PROXY}/v1/animal/${animalID}`;
+    const url = `${EV_PROXY}/v1.1/animal?id=${animalID}`;
     const animal = fetchAndParse(url).items.at(-1).animal;
     const species = SPECIES_MAP[animal.species_id] || undefined;
 
@@ -72,7 +99,7 @@ function getLastName(contactID) {
 };
 
 function getContactIdFromAnimalId(animalID) {
-    const url = `${EV_PROXY}/v1/animal/${animalID}`;
+    const url = `${EV_PROXY}/v1.1/animal?id=${animalID}`;
     const contactID = fetchAndParse(url).items.at(-1).contact_id;
     return contactID;
 }
@@ -83,7 +110,7 @@ function getAnimalInfoAndLastName(animalID, contactID) {
 
     const animalRequest = {
         muteHttpExceptions: true,
-        url: `${EV_PROXY}/v1/animal/${animalID}`,
+        url: `${EV_PROXY}/v1.1/animal?id=${animalID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -150,7 +177,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     const animalOneRequest = {
         muteHttpExceptions: true,
-        url: `${EV_PROXY}/v1/animal/${animalOneID}`,
+        url: `${EV_PROXY}/v1.1/animal?id=${animalOneID}`,
         method: "GET",
         headers: {
             authorization: token
@@ -159,7 +186,7 @@ function getTwoAnimalContactIDsAsync(animalOneID, animalTwoID) {
 
     const animalTwoRequest = {
         muteHttpExceptions: true,
-        url: `${EV_PROXY}/v1/animal/${animalTwoID}`,
+        url: `${EV_PROXY}/v1.1/animal?id=${animalTwoID}`,
         method: "GET",
         headers: {
             authorization: token
