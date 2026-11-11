@@ -43,7 +43,14 @@
 - Link to any tracking issue/task; call out config or trigger updates so deployers can mirror them post-merge.
 
 ## Security & Configuration Tips
-- Secrets are pulled from Secret Manager via script properties (`gcp_id`, `secret_name`, `secret_version`); never commit raw tokens or sheet IDs.
+- The broker credential is pulled from Google Secret Manager using `gcp_id`,
+  `ezyvet_token_broker_secret_name`, and optional
+  `ezyvet_token_broker_secret_version` (defaults to `latest`). Script Properties
+  store only references and the broker URL; never commit raw tokens or sheet IDs.
+- The legacy `secret_name` is deliberately set to
+  `retired_ezyvet_issuer_do_not_use` in DEV and production. This prevents old
+  deployments from issuing independent tokens, including the retained production
+  v25 URL. Do not restore the old credential reference alongside broker consumers.
 - Keep cached tokens isolated in `CacheService` and avoid logging payload contents containing PHI; rotate credentials promptly after incidents.
 - YoLink SpeakerHub playback uses `yolink_uaid` and `yolink_uac_secret` script
   properties. Location-specific device-name properties are
