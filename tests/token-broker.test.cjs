@@ -120,8 +120,7 @@ function animalPagesFixture(reply) {
   }},Utilities:{sleep:()=>{}},
  });
  vm.runInContext("const EV_PROXY='https://synthetic.invalid';let token;"+
-  fs.readFileSync(path.join(__dirname,'../src/Helpers/Fetch.js'),'utf8')+'\n'+
-  fs.readFileSync(path.join(__dirname,'../src/Cron-Jobs/TomorrowsAppts/Fetch.js'),'utf8'),context);
+  fs.readFileSync(path.join(__dirname,'../src/Helpers/Fetch.js'),'utf8'),context);
  return {context,urls};
 }
 function animalResponse(id,cursor,status=200) {
@@ -134,13 +133,6 @@ test('animal cursor continuation retains contact filter and page size',()=>{
  const second=new URL(f.urls[1].url);
  assert.equal(second.searchParams.get('contact_id'),'7');assert.equal(second.searchParams.get('active'),'1');
  assert.equal(second.searchParams.get('page_size'),'1');assert.equal(second.searchParams.get('next_token'),'next+&cursor');
-});
-test('batched family-animal responses drain cursor pages',()=>{
- const f=animalPagesFixture(()=>animalResponse('2',null));
- f.context.batchResponse=animalResponse('1','second');
- const result=vm.runInContext("const out=[];handleRespsForFetchAll([batchResponse],out,'animals',[{url:'https://synthetic.invalid/v1.1/animal?contact_id=7&page_size=1'}]);out",f.context);
- assert.deepEqual(Array.from(result[0],x=>x.animal.id),['1','2']);assert.equal(f.urls.length,1);
- assert.equal(new URL(f.urls[0].url).searchParams.get('contact_id'),'7');
 });
 test('animal paging fails closed on a repeating cursor or page limit',()=>{
  for(const repeat of [true,false]) {

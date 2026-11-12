@@ -1,127 +1,84 @@
-// PutDataOnSheet.js
 const unmatchedVetstoriaContactID = '72038';
-function putDataOnSheet(dtAppts, range) {
-    for (let i = 0; i < dtAppts.length; i++) {
-        const {
-            appointment,
-            contact,
-            animal,
-            prescriptions,
-            prescriptionItems,
-            consults,
-            encodedConsultIDs,
-            patientsLastVisitDate,
-            firstTime,
-            otherAnimalsOfContact,
-            otherAnimalsWhoHaveBeenHere,
-            records
-        } = dtAppts[i];
+const NDA_PENDING_VALUE = 'Pending lookup - see chart';
+const NDA_UNAVAILABLE_VALUE = 'Unavailable - see chart';
+const NDA_PENDING_PATIENT = 'Patient details pending - open chart';
 
-        // time and reason cell are handled the same whether or not the appointment has an unmatched contact/animal record
-        const timeCellVal = getTimeCellValue(i, appointment.start_time, contact.id, dtAppts);
-        const timeCell = range.offset(i, 0, 1, 1);
-        timeCell.setValue(timeCellVal);
-
-        const reasonCell = range.offset(i, 3, 1, 1);
-        const descriptionString = extractChckupClientNotes(appointment.details.description)
-        reasonCell.setValue(descriptionString);
-
-        const ptCell = range.offset(i, 1, 1, 1);
-        if (contact.id === unmatchedVetstoriaContactID) {
-            handleUnmatchedRecord(appointment, ptCell);
-            continue;
-        }
-
-        const depositPaidCell = range.offset(i, 2, 1, 1);
-        const hasDepositPaidStatus = appointment.details.appointment_status_id === '37';
-        // depositPaidCell.setValue(hasDepositPaidStatus);
-        if (hasDepositPaidStatus) {
-            depositPaidCell.setValue('yes');
-        }
-        else {
-            depositPaidCell.setValue('no');
-        }
-
-        // if we know the animal/contact stuff, continue normally
-        const ptSpecies = SPECIES_MAP[animal.species_id] || UNKNOWN_SPECIES_STRING;
-        const ptText = `${animal.name} ${contact.last_name} (${ptSpecies})`;
-        const animalURL = `${SITE_PREFIX}/?recordclass=Animal&recordid=${animal.id}`;
-        const link = makeLink(ptText, animalURL);
-        ptCell.setRichTextValue(link);
-
-        const firstTimeHereCell = range.offset(i, 4, 1, 1);
-        if (firstTime) {
-            firstTimeHereCell.setValue('yes');
-        }
-        else if (patientsLastVisitDate) {
-            firstTimeHereCell.setValue(`last seen ${patientsLastVisitDate}`);
-        }
-        else if (otherAnimalsWhoHaveBeenHere) {
-            firstTimeHereCell
-                .setValue(`first time for ${animal.name} but owner has been in with ${otherAnimalsWhoHaveBeenHere}`);
-        }
-        else {
-            firstTimeHereCell.setValue('ERROR');
-            console.error(`first time here cell data not found for ${animal.name} ${contact.last_name}`);
-        }
-
-
-        const recordsCell = range.offset(i, 5, 1, 1);
-        records.link
-            ? recordsCell.setRichTextValue(
-                makeLink(records.text, records.link)
-            )
-            : recordsCell.setValue(records.text);
-
-
-        const hxFractiousCell = range.offset(i, 6, 1, 1);
-        animal.is_hostile === '1'
-            ? hxFractiousCell.setValue('yes')
-            : hxFractiousCell.setValue('no');
-
-
-        const {
-            sedativeName,
-            sedativeDateLastFilled,
-            rxErrorItem
-        } = processPrescriptionItems(prescriptions, prescriptionItems);
-        const hasSedCell = range.offset(i, 7, 1, 1);
-        let sedCellVal;
-        if (rxErrorItem) {
-            console.error(`error processing rxs for ${ptText}`);
-            console.error(`${ptText} prescriptions: `, prescriptions);
-            console.error('rxErrorItem: ', rxErrorItem);
-            sedCellVal = 'ERROR';
-        }
-        else if (sedativeName === undefined) {
-            sedCellVal = 'no';
-        }
-        else {
-            const [_dayOfWeek, dateString] = convertEpochToUserTimezoneDate(sedativeDateLastFilled).split(' ');
-            sedCellVal = `${sedativeName} last filled ${dateString}`;
-        }
-        hasSedCell.setValue(sedCellVal);
-
-        const apptTypeCell = range.offset(i, 8, 1, 1);
-        let apptCellText = '';
-        if (ALL_NDA_DVM_APPT_IDS.has(Number(appointment.details.appointment_type_id))) {
-            apptCellText = 'DVM';
-        }
-        else if (ALL_NDA_TECH_APPT_IDS.has(Number(appointment.details.appointment_type_id))) {
-            apptCellText = 'tech';
-        }
-        apptTypeCell.setValue(apptCellText);
-        
+function prepareNdaRows(appts) {
+  const values = [];
+  const rich = [];
+  for (let i = 0; i < appts.length; i++) {
+    const appt = appts[i];
+    const { appointment, animal, contact } = appt;
+    const unavailable = (ready, failed) => ready ? null : (failed ? NDA_UNAVAILABLE_VALUE : NDA_PENDING_VALUE);
+    const patient = animal && contact
+      ? `${animal.name} ${contact.last_name} (${SPECIES_MAP[animal.species_id] || UNKNOWN_SPECIES_STRING})`
+      : (appt.ndaIdentityUnavailable ? NDA_UNAVAILABLE_VALUE : NDA_PENDING_PATIENT);
+    let history = unavailable(appt.ndaVisitHistoryReady, appt.ndaVisitHistoryUnavailable);
+    if (!history) {
+      history = appt.firstTime ? 'yes' : appt.patientsLastVisitDate
+        ? `last seen ${appt.patientsLastVisitDate}` : appt.otherAnimalsWhoHaveBeenHere
+          ? `first time for ${animal?.name || 'this patient'} but owner has been in with ${appt.otherAnimalsWhoHaveBeenHere}`
+          : NDA_UNAVAILABLE_VALUE;
     }
+    let medication = unavailable(appt.ndaMedicationReady, appt.ndaMedicationUnavailable);
+    if (!medication) {
+      const rx = processPrescriptionItems(appt.prescriptions, appt.prescriptionItems);
+      medication = rx.rxErrorItem ? NDA_UNAVAILABLE_VALUE : rx.sedativeName === undefined ? 'no'
+        : `${rx.sedativeName} last filled ${convertEpochToUserTimezoneDate(rx.sedativeDateLastFilled).split(' ')[1]}`;
+    }
+    const records = appt.ndaRecordsReady && appt.records ? appt.records.text
+      : unavailable(false, appt.ndaRecordsUnavailable);
+    const demeanor = ['0', '1'].includes(String(animal?.is_hostile))
+      ? (String(animal.is_hostile) === '1' ? 'yes' : 'no')
+      : unavailable(false, appt.ndaIdentityUnavailable);
+    const type = Number(appointment.details.appointment_type_id);
+    const row = [
+      getTimeCellValue(i, appointment.start_time, appointment.details.contact_id, appts),
+      patient,
+      String(appointment.details.appointment_status_id) === '37' ? 'yes' : 'no',
+      extractChckupClientNotes(appointment.details.description || ''),
+      history, records, demeanor, medication,
+      ALL_NDA_DVM_APPT_IDS.has(type) ? 'DVM' : ALL_NDA_TECH_APPT_IDS.has(type) ? 'tech' : '',
+      '', // Filled from the known location by formatNextDayApptsCells.
+    ];
+    if (String(appointment.details.contact_id) === unmatchedVetstoriaContactID) {
+      row[1] = getUnmatchedNdaText(appointment);
+      for (const column of [2, 4, 5, 6, 7]) row[column] = '-';
+    }
+    const links = row.map(value => simpleTextToRichText(value instanceof Date ? '' : String(value)));
+    if (String(appointment.details.contact_id) !== unmatchedVetstoriaContactID) {
+      links[1] = makeLink(row[1], `${SITE_PREFIX}/?recordclass=Animal&recordid=${appointment.details.animal_id}`);
+    }
+    if (appt.ndaRecordsReady && appt.records?.link) links[5] = makeLink(row[5], appt.records.link);
+    values.push(row);
+    rich.push(links);
+  }
+  return { values, rich };
 }
 
-function getTimeCellValue(i, startTime, contactID, dtAppts) {
-    const isSameFam = i > 0 && contactID === dtAppts[i - 1].contact.id;
-    if (isSameFam && contactID !== unmatchedVetstoriaContactID) {
-        return SAME_FAM_STRING;
-    }
-    const date = new Date(startTime * 1000);
-    return date;
+function putDataOnSheet(appts, range, snapshot = prepareNdaRows(appts)) {
+  const location = range.getCell(1, 10).getValue();
+  // Commit the complete row payload in batches; API calls happen elsewhere.
+  for (let i = 0; i < snapshot.values.length; i++) {
+    snapshot.values[i][9] = location;
+    snapshot.rich[i][9] = simpleTextToRichText(location);
+  }
+  range.setValues(snapshot.values);
+  range.offset(0, 1, appts.length, 9).setRichTextValues(snapshot.rich.map(row => row.slice(1)));
+}
+
+function getTimeCellValue(i, startTime, contactID, appts) {
+  const previous = i > 0 ? appts[i - 1].appointment.details.contact_id : null;
+  if (String(contactID) === String(previous) && String(contactID) !== unmatchedVetstoriaContactID) return SAME_FAM_STRING;
+  return new Date(Number(startTime) * 1000);
+}
+
+function getUnmatchedNdaText(appointment) {
+  const parts = String(appointment.details.description || '').split(' - ');
+  if (parts.length < 4) return 'UNMATCHED PATIENT/CLIENT - see appointment';
+  const animal = parts[1].replace(/^\s*\(New client\) ?/, '').trim();
+  const [email, phone] = parts[3].split(' ');
+  return `UNMATCHED PATIENT/CLIENT:\n${animal}\n${parts[2]}\n${email || ''}\n${phone || ''}`;
 }
 
 function processPrescriptionItems(prescriptions, prescriptionItems) {
@@ -162,22 +119,4 @@ function getRxDate(prescriptions, prescriptionID) {
         return undefined;
     }
     return Number(rx.prescription.date_of_prescription);
-}
-
-function handleUnmatchedRecord(appointment, ptCell) {
-    const descriptionString = appointment.details.description;
-    const [_, wonkyAnimalData, contactName, emailAndPhone] = descriptionString.split(' - ');
-    const [email, phone] = emailAndPhone.split(" ");
-    const animalName = wonkyAnimalData.replace(/^\s*\(New client\) ?/, '').trim();
-    // remove empty whitespace and (New client) at the front of this string^^^
-    ptCell.setValue(`UNMATCHED PATIENT/CLIENT:\n${animalName}\n${contactName}\n${email}\n${phone}`);
-    // set every cell, except for the reason cell with a value of "-"
-    ptCell.offset(0, 1).setValue('-');
-    let columnDistFromPtCell = 3;
-    while (columnDistFromPtCell <= 6) {
-        ptCell.offset(0, columnDistFromPtCell++)
-            .setValue('-');
-    }
-
-    return;
 }
