@@ -132,7 +132,7 @@ function fetchNdaIdentities(appts) {
     appt.animal = animals.get(String(appt.appointment.details.animal_id))?.[0]?.animal;
     appt.contact = contacts.get(String(appt.appointment.details.contact_id))?.[0]?.contact;
     appt.ndaIdentityUnavailable = !appt.animal || !appt.contact;
-    missing ||= appt.ndaIdentityUnavailable;
+    missing = missing || appt.ndaIdentityUnavailable;
   }
   if (missing) throw new Error('NDA identity unavailable');
 }
