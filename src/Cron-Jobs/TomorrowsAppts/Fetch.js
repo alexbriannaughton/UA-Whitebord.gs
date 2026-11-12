@@ -1,363 +1,176 @@
-// Fetch.js
-function fetchDataToCheckIfFirstTimeClient(dtAppts, targetDateStr) {
-    const targetDate = new Date(targetDateStr.split(' ')[1]);
-    findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate);
+// NDA-only reads leave capacity for live callbacks. The shared fetch helper
+// still owns broker lookup and exact-token recovery; this code never mints.
+let ndaReadSession = null;
 
-    for (let i = 0; i < dtAppts.length; i++) {
-        const {
-            patientsLastVisitDate,
-            otherAnimalConsults,
-            otherAnimalsOfContact,
-            animal,
-            contact
-        } = dtAppts[i];
-
-        if (patientsLastVisitDate) continue; // this means i already have the data i want for the 'first time?' cell
-        if (!otherAnimalConsults || !otherAnimalConsults.length) {
-            // this means its for sure their first time here
-            dtAppts[i].firstTime = true;
-            continue;
-        }
-
-        // otherwise we need to parse through otherAnimalConsults to decide if theyve been here with another pet
-        const animalName = `${animal.name} ${contact.last_name}`;
-        const animalsOfContactWhoHaveBeenHere = parseOtherAnimalConsults(
-            otherAnimalConsults,
-            otherAnimalsOfContact,
-            animalName,
-            targetDate
-        );
-
-        if (animalsOfContactWhoHaveBeenHere.size) {
-            const namesOfAnimalsString = Array.from(animalsOfContactWhoHaveBeenHere).join(', ');
-            dtAppts[i].otherAnimalsWhoHaveBeenHere = namesOfAnimalsString;
-        }
-        else {
-            dtAppts[i].firstTime = true;
-        }
-    }
+function startNdaReadSession() {
+  ndaReadSession = {
+    deadline: Date.now() + 240000,
+    nextReadAt: 0,
+    endpointReadAt: new Map(),
+    responses: new Map(),
+    requests: 0,
+  };
+  return ndaReadSession;
 }
 
-// findLastVisitAndGetOtherAnimalConsults will iterate through dtAppts and:
-// 1. look for a valid previous appointment. if found it will store the date to dtAppt[i].patientsLastVisitDate
-// 2. if we do not find a valid previous appointment for this patient, and the owner has other pets on file,
-// then we're going to send a request to ezyvet for the consults of those other pets and we'll store those consults to dtAppts[i].otherAnimalConsuts
-function findLastVisitAndGetOtherAnimalConsults(dtAppts, targetDate) {
-    const consultsForOtherContactAnimalsRequests = [];
-    const fetchedForOtherAnimalConsultsMap = [];
-    // fetchedForOtherAnimalConsultsMap = is a map array where array[i] cooresponsds to dtAppts[i] to represent if we needed to fetch for that appointment's contact's other animals's consults 
-    // first check if this patient has previous valid consults
-    // if so, were just going to put that last date of this patients visit, and we're not going to check if they have other animals who have had consults
-    const consultsForOtherContactAnimalsRequestBaseUrl = `${EV_PROXY}/v1/consult?active=1&animal_id=`
-    for (let i = 0; i < dtAppts.length; i++) {
-        const { appointment, consults, otherAnimalsOfContact, consultIDs } = dtAppts[i];
-        // note: appointments created through vetstoria do not have an consult, but we want to count it for this
-        const apptHasConsult = appointment.details.consult_id; // check for existence of appointment's consult
-        const numberOfConsults = apptHasConsult ? consults.length : consults.length + 1;
-        if (numberOfConsults > 1) { // if the animal has potentially been here before..
-            consults.sort((a, b) => b.consult.date - a.consult.date);
-            const appts = fetchAndParseInChunks(`${EV_PROXY}/v1/appointment?active=1&limit=200&consult_id=`, consultIDs);
-            for (const { consult } of consults) {
-                // if the consult does not have an appointment, it is probably not an actual visit
-                // e.g. a fecal drop off will sometimes have a consult and not a visit, and we dont want to count that as a visit.
-                const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
-                const consultDate = getDateAtMidnight(consult.date);
-                if (consultHasAppointment && consultDate < targetDate) {
-                    // then we have confirmed a valid last consult for this patient
-                    const [_dayOfWeek, dateString] = convertEpochToUserTimezoneDate(consult.date).split(' ');
-                    dtAppts[i].patientsLastVisitDate = dateString;
-                    break;
-                }
-                // if consult does not have an appointment
-                // or if this consult has the same date or is further in the future than the original appt we are comparing to
-                // that means we dont want to count this visit as the previous visit, so move on to the next consult
-            }
-        }
+function ndaRead(url) {
+  if (!ndaReadSession) throw new Error('NDA read session required');
+  if (ndaReadSession.responses.has(url)) return ndaReadSession.responses.get(url);
+  const endpoint = url.match(/\/v1\/([^/?]+)/)?.[1];
+  if (!endpoint) throw new Error('Unsupported NDA read endpoint');
 
-        const isAnimalsFirstTime = dtAppts[i].patientsLastVisitDate === undefined;
-
-        // if we were unable to find a valid previous visit for this animal, and the owner has other pets,
-        // we're going to fetch for those animals' consults
-        if (isAnimalsFirstTime && otherAnimalsOfContact.length) {
-            // if its a rescue i dont want to get consultsforothercontactanimals
-            // i just want to put in the cell that its this animals first time and the contact is a rescue
-
-            const otherAnimalIDsOfContact = otherAnimalsOfContact.map(({ animal }) => animal.id);
-            dtAppts[i].otherAnimalIDsOfContact = otherAnimalIDsOfContact;
-            const encodedOtherAnimalIDs = encodeURIComponent(JSON.stringify({ "in": otherAnimalIDsOfContact }));
-            consultsForOtherContactAnimalsRequests.push(
-                bodyForEzyVetGet(consultsForOtherContactAnimalsRequestBaseUrl + encodedOtherAnimalIDs)
-            );
-
-            fetchedForOtherAnimalConsultsMap.push(true);
-
-        }
-        else fetchedForOtherAnimalConsultsMap.push(false);
-    }
-
-    // send the fetch all for the other animals's consults
-    const contactOtherAnimalsConsultData = fetchAllResponses(
-        consultsForOtherContactAnimalsRequests,
-        `contact's other animals' consults where needed`,
-        dtAppts,
-        consultsForOtherContactAnimalsRequestBaseUrl,
-        'otherAnimalIDsOfContact'
-    );
-
-    // attach the other animal consults to the appropriate appointment
-    let contactOtherAnimalsConsultDataIndex = 0;
-    for (let i = 0; i < dtAppts.length; i++) {
-        const didTheFetch = fetchedForOtherAnimalConsultsMap[i];
-        if (didTheFetch) {
-            const otherAnimalConsults = contactOtherAnimalsConsultData[contactOtherAnimalsConsultDataIndex++];
-            dtAppts[i].otherAnimalConsults = otherAnimalConsults;
-        }
-    }
-}
-
-function parseOtherAnimalConsults(
-    otherAnimalConsults,
-    otherAnimalsOfContact,
-    animalName,
-    targetDate
-) {
-    const animalIDToNameMap = new Map();
-    for (const { animal } of otherAnimalsOfContact) {
-        let name = animal.name;
-        if (animal.is_dead === '1') name += '(💀)';
-        animalIDToNameMap.set(animal.id, name);
-    }
-    const animalsWhoHaveBeenHere = new Set();
-    const allOtherAnimalConsultIDs = otherAnimalConsults.map(({ consult }) => consult.id);
-    const encodedConsultIDsOfOtherAnimals = encodeURIComponent(JSON.stringify({ "in": allOtherAnimalConsultIDs }));
-    console.log(`getting consults for siblings of ${animalName}...`);
-    const { items: appts } = fetchAndParse(`${EV_PROXY}/v1/appointment?active=1&limit=200&consult_id=${encodedConsultIDsOfOtherAnimals}`);
-    for (const { consult } of otherAnimalConsults) {
-        const consultHasAppointment = appts.some(({ appointment }) => Number(consult.id) === appointment.details.consult_id);
-        const consultDate = getDateAtMidnight(consult.date);
-        if (consultHasAppointment && consultDate < targetDate) {
-            animalsWhoHaveBeenHere.add(animalIDToNameMap.get(consult.animal_id));
-        }
-    }
-    return animalsWhoHaveBeenHere;
-}
-
-function firstRoundOfFetches(dtAppts) {
-    const allConsultsForAnimalRequests = [];
-    const prescriptionRequests = [];
-    const animalAttachmentRequests = [];
-
-    const allApptAnimalIds = [];
-    const allApptContactIds = [];
-
-    dtAppts.forEach(({ appointment }) => {
-        const animalID = appointment.details.animal_id;
-
-        allApptAnimalIds.push(animalID);
-        allApptContactIds.push(appointment.details.contact_id);
-
-        allConsultsForAnimalRequests.push(bodyForEzyVetGet(`${EV_PROXY}/v1/consult?active=1&limit=200&animal_id=${animalID}`));
-        prescriptionRequests.push(bodyForEzyVetGet(`${EV_PROXY}/v1/prescription?active=1&limit=200&animal_id=${animalID}`));
-        animalAttachmentRequests.push(bodyForEzyVetGet(`${EV_PROXY}/v1/attachment?active=1&limit=200&record_type=Animal&record_id=${animalID}`));
-    });
-
-    const allConsultsForAnimalData = fetchAllResponses(allConsultsForAnimalRequests, "consult");
-    const prescriptionData = fetchAllResponses(prescriptionRequests, "prescription");
-
-    const encodedAllApptAnimalIds = encodeURIComponent(JSON.stringify({ "in": allApptAnimalIds }));
-    console.log('getting appointment animal data...');
-    const { items: apptAnimals } = fetchAndParse(`${EV_PROXY}/v1/animal?active=1&limit=200&id=${encodedAllApptAnimalIds}`);
-
-    const encodedAllApptContactIds = encodeURIComponent(JSON.stringify({ "in": allApptContactIds }));
-    console.log('getting appointment contact data...');
-    const { items: apptContacts } = fetchAndParse(`${EV_PROXY}/v1/contact?active=1&limit=200&id=${encodedAllApptContactIds}`);
-
-    for (let i = 0; i < dtAppts.length; i++) {
-        const { appointment } = dtAppts[i];
-        const { animal } = apptAnimals.find(({ animal }) => Number(animal.id) === appointment.details.animal_id);
-        const { contact } = apptContacts.find(({ contact }) => Number(contact.id) === appointment.details.contact_id);
-
-        const consults = allConsultsForAnimalData[i];
-        const consultIDs = consults.map(({ consult }) => consult.id);
-
-        const prescriptions = prescriptionData[i];
-        const prescriptionIDs = prescriptions.map(({ prescription }) => prescription.id);
-
-        const newApptData = {
-            animal,
-            contact,
-            consults,
-            consultIDs,
-            prescriptions,
-            prescriptionIDs,
-        }
-
-        dtAppts[i] = { ...dtAppts[i], ...newApptData };
-    }
-
-    const animalAttachmentData = fetchAllResponses(animalAttachmentRequests, "animal attachment");
-    return animalAttachmentData;
-}
-
-function secondRoundOfFetches(dtAppts) {
-    const consultAttachmentRequests = [];
-    const prescriptionItemRequests = [];
-    const animalsOfContactRequests = [];
-
-    const rxItemUrlBase = `${EV_PROXY}/v1/prescriptionitem?active=1&limit=200&prescription_id=`;
-    const consultAttachmentUrlBase = `${EV_PROXY}/v1/attachment?limit=200&active=1&record_type=Consult&record_id=`;
-
-    for (const appt of dtAppts) {
-        const encodedConsultIDs = encodeURIComponent(JSON.stringify({ "in": appt.consultIDs }));
-        consultAttachmentRequests.push(
-            bodyForEzyVetGet(consultAttachmentUrlBase + encodedConsultIDs)
-        );
-
-        const encodedPrescriptionIDs = encodeURIComponent(JSON.stringify({ "in": appt.prescriptionIDs }));
-        prescriptionItemRequests.push(
-            bodyForEzyVetGet(rxItemUrlBase + encodedPrescriptionIDs)
-        );
-        animalsOfContactRequests.push(
-            bodyForEzyVetGet(`${EV_PROXY}/v1/animal?active=1&contact_id=${appt.contact.id}&limit=200`)
-        );
-    }
-
-    const prescriptionItemData = fetchAllResponses(
-        prescriptionItemRequests,
-        'prescription item',
-        dtAppts,
-        rxItemUrlBase,
-        'prescriptionIDs'
-    );
-
-    const animalsOfContactData = fetchAllResponses(animalsOfContactRequests, 'animals of contact');
-
-    for (let i = 0; i < dtAppts.length; i++) {
-        const prescriptionItems = prescriptionItemData[i];
-        const animalsOfContact = animalsOfContactData[i];
-        const otherAnimalsOfContact = animalsOfContact.filter(({ animal }) => animal.id !== dtAppts[i].animal.id);
-
-        const newApptData = { prescriptionItems, otherAnimalsOfContact };
-
-        dtAppts[i] = { ...dtAppts[i], ...newApptData };
-    }
-
-    const consultAttachmentData = fetchAllResponses(
-        consultAttachmentRequests,
-        'consult attachment',
-        dtAppts,
-        consultAttachmentUrlBase,
-        'consultIDs'
-    );
-
-    return consultAttachmentData;
-};
-
-function bodyForEzyVetGet(url) {
-    return {
-        muteHttpExceptions: true,
-        url,
-        method: "GET",
-        headers: { authorization: token }
-    }
-};
-
-function fetchAllResponses(requests, resourceName, dtAppts, urlBase, keyToIds) {
-    let outputItems = [];
-
-    let responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);
-    if (outputItems.length) return outputItems;
-
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const now = Date.now();
+    const wait = Math.max(0, ndaReadSession.nextReadAt - now,
+      (ndaReadSession.endpointReadAt.get(endpoint) || 0) - now);
+    if (now + wait >= ndaReadSession.deadline) throw new Error('NDA read budget exhausted');
+    if (wait) Utilities.sleep(wait);
+    ndaReadSession.nextReadAt = Date.now() + 750;
+    ndaReadSession.endpointReadAt.set(endpoint, Date.now() + 1500);
+    ndaReadSession.requests++;
     try {
-        handleRespsForFetchAll(responses, outputItems, resourceName, requests);
+      const response = fetchAndParse(url);
+      if (!response || !Array.isArray(response.items)) throw new Error('Incomplete NDA read response');
+      ndaReadSession.responses.set(url, response);
+      return response;
+    } catch (error) {
+      // Retry this GET, never an entire successful batch or a new token.
+      const transient = /Address unavailable|timed?\s*out|connection reset|socket|DNS|Service unavailable/i.test(error.message || '');
+      if (!transient || attempt === 2) throw new Error(transient ? 'NDA read transport unavailable' : 'NDA read failed');
     }
-    catch (error) {
-        console.error(error);
-        if (error.message.includes('too many requests recently')) {
-            const secondsTilNextRetryMatch = error.message.match(/(\d+)\s+seconds/);
-            const secondsTilNextRetry = secondsTilNextRetryMatch
-                ? Number(secondsTilNextRetryMatch[1])
-                : 60; // fallback if regex fails
-            console.error(`Rate limit error detected. Waiting ${secondsTilNextRetry} seconds...`);
-            Utilities.sleep(secondsTilNextRetry * 1000);
-            outputItems = [];
-            responses = tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds);
-            if (outputItems.length) return outputItems;
-            handleRespsForFetchAll(responses, outputItems, resourceName);
-        }
-        else throw (error);
-    }
-
-    return outputItems;
+  }
 }
 
-function handleRespsForFetchAll(
-    responses,
-    outputItems,
-    resourceName
-) {
-    for (let i = 0; i < responses.length; i++) {
-        const response = responses[i];
-        const contentText = response.getContentText();
-        const data = jsonParser(contentText);
-
-        if (!data || response.getResponseCode() !== 200) {
-            console.error(`Error at index ${i} fetching ${resourceName} data.`);
-            console.error('Error from ezyVet:');
-            throw new Error(contentText);
-        }
-
-        outputItems.push(data.items);
+function ndaReadAll(url) {
+  const items = [];
+  const seen = new Set();
+  const endpoint = url.match(/\/v1\/([^/?]+)/)?.[1];
+  let pages = 1;
+  for (let page = 1; page <= pages; page++) {
+    const response = ndaRead(`${url}&page=${page}`);
+    const count = Number(response.meta?.items_page_total);
+    if (!Number.isInteger(count) || count < 0 || count > 100 || (count === 0 && response.items.length)) {
+      throw new Error('Invalid NDA pagination');
     }
+    if (page > 1 && Math.max(1, count) !== pages) throw new Error('NDA pagination changed');
+    if (response.meta.items_page !== undefined && Number(response.meta.items_page) !== page) {
+      throw new Error('NDA pagination repeated a page');
+    }
+    pages = Math.max(1, count);
+    for (const item of response.items) {
+      const id = String(item[endpoint]?.id);
+      if (!/^[1-9]\d*$/.test(id) || seen.has(id)) throw new Error('NDA pagination contains missing or duplicate records');
+      seen.add(id);
+    }
+    items.push(...response.items);
+  }
+  return items;
 }
 
-
-function tryFetchAll(requests, resourceName, outputItems, dtAppts, urlBase, keyToIds) {
-    try {
-        console.log(`getting all ${resourceName} data...`);
-        const responses1 = UrlFetchApp.fetchAll(requests);
-        return responses1;
+function ndaFetchByIds(endpoint, key, ids, extra = '') {
+  const unique = [...new Set(ids.map(String))].sort((a, b) => Number(a) - Number(b));
+  if (unique.some(id => !/^[1-9]\d*$/.test(id))) throw new Error('Invalid NDA filter id');
+  const output = [];
+  for (let offset = 0; offset < unique.length; offset += 50) {
+    const chunk = unique.slice(offset, offset + 50);
+    const filter = encodeURIComponent(JSON.stringify({ in: chunk }));
+    const items = ndaReadAll(`${EV_PROXY}/v1/${endpoint}?active=1&limit=200&${key}=${filter}${extra}`);
+    // A rejected/ignored filter must never attach another patient's data.
+    for (const item of items) {
+      const record = item[endpoint];
+      const id = record?.[key] ?? record?.details?.[key];
+      if (!record || !chunk.includes(String(id))) throw new Error('NDA result outside requested scope');
     }
-    catch (error) {
-        console.error(error.message);
-        // if error.message indicates url length is too long
-        if (error.message.includes('URL Length')) {
-            return splitUpFetches(resourceName, dtAppts, urlBase, keyToIds, outputItems);
-        }
-
-        console.error(`trying again to get all ${resourceName} data...`);
-        const responses2 = UrlFetchApp.fetchAll(requests);
-        return responses2;
-    }
+    output.push(...items);
+  }
+  return output;
 }
 
-function splitUpFetches(resourceName, dtAppts, urlBase, keyToIds, outputItems) {
-    console.log(`splitting up fetches for requesting ${resourceName}...`);
-    for (const appt of dtAppts) {
-        console.log(`attempting to get ${resourceName} for ${appt.animal.name} ${appt.contact.last_name}`);
-        const idsArray = appt[keyToIds];
-        const itemsForOneAppt = fetchAndParseInChunks(urlBase, idsArray);
-        outputItems.push(itemsForOneAppt);
-    }
+function ndaGroup(items, endpoint, key) {
+  const groups = new Map();
+  for (const item of items) {
+    const id = String(item[endpoint][key]);
+    if (!groups.has(id)) groups.set(id, []);
+    groups.get(id).push(item);
+  }
+  return groups;
 }
 
-function fetchAndParseInChunks(urlBase, idsArray = []) {
-    const itemsForOneAppt = [];
-    for (let i = 0; i < idsArray.length; i += 30) {
-        const curIds = idsArray.slice(i, i + 30 + 1);
-        const encodedIds = encodeURIComponent(JSON.stringify({ "in": curIds }));
-        const { items } = fetchAndParse(urlBase + encodedIds);
-        itemsForOneAppt.push(...items);
-    }
-    return itemsForOneAppt;
+function fetchNdaIdentities(appts) {
+  const animals = ndaGroup(ndaFetchByIds('animal', 'id', appts.map(a => a.appointment.details.animal_id)), 'animal', 'id');
+  const contacts = ndaGroup(ndaFetchByIds('contact', 'id', appts.map(a => a.appointment.details.contact_id)), 'contact', 'id');
+  let missing = false;
+  for (const appt of appts) {
+    appt.animal = animals.get(String(appt.appointment.details.animal_id))?.[0]?.animal;
+    appt.contact = contacts.get(String(appt.appointment.details.contact_id))?.[0]?.contact;
+    appt.ndaIdentityUnavailable = !appt.animal || !appt.contact;
+    missing ||= appt.ndaIdentityUnavailable;
+  }
+  if (missing) throw new Error('NDA identity unavailable');
 }
 
-function jsonParser(input) {
-    try {
-        const output = JSON.parse(input);
-        return output;
+function fetchNdaMedicalData(appts) {
+  // Share lookups across duplicate appointments and exhaust every page before
+  // treating an empty medication list as a verified negative result.
+  const animalIds = appts.map(a => a.appointment.details.animal_id);
+  const consults = ndaGroup(ndaFetchByIds('consult', 'animal_id', animalIds), 'consult', 'animal_id');
+  for (const appt of appts) appt.consults = consults.get(String(appt.appointment.details.animal_id)) || [];
+  const prescriptions = ndaGroup(ndaFetchByIds('prescription', 'animal_id', animalIds), 'prescription', 'animal_id');
+  const ids = [...prescriptions.values()].flat().map(p => p.prescription.id);
+  const items = ndaGroup(ndaFetchByIds('prescriptionitem', 'prescription_id', ids), 'prescriptionitem', 'prescription_id');
+  for (const appt of appts) {
+    appt.prescriptions = prescriptions.get(String(appt.appointment.details.animal_id)) || [];
+    appt.prescriptionItems = appt.prescriptions.flatMap(p => items.get(String(p.prescription.id)) || []);
+    appt.ndaMedicationReady = true;
+  }
+}
+
+function fetchNdaAttachmentData(appts) {
+  if (appts.some(a => !Array.isArray(a.consults))) throw new Error('NDA consult history unavailable');
+  const animalIds = appts.map(a => a.appointment.details.animal_id);
+  const consultIds = appts.flatMap(a => a.consults.map(c => c.consult.id));
+  const animals = ndaGroup(ndaFetchByIds('attachment', 'record_id', animalIds, '&record_type=Animal'), 'attachment', 'record_id');
+  const consults = ndaGroup(ndaFetchByIds('attachment', 'record_id', consultIds, '&record_type=Consult'), 'attachment', 'record_id');
+  return {
+    animalAttachments: appts.map(a => animals.get(String(a.appointment.details.animal_id)) || []),
+    consultAttachments: appts.map(a => a.consults.flatMap(c => consults.get(String(c.consult.id)) || [])),
+  };
+}
+
+function fetchDataToCheckIfFirstTimeClient(appts, targetDateStr) {
+  // Complete all history reads before asserting first-time status. A failed
+  // optional lookup must remain unknown, including for another pet's history.
+  if (appts.some(a => !Array.isArray(a.consults))) throw new Error('NDA consult history unavailable');
+  const targetDate = new Date(targetDateStr.split(' ')[1]);
+  const consultIds = appts.flatMap(a => a.consults.map(c => c.consult.id));
+  const appointments = ndaFetchByIds('appointment', 'consult_id', consultIds);
+  const withAppointment = new Set(appointments.map(a => String(a.appointment.details.consult_id)));
+  const firstVisit = [];
+  for (const appt of appts) {
+    const previous = appt.consults.map(c => c.consult)
+      .filter(c => getDateAtMidnight(c.date) < targetDate && withAppointment.has(String(c.id)))
+      .sort((a, b) => Number(b.date) - Number(a.date))[0];
+    if (previous) {
+      appt.patientsLastVisitDate = convertEpochToUserTimezoneDate(previous.date).split(' ')[1];
+      appt.ndaVisitHistoryReady = true;
     }
-    catch {
-        return null;
-    }
+    else firstVisit.push(appt);
+  }
+  const animals = ndaFetchByIds('animal', 'contact_id', firstVisit.map(a => a.appointment.details.contact_id));
+  const currentAnimalIds = new Set(appts.map(a => String(a.appointment.details.animal_id)));
+  const otherAnimalIds = animals.map(a => a.animal.id).filter(id => !currentAnimalIds.has(String(id)));
+  const otherConsults = ndaFetchByIds('consult', 'animal_id', otherAnimalIds);
+  const otherAppointments = ndaFetchByIds('appointment', 'consult_id', otherConsults.map(c => c.consult.id));
+  const otherVisited = new Set(otherAppointments.map(a => String(a.appointment.details.consult_id)));
+  const visitedAnimals = new Set(otherConsults.filter(c => getDateAtMidnight(c.consult.date) < targetDate && otherVisited.has(String(c.consult.id)))
+    .map(c => String(c.consult.animal_id)));
+  for (const appt of appts) if (appt.patientsLastVisitDate) visitedAnimals.add(String(appt.appointment.details.animal_id));
+  for (const appt of firstVisit) {
+    const names = animals.filter(a => String(a.animal.contact_id) === String(appt.appointment.details.contact_id)
+      && String(a.animal.id) !== String(appt.appointment.details.animal_id) && visitedAnimals.has(String(a.animal.id)))
+      .map(a => a.animal.name);
+    if (names.length) appt.otherAnimalsWhoHaveBeenHere = names.join(', ');
+    else appt.firstTime = true;
+  }
+  for (const appt of appts) appt.ndaVisitHistoryReady = true;
 }

@@ -32,7 +32,11 @@
 - Log sparingly (`console.log`/`console.error`) and avoid printing client data; clean up debug statements before pushing.
 
 ## Testing & Verification
-- No automated test harness; validate via a staging sheet or test script version.
+- Run `node tests/nda-build.test.cjs` for NDA failure, pagination, and concurrent
+  sheet-update coverage; run `node tests/token-broker.test.cjs` for shared-token
+  regressions. These use synthetic services and do not write to live sheets.
+- Follow `src/Cron-Jobs/TomorrowsAppts/README.md` for staged NDA validation and
+  location-specific recovery entrypoints.
 - For webhooks, replay recent payloads against `doPost` using a temporary endpoint and confirm `Webhook-Actions/*` paths behave as expected.
 - For cron paths, run functions manually in the Apps Script editor and inspect the target sheets (`Cron-Jobs/*` modules).
 - Watch execution logs for 401/429 handling and caching behavior before promoting to prod.

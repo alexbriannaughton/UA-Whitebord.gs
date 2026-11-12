@@ -1,64 +1,127 @@
-// Index.js
 async function runAllNdaJobs() {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const ndaSheet = ss.getSheetByName('NDAs');
-
-    // Baseline formatting once at the top
-    setBaselineNdaConditionalFormatting(ndaSheet);
-
-    // DT first, as the main block at A3
-    await executeNdaJob(ndaSheet, DT_SHEET_NAME, { isFirstSection: true });
-
-    // Other locations appended below
-    const otherLocations = [CH_SHEET_NAME, WC_SHEET_NAME];
-
-    for (const loc of otherLocations) {
-        await executeNdaJob(ndaSheet, loc);
-    }
+  return runNdaBuild([DT_SHEET_NAME, CH_SHEET_NAME, WC_SHEET_NAME]);
 }
 
-async function executeNdaJob(ndaSheet, sheetName, { isFirstSection = false } = {}) {
-    const startTime = new Date();
-    console.log(`running nda job for ${sheetName}...`);
+// These editor entrypoints recover one location without clearing the others.
+async function rebuildNdaDt() { return runNdaBuild([DT_SHEET_NAME]); }
+async function rebuildNdaCh() { return runNdaBuild([CH_SHEET_NAME]); }
+async function rebuildNdaWc() { return runNdaBuild([WC_SHEET_NAME]); }
 
-    const uaLoc = sheetName;
-    const { appts, targetDateStr } = getNextDayAppts(uaLoc);
-    await getAllEzyVetData(appts, targetDateStr, uaLoc);
-
-    let range;
-
-    if (isFirstSection) {
-        // DT-style section: fixed start at A3
-        // A3 with `appts.length` rows and 8 columns (A–H)
-        range = ndaSheet.getRange(3, 1, appts.length, 8);
-    } else {
-        // Other locations: append after existing data + 2 blank rows
-        const lastRowWithData = ndaSheet.getLastRow();
-        range = ndaSheet.getRange(lastRowWithData + 2, 1, appts.length, 8);
+async function runNdaBuild(locations) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
+  const session = startNdaReadSession();
+  const states = [];
+  const failures = [];
+  try {
+    // Phase 1: Publish every basic list before any history, medication, or
+    // attachment lookup. A failed location retains its previous section;
+    // already built locations never depend on a later location succeeding.
+    withNdaSheetLock(() => setBaselineNdaConditionalFormatting(sheet));
+    for (const location of locations) {
+      try {
+        states.push(executeNdaJob(sheet, location));
+      } catch (error) {
+        recordNdaFailure(failures, location, 'appointments', error);
+      }
     }
 
-    formatNextDayApptsCells(ndaSheet, range, appts.length, targetDateStr, uaLoc);
-    putDataOnSheet(appts, range);
+    // Phase 2: Resolve names and demeanor for all locations before starting
+    // expensive enrichment. Missing identities keep an exact chart link and
+    // an explicit unavailable value instead of suppressing a patient row.
+    for (const state of states) {
+      await runNdaStage(sheet, state, 'identity', () => fetchNdaIdentities(state.appts), failures);
+    }
 
-    const executionTime = (new Date() - startTime) / 1000;
-    console.log(`finished nda job for ${sheetName} at ${executionTime} seconds!`);
+    // Phase 3: Give every location medication data before starting attachment
+    // and previous-visit work. Each optional stage has an independent failure
+    // boundary; the four-minute read budget leaves time to finish sheet writes.
+    for (const stage of ['medication', 'records', 'visitHistory']) {
+      for (const state of states) {
+        await runNdaStage(sheet, state, stage, () => getNdaEnrichment(state, stage), failures);
+      }
+    }
+    const summary = {
+      event: 'nda_build_completed',
+      locations: states.map(s => ({ location: s.location, appointments: s.appts.length })),
+      requests: session.requests,
+      failures,
+    };
+    console.log(JSON.stringify(summary));
+    // Preserve normal Apps Script failure notification rather than silently
+    // reporting success when any list or enrichment still needs attention.
+    if (failures.length) throw new Error(`NDA build needs attention: ${failures.map(f => `${f.location}/${f.stage}`).join(', ')}`);
+    return summary;
+  } finally {
+    ndaReadSession = null;
+  }
 }
 
+function executeNdaJob(sheet, location) {
+  const { appts, targetDateStr, daysAhead } = getNextDayAppts(location);
+  // Build the complete in-memory row payload before replacing any old rows.
+  publishNdaSection(sheet, location, targetDateStr, appts);
+  CacheService.getScriptCache().put(ndaUaLocTokenName(location), daysAhead, 21600);
+  console.log(JSON.stringify({ event: 'nda_list_ready', location, appointments: appts.length }));
+  return { location, targetDateStr, appts };
+}
 
-function getNextDayAppts(uaLoc) {
-    let appts = [];
-    let daysAhead = 0;
-    let targetDateStr;
-    while (!appts.length && daysAhead < 10) {
-        const [targetDayStart, targetDayEnd] = epochRangeForFutureDay(++daysAhead);
-        targetDateStr = convertEpochToUserTimezoneDate(targetDayStart);
-        console.log(`querying for appointments on ${targetDateStr}...`);
-        const url = `${EV_PROXY}/v1/appointment?active=1&time_range_start=${targetDayStart}&time_range_end=${targetDayEnd}&limit=200`;
-        const allTargetDayAppts = fetchAndParse(url);
-        appts = filterAndSortAppts(allTargetDayAppts, uaLoc);
+async function runNdaStage(sheet, state, stage, action, failures) {
+  try {
+    if (Date.now() >= ndaReadSession.deadline) throw new Error('NDA read budget exhausted');
+    await action();
+  } catch (error) {
+    for (const appt of state.appts) {
+      if (stage === 'identity') appt.ndaIdentityUnavailable = !appt.animal || !appt.contact;
+      if (stage === 'medication' && !appt.ndaMedicationReady) appt.ndaMedicationUnavailable = true;
+      if (stage === 'records' && !appt.ndaRecordsReady) appt.ndaRecordsUnavailable = true;
+      if (stage === 'visitHistory' && !appt.ndaVisitHistoryReady) appt.ndaVisitHistoryUnavailable = true;
     }
-    CacheService.getScriptCache().put(`days_to_next_${uaLoc.toLowerCase()}_appts`, daysAhead, 21600);
-    return { appts, targetDateStr };
+    recordNdaFailure(failures, state.location, stage, error);
+  }
+  try {
+    // Re-read current patient links and fill only still-pending enrichment
+    // cells. Webhook changes, inserted/deleted rows, and staff edits survive.
+    enrichNdaSection(sheet, state.location, state.targetDateStr, state.appts);
+  } catch (error) {
+    recordNdaFailure(failures, state.location, 'publish_' + stage, error);
+  }
+}
+
+async function getNdaEnrichment(state, stage) {
+  const { appts, targetDateStr, location } = state;
+  if (stage === 'medication') return fetchNdaMedicalData(appts);
+  if (stage === 'visitHistory') return fetchDataToCheckIfFirstTimeClient(appts, targetDateStr);
+  const { animalAttachments, consultAttachments } = fetchNdaAttachmentData(appts);
+  if (ENABLE_NDA_ATTACHMENT_DOWNLOADS && appts.some(a => !a.animal || !a.contact)) {
+    throw new Error('NDA identity unavailable for attachment download');
+  }
+  const folder = ENABLE_NDA_ATTACHMENT_DOWNLOADS ? driveFolderProcessing(targetDateStr, location) : null;
+  await processRecords(animalAttachments, consultAttachments, appts, folder);
+  for (const appt of appts) appt.ndaRecordsReady = true;
+}
+
+function recordNdaFailure(failures, location, stage, error) {
+  const reason = error.message === 'NDA read budget exhausted' ? 'read_budget' : 'unavailable';
+  failures.push({ location, stage, reason });
+  // Never log provider bodies, patient identities, or protected request URLs.
+  console.error(JSON.stringify({ event: 'nda_stage_failed', location, stage, reason }));
+}
+
+function getNextDayAppts(location) {
+  for (let daysAhead = 1; daysAhead <= 10; daysAhead++) {
+    const [start, end] = epochRangeForFutureDay(daysAhead);
+    const url = `${EV_PROXY}/v1/appointment?active=1&limit=200&time_range_start=${start}&time_range_end=${end}`;
+    const items = ndaReadAll(url);
+    const appts = filterAndSortAppts({ items }, location);
+    if (!appts.length) continue;
+    for (const { appointment } of appts) {
+      if (!/^[1-9]\d*$/.test(String(appointment.details.animal_id))
+        || !/^[1-9]\d*$/.test(String(appointment.details.contact_id))
+        || !Number.isFinite(Number(appointment.start_time))) throw new Error('Invalid NDA appointment identity');
+    }
+    return { appts, targetDateStr: convertEpochToUserTimezoneDate(start), daysAhead };
+  }
+  throw new Error('No next-day appointments within ten days');
 }
 
 function filterAndSortAppts(allTargetDayAppts, uaLoc) {
@@ -98,17 +161,3 @@ function filterAndSortAppts(allTargetDayAppts, uaLoc) {
 
 
 };
-
-// fetch data for all appointments from all endpoints that we care about
-async function getAllEzyVetData(appts, targetDateStr, uaLoc) {
-    // ezyvet endpoints: animal, contact, consults, prescriptions, attachments of animal_id
-    const animalAttachmentData = firstRoundOfFetches(appts);
-    const ezyVetFolder = ENABLE_NDA_ATTACHMENT_DOWNLOADS
-        ? driveFolderProcessing(targetDateStr, uaLoc)
-        : null;
-    // get more data for every appointment for the following endponts:
-    // prescription items, other animals of contact, attachments based on all of the animal's consults
-    const consultAttachmentData = secondRoundOfFetches(appts);
-    await processRecords(animalAttachmentData, consultAttachmentData, appts, ezyVetFolder)
-    fetchDataToCheckIfFirstTimeClient(appts, targetDateStr);
-}

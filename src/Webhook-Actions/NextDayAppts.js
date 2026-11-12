@@ -1,8 +1,14 @@
 function handleNextDayAppt(appointment, uaLoc) {
+    // NDA row insertion/deletion and nightly section replacement share a lock.
+    // Today's waitlist/room handlers do not acquire this NDA-only lock.
+    return withNdaSheetLock(() => applyNextDayAppt(appointment, uaLoc));
+}
+
+function applyNextDayAppt(appointment, uaLoc) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('NDAs');
 
     // ⬇️ dynamic range for this location’s NDAs, A:I
-    let range = getNdaRangeForLoc(sheet, uaLoc); // <-- make this 'let'
+    let range = getNdaRangeForLoc(sheet, uaLoc, convertEpochToUserTimezoneDate(appointment.start_at)); // <-- make this 'let'
 
     const { highestEmptyRow, existingRow } = findRow(range, appointment.animal_id, 1);
 
@@ -253,6 +259,12 @@ function handleDeleteRow(existingRow, range, uaLoc) {
     const vals = range.getValues();
     const numOfAppts = range.getNumRows(); // whole range is appts now
     if (numOfAppts === 0) return;
+    if (numOfAppts === 1) {
+        // Keep one reusable empty row so a later appointment can populate the
+        // same section without consuming the following location's header.
+        existingRow.clearContent();
+        return;
+    }
 
     // index of row inside this range (0-based)
     const existingRowIndexWithinRange = existingRow.getRow() - range.getRow();
@@ -277,7 +289,7 @@ function handleDeleteRow(existingRow, range, uaLoc) {
                 nextRowTimeValue === SAME_FAM_STRING
             ) {
                 totalNumOfRowsPointingToExistingRowTime++;
-                nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime][0];
+                nextRowTimeValue = vals[existingRowIndexWithinRange + 1 + totalNumOfRowsPointingToExistingRowTime]?.[0];
             }
 
             const rowsInSameFam = range.offset(
@@ -327,7 +339,7 @@ function getActualStartTime(animalIDs, uaLoc) {
     const encodedAnimalIDs = encodeURIComponent(JSON.stringify({ "in": animalIDs }));
     const url = `${EV_PROXY}/v1/appointment?active=1&animal_id=${encodedAnimalIDs}&${encodedTime}`;
     const allTargetDayAppts = fetchAndParse(url);
-    const appts = filterAndSortDTAppts(allTargetDayAppts);
+    const appts = filterAndSortAppts(allTargetDayAppts, uaLoc);
     if (appts.length !== animalIDs.length) {
         throw new Error(`there are ${appts.length} on next day of dt appts for animals with ids of ${animalIDs}`);
     }
@@ -336,7 +348,7 @@ function getActualStartTime(animalIDs, uaLoc) {
     return new Date(minStartTime * 1000);
 }
 
-function getNdaRangeForLoc(sheet, uaLoc) {
+function getNdaRangeForLoc(sheet, uaLoc, expectedDateStr) {
     const headerText = `${uaLoc}-\n`;
     const lastRow = sheet.getLastRow();
     if (!lastRow) {
@@ -349,6 +361,9 @@ function getNdaRangeForLoc(sheet, uaLoc) {
     for (let i = 0; i < colAValues.length; i++) {
         const cellVal = colAValues[i][0];
         if (typeof cellVal === "string" && cellVal.startsWith(headerText)) {
+            if (expectedDateStr && cellVal !== `${headerText}${expectedDateStr}`) {
+                throw new Error(`NDA section for ${uaLoc} needs rebuilding for the expected date`);
+            }
             headerRow = i + 1; // 1-based
             break;
         }
@@ -379,7 +394,15 @@ function getNdaRangeForLoc(sheet, uaLoc) {
     }
 
     if (endRow < startRow) {
-        throw new Error(`No NDA rows found under header ${headerText}`);
+        // An empty section is valid after the last appointment is cancelled.
+        // Recover legacy header-only sections without overwriting a neighbor.
+        const firstValue = colAValues[startRow - 1]?.[0];
+        if (typeof firstValue === 'string' && /^(DT|CH|WC)-\n/.test(firstValue)) {
+            sheet.insertRows(startRow, 1);
+        } else if (startRow > sheet.getMaxRows()) {
+            sheet.insertRowsAfter(sheet.getMaxRows(), 1);
+        }
+        return sheet.getRange(startRow, 1, 1, 10);
     }
 
     const numRows = endRow - startRow + 1;
