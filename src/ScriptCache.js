@@ -1,6 +1,4 @@
 const TOKEN_NAME = 'ezyVet_broker_token_v1';
-// const DAYS_TO_NDA_DT_APPTS_NAME = 'days_to_next_dt_appts';
-const ALL_LOCS_DAYS_TO_NDA_KEY_NAMES = ALL_LOCATION_SHEETS.map(uaLoc => ndaUaLocTokenName(uaLoc));
 const EZYVET_RESOURCE_TO_UA_LOC_NAME = 'ezyvet_resource_to_ua_loc';
 
 let token;
@@ -14,28 +12,17 @@ function ndaUaLocTokenName(uaLoc) {
 
 function getCacheVals() {
     const cache = CacheService.getScriptCache();
-    const cacheVals = cache.getAll([TOKEN_NAME, ...ALL_LOCS_DAYS_TO_NDA_KEY_NAMES, EZYVET_RESOURCE_TO_UA_LOC_NAME]);
-    const missingDayKeys = ALL_LOCS_DAYS_TO_NDA_KEY_NAMES
-        .filter(key => !cacheVals[key]);
+    // Only initialize dependencies used by the live whiteboard. Parked NDA
+    // date caches must not trigger appointment searches on normal webhooks.
+    const cacheVals = cache.getAll([TOKEN_NAME, EZYVET_RESOURCE_TO_UA_LOC_NAME]);
 
     setObservedSummary('cache', {
         tokenHit: Boolean(cacheVals[TOKEN_NAME]),
         resourceMapHit: Boolean(cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME]),
-        missingDayKeyCount: missingDayKeys.length,
+        ndaDateLookupsEnabled: false,
     });
 
     token = getToken();
-
-    daysToNextApptsByUaLoc = {}; // reset
-
-    ALL_LOCATION_SHEETS.forEach(uaLoc => {
-        let uaLocDaysToNextAppt = cacheVals[ndaUaLocTokenName(uaLoc)];
-        if (!uaLocDaysToNextAppt) {
-            uaLocDaysToNextAppt = getDaysAhead(cache, uaLoc);  // this function already writes to cache
-        }
-        else uaLocDaysToNextAppt = Number(uaLocDaysToNextAppt);
-        daysToNextApptsByUaLoc[uaLoc] = uaLocDaysToNextAppt;
-    });
 
     const mapJson = cacheVals[EZYVET_RESOURCE_TO_UA_LOC_NAME];
     ezyVetResourceToUaLoc = handleEzyVetResourceMapCache(cache, mapJson);

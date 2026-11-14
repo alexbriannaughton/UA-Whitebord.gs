@@ -8,6 +8,16 @@ are intentionally retained; the pause does not disable the installed overnight
 trigger. Repair placeholder handling and remove provider reads from the NDA
 write lock before restoring webhook routing and validating under degraded data.
 
+The user has also requested parking the overnight builder. Remove the owner's
+time-based `runAllNdaJobs` trigger in production; trigger removal is separate from
+source deployment and must be confirmed in the owning account. Normal webhook
+cache initialization no longer reads or populates NDA date caches, so eviction
+of those six-hour cache entries cannot start background appointment searches.
+NDA helpers are intentionally retained as parked code. The retained manual
+builders still perform real work if explicitly invoked; do not run them while
+NDA is parked. Re-enable decisions must include restoring and validating the
+date-cache contract used by the old NDA webhook helpers.
+
 `runAllNdaJobs` builds DT, CH, and WC on the `NDAs` tab. It first fetches and
 publishes every location's basic appointment list, including patient chart links,
 before starting optional identity, medication, attachment, and visit-history

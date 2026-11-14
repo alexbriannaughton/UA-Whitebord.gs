@@ -106,3 +106,27 @@ test('room replay: broker outage with no valid token leaves sheet untouched',()=
  assert.throws(()=>vm.runInContext('replayRoom()',f.context),/synthetic broker outage/);
  assert.equal(f.writes,0);assert.equal(f.ezyvetCalls,0);
 });
+
+test('live cache startup ignores missing NDA dates with warm or cold resource caches',()=>{
+ for(const warmResourceMap of [true,false]) {
+  const requested=[];let resourceFetches=0;let summary;
+  const map={'60':'White Center'};
+  const context=vm.createContext({JSON,
+   CacheService:{getScriptCache:()=>({getAll:keys=>{
+    requested.push(...keys);
+    return warmResourceMap?{ezyvet_resource_to_ua_loc:JSON.stringify(map)}:{};
+   }})},
+   setObservedSummary:(_,value)=>{summary=value;},getToken:()=> 'Bearer shared',
+   fetchAndBuildEzyVetResourceMap:()=>{resourceFetches++;return map;},
+   epochRangeForFutureDay:()=>{throw Error('Parked NDA date lookup reached');},
+   fetchAndParse:()=>{throw Error('Unexpected appointment API request');},
+  });
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'../src/ScriptCache.js'),'utf8'),context);
+  vm.runInContext('getCacheVals()',context);
+  assert.deepEqual(requested,['ezyVet_broker_token_v1','ezyvet_resource_to_ua_loc']);
+  assert.equal(vm.runInContext('token',context),'Bearer shared');
+  assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(ezyVetResourceToUaLoc)',context)),map);
+  assert.equal(resourceFetches,warmResourceMap?0:1);
+  assert.equal(summary.ndaDateLookupsEnabled,false);
+ }
+});
