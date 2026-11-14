@@ -1,5 +1,13 @@
 # Next-day appointment builds
 
+Automatic NDA appointment webhook updates are paused after the November 13,
+2026 API burst and lock-contention incident. `handleAppointment` skips future
+appointments after the separate echo/AUS forwarding step. Today's room and
+waitlist routing remains active. The nightly/manual builders and NDA helpers
+are intentionally retained; the pause does not disable the installed overnight
+trigger. Repair placeholder handling and remove provider reads from the NDA
+write lock before restoring webhook routing and validating under degraded data.
+
 `runAllNdaJobs` builds DT, CH, and WC on the `NDAs` tab. It first fetches and
 publishes every location's basic appointment list, including patient chart links,
 before starting optional identity, medication, attachment, and visit-history

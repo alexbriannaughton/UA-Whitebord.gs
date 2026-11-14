@@ -10,22 +10,13 @@ function handleAppointment(webhookType, appointment, isToday) {
     // below here is for this sheet
     if (UNHANDLED_APPT_TYPE_IDS.includes(appointment.type_id)) return;
 
+    // NDA webhook updates are paused: unresolved patient names can trigger
+    // excessive family lookups while holding the NDA lock. Keep future
+    // appointments out of that path until it is repaired and revalidated.
+    if (!isToday) return;
+
     const uaLocFullName = whichLocation(appointment.resources[0].id);
     const uaLoc = UA_LOC_SHEET_NAMES_MAP[uaLocFullName];
-
-    const isOnNextDayOfDtAppts = checkIfIsOnNextDayOfAppts(appointment, uaLoc);
-    const incomingResourceIds = appointment.resources.map(({ id }) => id);
-    const incomingApptId = appointment.type_id;
-    const isValidDtNda = isOnNextDayOfDtAppts && containsValidNdaIds(
-        NDA_SCHEDULED_RESOURCES_MAP[uaLoc],
-        NDA_APPT_TYPES_MAP[uaLoc],
-        incomingResourceIds,
-        incomingApptId,
-    );
-
-    if (isValidDtNda) return handleNextDayAppt(appointment, uaLoc);
-
-    if (!isToday) return;
 
     const locationToRoomCoordsMap = ROOM_STATUS_LOCATION_TO_COORDS[appointment.status_id];
 

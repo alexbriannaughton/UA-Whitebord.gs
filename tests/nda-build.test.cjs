@@ -281,3 +281,50 @@ test('failed other-pet history never marks an unverified client as first-time', 
   await assert.rejects(f.context.runAllNdaJobs(), /needs attention/);
   assert.equal(f.rows('WC')[0][4], 'Unavailable - see chart');
 });
+
+function routingFixture() {
+  const f = fixture();
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../src/Webhook-Actions/AppointmentHandler.js'), 'utf8'), f.context);
+  f.context.checkIfIsOnNextDayOfAppts = () => { throw Error('Paused NDA routing must not inspect next-day state'); };
+  f.context.handleNextDayAppt = () => { throw Error('Paused NDA routing must not acquire locks or fetch data'); };
+  f.context.whichLocation = () => 'White Center';
+  return f;
+}
+
+test('paused NDA routing ignores future appointment creates, updates, and cancellations without API or sheet work', () => {
+  const f = routingFixture();
+  const baseline = JSON.stringify(f.sheet.rows);
+  for (const event of ['appointment_created', 'appointment_updated']) {
+    for (const type of [19, 79, 85, 115]) {
+      for (const active of [true, false]) {
+        f.context.handleAppointment(event, { type_id: type, active, resources: [{ id: 60 }] }, false);
+      }
+    }
+  }
+  assert.equal(f.calls.length, 0); assert.equal(f.releases, 0);
+  assert.equal(JSON.stringify(f.sheet.rows), baseline);
+});
+
+test('NDA pause preserves today room, waitlist, and downtown routing', () => {
+  const f = routingFixture(); const handled = [];
+  f.context.moveToRoom = () => handled.push('room');
+  f.context.addToWaitlist = () => handled.push('waitlist');
+  f.context.handleDTAppointment = () => handled.push('downtown');
+  for (const name of ['okToCheckOut', 'addTextedTimestampOnWaitlist', 'handleReadyStatus', 'addTechAppt', 'addInPatient']) {
+    f.context[name] = () => { throw Error('Unexpected today route: ' + name); };
+  }
+  const current = { type_id: 19, active: true, status_id: 18, resources: [{ id: 60 }], description: 'Synthetic visit' };
+  f.context.handleAppointment('appointment_updated', { ...current }, true);
+  f.context.handleAppointment('appointment_updated', { ...current, status_id: 17 }, true);
+  f.context.whichLocation = () => 'Downtown';
+  f.context.handleAppointment('appointment_updated', { ...current }, true);
+  assert.deepEqual(handled, ['room', 'waitlist', 'downtown']);
+});
+
+test('NDA pause preserves separate future echo and AUS forwarding', () => {
+  const f = routingFixture(); const forwarded = [];
+  f.context.handleEchoOrAUS = (_, name) => forwarded.push(name);
+  f.context.handleAppointment('appointment_created', { type_id: 30 }, false);
+  f.context.handleAppointment('appointment_updated', { type_id: 29 }, false);
+  assert.deepEqual(forwarded, ['Echos', 'AUS']);
+});
