@@ -216,6 +216,16 @@ test('bulk medication lookup deduplicates patients and skips empty prescription-
   assert.ok(appts.every(a => a.ndaMedicationReady));
 });
 
+test('empty animal and contact-ID sets make no NDA reads', () => {
+  const f = fixture();
+  const session = f.context.startNdaReadSession();
+  for (const key of ['id', 'contact_id']) {
+    assert.equal(f.context.ndaFetchByIds('animal', key, []).length, 0);
+  }
+  assert.equal(f.calls.length, 0);
+  assert.equal(session.requests, 0);
+});
+
 test('only a failed GET is retried; successful ID chunks are reused and paced', () => {
   let tries = 0;
   const f = fixture({ reply: r => { if (r.endpoint === 'animal' && r.ids.includes(51) && tries++ === 0) throw Error('Address unavailable'); return r.normal; } });
