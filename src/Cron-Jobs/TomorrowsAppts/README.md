@@ -93,8 +93,8 @@ empty-section recovery.
 
 Before promotion, run an authorized DEV build and check the sheet, formatting,
 execution duration, stage summary, and live NDA webhook add/change/cancel behavior.
-Synthetic tests do not prove Apps Script service or live-sheet behavior. Reconcile
-this production-v1-based fetch implementation with the separately parked animal
-v1.1 migration before combining releases; do not pull that migration into a scoped
-production resilience release unintentionally. No schedule, Script Property, or
-schema change is required by this implementation.
+Synthetic tests do not prove Apps Script service or live-sheet behavior. Animal
+reads use v1.1 cursor pagination, preserving the original filters and page size
+through the NDA pacing, deadline, cache, and scope checks. NDA routing, trigger,
+and tab remain parked; this transport migration does not re-enable them. No
+schedule, Script Property, or schema change is required by this implementation.

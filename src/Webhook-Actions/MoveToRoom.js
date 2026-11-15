@@ -283,7 +283,7 @@ function getContactIDFromConsultID(consultID) {
   const url1 = `${EV_PROXY}/v1/consult/${consultID}`;
   const animalID = fetchAndParse(url1).items[0].consult.animal_id;
 
-  const url2 = `${EV_PROXY}/v1/animal/${animalID}`;
+  const url2 = `${EV_PROXY}/v1.1/animal?id=${animalID}`;
   const contactID = fetchAndParse(url2).items[0].animal.contact_id;
 
   return contactID;

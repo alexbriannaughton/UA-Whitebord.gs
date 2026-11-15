@@ -96,10 +96,11 @@ function fixture(options = {}) {
       else if (endpoint === 'prescription') items = ids.map(id => ({ prescription: { id: String(id + 2000), animal_id: String(id), date_of_prescription: '1762300800' } }));
       else if (endpoint === 'prescriptionitem') items = ids.map(id => ({ prescriptionitem: { id: String(id + 3000), prescription_id: String(id), product_id: '794' } }));
       else if (endpoint === 'appointment') items = ids.map(id => ({ appointment: { id: String(id + 4000), details: { consult_id: id } } }));
-      const normal = { meta: { items_page_total: 1 }, items };
+      const normal = { meta: { items_page_total: 1, next_token: null }, items };
       return options.reply ? options.reply({ url, endpoint, params, ids, normal, sheet, context, calls, published }) : normal;
     },
   });
+  context.fetchAndParsePage = context.fetchAndParse;
   const files = ['CONSTANTS.js', 'Helpers/Other.js', 'Helpers/Date.js', 'Cron-Jobs/TomorrowsAppts/Fetch.js',
     'Cron-Jobs/TomorrowsAppts/PutDataOnSheet.js', 'Cron-Jobs/TomorrowsAppts/Format.js', 'Cron-Jobs/TomorrowsAppts/Records.js',
     'Cron-Jobs/TomorrowsAppts/Index.js', 'Webhook-Actions/NextDayAppts.js'];
@@ -226,13 +227,13 @@ test('only a failed GET is retried; successful ID chunks are reused and paced', 
 test('all pages are read and out-of-scope or malformed responses are rejected', () => {
   const f = fixture({ reply: r => ({ meta: { items_page_total: 2, items_page: r.params.get('page') },
     items: [r.normal.items[Number(r.params.get('page')) - 1]] }) });
-  f.context.startNdaReadSession(); assert.equal(f.context.ndaFetchByIds('animal', 'id', [1, 2]).length, 2);
-  const bad = fixture({ reply: () => ({ meta: { items_page_total: 1 }, items: [{ animal: { id: '999' } }] }) });
+  f.context.startNdaReadSession(); assert.equal(f.context.ndaFetchByIds('contact', 'id', [11, 22]).length, 2);
+  const bad = fixture({ reply: () => ({ meta: { items_page_total: 1, next_token: null }, items: [{ animal: { id: '999' } }] }) });
   bad.context.startNdaReadSession(); assert.throws(() => bad.context.ndaFetchByIds('animal', 'id', [1]), /outside requested scope/);
   const missing = fixture({ reply: () => ({ items: [] }) }); missing.context.startNdaReadSession();
   assert.throws(() => missing.context.ndaReadAll('https://api.ezyvet.com/v1/animal?active=1'), /Invalid NDA pagination/);
   const repeated = fixture({ reply: r => ({ meta: { items_page_total: 2 }, items: r.normal.items }) });
-  repeated.context.startNdaReadSession(); assert.throws(() => repeated.context.ndaFetchByIds('animal', 'id', [1]), /duplicate/);
+  repeated.context.startNdaReadSession(); assert.throws(() => repeated.context.ndaFetchByIds('contact', 'id', [11]), /duplicate/);
 });
 
 test('a new webhook row added during enrichment is preserved and existing patients get their own data', async () => {
@@ -327,4 +328,20 @@ test('NDA pause preserves separate future echo and AUS forwarding', () => {
   f.context.handleAppointment('appointment_created', { type_id: 30 }, false);
   f.context.handleAppointment('appointment_updated', { type_id: 29 }, false);
   assert.deepEqual(forwarded, ['Echos', 'AUS']);
+});
+
+test('animal cursor pages retain filters, are paced, and reject invalid continuations', () => {
+  const f = fixture({ reply: r => {
+    assert.equal(r.params.get('id'), '{"in":["1","2"]}');
+    assert.equal(r.params.get('active'), '1'); assert.equal(r.params.get('page_size'), '200');
+    const continued = r.params.has('next_token');
+    return { meta: { next_token: continued ? null : 'fixture-cursor' }, items: [r.normal.items[continued ? 1 : 0]] };
+  } });
+  f.context.startNdaReadSession(); assert.equal(f.context.ndaFetchByIds('animal', 'id', [1, 2]).length, 2);
+  assert.equal(f.calls.length, 2); assert.ok(f.calls[1].at - f.calls[0].at >= 1500);
+  assert.equal(new URL(f.calls[1].url).searchParams.get('next_token'), 'fixture-cursor');
+  const malformed = fixture({ reply: r => ({ ...r.normal, meta: { next_token: {} } }) });
+  malformed.context.startNdaReadSession(); assert.throws(() => malformed.context.ndaFetchByIds('animal', 'id', [1]), /Invalid NDA animal cursor/);
+  const repeated = fixture({ reply: r => ({ meta: { next_token: 'same-cursor' }, items: [{ animal: { id: String(r.calls.length) } }] }) });
+  repeated.context.startNdaReadSession(); assert.throws(() => repeated.context.ndaFetchByIds('animal', 'id', [1, 2]), /Repeated NDA animal cursor/);
 });

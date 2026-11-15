@@ -16,7 +16,7 @@ function startNdaReadSession() {
 function ndaRead(url) {
   if (!ndaReadSession) throw new Error('NDA read session required');
   if (ndaReadSession.responses.has(url)) return ndaReadSession.responses.get(url);
-  const endpoint = url.match(/\/v1\/([^/?]+)/)?.[1];
+  const endpoint = url.match(/\/v1(?:\.1)?\/([^/?]+)/)?.[1];
   if (!endpoint) throw new Error('Unsupported NDA read endpoint');
 
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -29,7 +29,8 @@ function ndaRead(url) {
     ndaReadSession.endpointReadAt.set(endpoint, Date.now() + 1500);
     ndaReadSession.requests++;
     try {
-      const response = fetchAndParse(url);
+      const response = url.startsWith(`${EV_PROXY}/v1.1/animal?`)
+        ? fetchAndParsePage(url) : fetchAndParse(url);
       if (!response || !Array.isArray(response.items)) throw new Error('Incomplete NDA read response');
       ndaReadSession.responses.set(url, response);
       return response;
@@ -42,9 +43,10 @@ function ndaRead(url) {
 }
 
 function ndaReadAll(url) {
+  if (url.startsWith(`${EV_PROXY}/v1.1/animal?`)) return ndaReadAnimalPages(url);
   const items = [];
   const seen = new Set();
-  const endpoint = url.match(/\/v1\/([^/?]+)/)?.[1];
+  const endpoint = url.match(/\/v1(?:\.1)?\/([^/?]+)/)?.[1];
   let pages = 1;
   for (let page = 1; page <= pages; page++) {
     const response = ndaRead(`${url}&page=${page}`);
@@ -67,6 +69,31 @@ function ndaReadAll(url) {
   return items;
 }
 
+// Keep each animal v1.1 cursor page inside the NDA pacing/cache boundary,
+// retaining the original filters on every page.
+function ndaReadAnimalPages(url) {
+  const items = [];
+  const cursors = new Set();
+  const ids = new Set();
+  let cursor = '';
+  for (let page = 0; page < 32; page++) {
+    const response = ndaRead(cursor ? `${url}&next_token=${encodeURIComponent(cursor)}` : url);
+    const next = response.meta?.next_token;
+    if (!(next === null || typeof next === 'string')) throw new Error('Invalid NDA animal cursor');
+    for (const item of response.items) {
+      const id = String(item.animal?.id);
+      if (!/^[1-9]\d*$/.test(id) || ids.has(id)) throw new Error('NDA pagination contains missing or duplicate records');
+      ids.add(id);
+    }
+    items.push(...response.items);
+    if (!next) return items;
+    if (cursors.has(next)) throw new Error('Repeated NDA animal cursor');
+    cursors.add(next);
+    cursor = next;
+  }
+  throw new Error('NDA animal pagination exceeds 32 pages');
+}
+
 function ndaFetchByIds(endpoint, key, ids, extra = '') {
   const unique = [...new Set(ids.map(String))].sort((a, b) => Number(a) - Number(b));
   if (unique.some(id => !/^[1-9]\d*$/.test(id))) throw new Error('Invalid NDA filter id');
@@ -74,7 +101,8 @@ function ndaFetchByIds(endpoint, key, ids, extra = '') {
   for (let offset = 0; offset < unique.length; offset += 50) {
     const chunk = unique.slice(offset, offset + 50);
     const filter = encodeURIComponent(JSON.stringify({ in: chunk }));
-    const items = ndaReadAll(`${EV_PROXY}/v1/${endpoint}?active=1&limit=200&${key}=${filter}${extra}`);
+    const route = endpoint === 'animal' ? 'v1.1/animal?active=1&page_size=200' : `v1/${endpoint}?active=1&limit=200`;
+    const items = ndaReadAll(`${EV_PROXY}/${route}&${key}=${filter}${extra}`);
     // A rejected/ignored filter must never attach another patient's data.
     for (const item of items) {
       const record = item[endpoint];

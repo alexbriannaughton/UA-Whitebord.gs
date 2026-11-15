@@ -63,12 +63,12 @@ test('warm cached token remains available when Secret Manager is unavailable',()
 // Local room replay: actual ezyVet read/retry and room-population functions;
 // spreadsheet, speaker and remote services are synthetic and cannot reach Google.
 function roomFixture({brokerDown=false,stale=false}={}) {
- const f=fixture();let calls=0,writes=0;const auth=[];
+ const f=fixture();let calls=0,writes=0;const auth=[];const urls=[];
  f.values.set('broker',JSON.stringify({...f.credential,token:stale?'Bearer old':f.credential.token}));
  f.context.syntheticFetch=(url,options)=>{
-   calls++;auth.push(options.headers.authorization);
+   calls++;auth.push(options.headers.authorization);urls.push(url);
    if(stale && options.headers.authorization==='Bearer old')return {getResponseCode:()=>401,getContentText:()=>'{"error":"expired"}'};
-   const item=url.includes('/animal/')?{animal:{name:'Synthetic Pet',species_id:'1',is_hostile:'0'}}:{contact:{last_name:'Fixture'}};
+   const item=url.includes('/animal?')?{animal:{name:'Synthetic Pet',species_id:'1',is_hostile:'0'}}:{contact:{last_name:'Fixture'}};
    return {getResponseCode:()=>200,getContentText:()=>JSON.stringify({items:[item]})};
  };
  f.context.recordRoomWrite=()=>{writes++;};
@@ -90,11 +90,13 @@ function roomFixture({brokerDown=false,stale=false}={}) {
        range,name+' '+last,name,'CH',Array(8).fill(''),false);
    }
  `,f.context);
- return {...f,get ezyvetCalls(){return calls;},get writes(){return writes;},auth};
+ return {...f,get ezyvetCalls(){return calls;},get writes(){return writes;},auth,urls};
 }
 test('room replay: valid cache preserves room write during complete broker outage',()=>{
  const f=roomFixture({brokerDown:true});vm.runInContext('replayRoom()',f.context);
  assert.equal(f.writes,1);assert.equal(f.ezyvetCalls,2);
+ assert.equal(f.urls[0],'https://synthetic.invalid/v1.1/animal?id=7');
+ assert.equal(f.urls[1],'https://synthetic.invalid/v1/contact/8');
 });
 test('room replay: rejected cache retrieves shared token and retries before write',()=>{
  const f=roomFixture({stale:true});vm.runInContext('replayRoom()',f.context);
@@ -129,4 +131,48 @@ test('live cache startup ignores missing NDA dates with warm or cold resource ca
   assert.equal(resourceFetches,warmResourceMap?0:1);
   assert.equal(summary.ndaDateLookupsEnabled,false);
  }
+});
+
+// Cursor requests must retain the scope of the original animal lookup.
+function animalPagesFixture(reply) {
+ const urls=[];
+ const context=vm.createContext({Date,JSON,Math,Error,Set,encodeURIComponent,console,
+  getToken:()=> 'Bearer fixture',updateToken:()=> 'Bearer renewed',
+  observedApiLabel:()=> 'fixture',observeExternalCall:(_,fn)=>fn(),logObservedEvent:()=>{},
+  UrlFetchApp:{fetch:(url,options)=>{
+   urls.push({url,authorization:options.headers.authorization});return reply(url,urls.length);
+  }},Utilities:{sleep:()=>{}},
+ });
+ vm.runInContext("const EV_PROXY='https://synthetic.invalid';let token;"+
+  fs.readFileSync(path.join(__dirname,'../src/Helpers/Fetch.js'),'utf8'),context);
+ return {context,urls};
+}
+function animalResponse(id,cursor,status=200) {
+ return {getResponseCode:()=>status,getContentText:()=>JSON.stringify({items:[{animal:{id}}],meta:{next_token:cursor}})};
+}
+test('animal cursor continuation retains contact filter and page size',()=>{
+ const f=animalPagesFixture((_,n)=>animalResponse(String(n),n===1?'next+&cursor':null));
+ const result=vm.runInContext("fetchAndParse('https://synthetic.invalid/v1.1/animal?contact_id=7&active=1&page_size=1')",f.context);
+ assert.deepEqual(Array.from(result.items,x=>x.animal.id),['1','2']);
+ const second=new URL(f.urls[1].url);
+ assert.equal(second.searchParams.get('contact_id'),'7');assert.equal(second.searchParams.get('active'),'1');
+ assert.equal(second.searchParams.get('page_size'),'1');assert.equal(second.searchParams.get('next_token'),'next+&cursor');
+});
+test('animal paging fails closed on a repeating cursor or page limit',()=>{
+ for(const repeat of [true,false]) {
+  const f=animalPagesFixture((_,n)=>animalResponse('1',repeat?'same':String(n)));
+  assert.throws(()=>vm.runInContext("fetchAndParse('https://synthetic.invalid/v1.1/animal?id=1')",f.context),repeat?/Repeated/:/exceeds 32/);
+  assert.equal(f.urls.length,repeat?2:32);
+ }
+});
+test('animal continuation 401 retries the same filtered URL with the recovered token',()=>{
+ const f=animalPagesFixture((_,n)=>n===2?animalResponse('ignored',null,401):animalResponse(n===1?'1':'2',n===1?'second':null));
+ let current='Bearer old';f.context.getToken=()=>current;f.context.updateToken=()=>{current='Bearer renewed';return current;};
+ const result=vm.runInContext("fetchAndParse('https://synthetic.invalid/v1.1/animal?contact_id=7&page_size=1')",f.context);
+ assert.deepEqual(Array.from(result.items,x=>x.animal.id),['1','2']);assert.equal(f.urls.length,3);
+ assert.equal(f.urls[1].url,f.urls[2].url);assert.equal(f.urls[2].authorization,'Bearer renewed');
+});
+test('animal response without cursor metadata cannot masquerade as complete',()=>{
+ const f=animalPagesFixture(()=>({getResponseCode:()=>200,getContentText:()=>'{"items":[],"meta":{}}'}));
+ assert.throws(()=>vm.runInContext("fetchAndParse('https://synthetic.invalid/v1.1/animal?id=1')",f.context),/Invalid animal cursor response/);
 });
